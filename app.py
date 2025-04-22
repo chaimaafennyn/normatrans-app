@@ -8,7 +8,7 @@ st.title("Normatrans - Analyse des zones de livraison")
 
 # Chargement des données
 try:
-    df = pd.read_csv("zones_final_localites.csv", sep=";", encoding="utf-8")
+    df = pd.read_csv("normatrans_zones_final_localites.csv", sep=";", encoding="utf-8")
     df.columns = df.columns.str.strip()
     st.success("Données chargées avec succès")
 except Exception as e:
