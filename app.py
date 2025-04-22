@@ -53,6 +53,17 @@ st.dataframe(
 st.subheader("Carte interactive des localités")
 m = folium.Map(location=[coord_agence["Latitude_agence"], coord_agence["Longitude_agence"]], zoom_start=9)
 
+# Ajouter le point noir de l'agence
+folium.CircleMarker(
+    location=[coord_agence["Latitude_agence"], coord_agence["Longitude_agence"]],
+    radius=8,
+    color="black",
+    fill=True,
+    fill_opacity=1.0,
+    popup=f"Agence : {agence_selectionnee}"
+).add_to(m)
+
+
 colors = {"Zone 1": "green", "Zone 2": "orange", "Zone 3": "red"}
 
 for _, row in df_agence.iterrows():
