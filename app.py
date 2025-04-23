@@ -9,7 +9,7 @@ st.set_page_config(layout="wide")
 #LOGO ET TITRE
 col1, col2, col3 = st.columns([1, 2, 1])
 with col2:
-    st.image("logo.png", width=150)
+    st.image("logo.png", width=250)
 
 st.markdown("""
 <style>
