@@ -103,7 +103,7 @@ if menu == "Analyse des Zones":
 elif menu == "Calcul des Tarifs":
     st.header("💶 Calcul Global des Tarifs Pondérés par Zones")
 
-    default_tarif_file = "repartition_par_agence_et_zone.csv"
+    default_tarif_file = "repartition_par_zone.csv"
 
     uploaded_tarif = st.file_uploader("Uploader un autre fichier de répartition (optionnel)", type=["csv"])
 
