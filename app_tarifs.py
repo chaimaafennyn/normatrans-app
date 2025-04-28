@@ -19,7 +19,7 @@ st.markdown('<p class="big-font">Bienvenue sur la plateforme de simulation des t
 
 # Chargement des données
 try:
-    df = pd.read_csv("/content/drive/MyDrive/projet_normatrans_zone/nettoyage_de_donnee/repartition_par_agence_et_zone.csv", sep=";", encoding="utf-8")
+    df = pd.read_csv("repartition_par_agence_et_zone.csv", sep=";", encoding="utf-8")
     df = df.rename(columns={"% d'expéditions": "Pourcentage"})
     df["Pourcentage"] = df["Pourcentage"] / 100
     st.success(" Données chargées avec succès")
