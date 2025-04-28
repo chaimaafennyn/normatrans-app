@@ -152,4 +152,4 @@ elif menu == "Calcul des Tarifs":
         st.error(f"❌ Erreur : {e}")
 
 st.markdown("---")
-st.caption("Normatrans © 2025 - Application zones & tarifs finalisée")
+st.caption("Normatrans © 2025 - FennynChaimaa")
