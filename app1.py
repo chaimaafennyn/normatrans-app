@@ -17,7 +17,7 @@ text-align: center;
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<p class="big-font">Bienvenue sur la plateforme Normatrans MALHERBE</p>', unsafe_allow_html=True)
+st.markdown('<p class="big-font">Bienvenue sur la plateforme Normatrans </p>', unsafe_allow_html=True)
 
 # Menu principal
 menu = st.sidebar.radio(
@@ -157,7 +157,7 @@ mime="text/csv"
 
 # --- Footer + bouton reset
 st.markdown("---")
-st.caption("Normatrans © 2025")
+st.caption("Normatrans_Fennyn © 2025")
 
-if st.button("🔄 Revenir au menu principal"):
+if st.button("Revenir au menu principal"):
 st.experimental_rerun()
