@@ -185,10 +185,19 @@ elif menu == "Analyse des Expéditions":
     st.dataframe(df_agence_filtre)
     st.bar_chart(df_agence_filtre.set_index("Zone")["Pourcentage"])
     
+    csv_global = df_global.to_csv(index=False).encode("utf-8")
     st.download_button(
-        label="Télécharger les données",
-        data=df_agence_zone.to_csv(index=False),
-        file_name="expeditions_par_agence.csv",
+        label="📥 Télécharger la répartition globale",
+        data=csv_global,
+        file_name="repartition_globale_par_zone.csv",
+        mime="text/csv"
+    )
+
+    csv_agence = df_agence_filtre.to_csv(index=False).encode("utf-8")
+    st.download_button(
+        label=f"📥 Télécharger les données de l'agence {agence_choisie}",
+        data=csv_agence,
+        file_name=f"repartition_{agence_choisie}.csv",
         mime="text/csv"
     )
     
