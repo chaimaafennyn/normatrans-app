@@ -160,7 +160,7 @@ elif menu == "Analyse des Expéditions":
 
     # Chargement des fichiers
     try:
-        df_global = pd.read_csv("repartition_globale_par_zone.csv", sep=";")
+        df_global = pd.read_csv("repartition_par_zone.csv", sep=";")
         df_agence = pd.read_csv("repartition_par_agence_et_zone.csv", sep=";")
     except Exception as e:
         st.error(f"Erreur de chargement des fichiers : {e}")
