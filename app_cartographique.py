@@ -184,6 +184,14 @@ elif menu == "Analyse des Expéditions":
     df_agence_filtre = df_agence[df_agence["Code agence"] == agence_choisie]
     st.dataframe(df_agence_filtre)
     st.bar_chart(df_agence_filtre.set_index("Zone")["Pourcentage"])
+    
+    st.download_button(
+        label="Télécharger les données",
+        data=df_agence_zone.to_csv(index=False),
+        file_name="expeditions_par_agence.csv",
+        mime="text/csv"
+    )
+    
 
 
 st.markdown("---")
