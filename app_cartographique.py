@@ -10,9 +10,10 @@ st.title("🚚 Normatrans - Zones et Tarifs de Livraison")
 
 menu = st.sidebar.radio(
     "Navigation",
-    ["Analyse des Zones", "Calcul des Tarifs"],
+    ["Analyse des Zones", "Calcul des Tarifs", "Analyse des Expéditions"],
     index=0
 )
+
 
 # =======================
 # Partie 1 : Analyse des Zones
@@ -150,6 +151,40 @@ elif menu == "Calcul des Tarifs":
 
     except Exception as e:
         st.error(f"❌ Erreur : {e}")
+
+# =======================
+# Partie 3 : Analyse des Expéditions
+# =======================
+elif menu == "Analyse des Expéditions":
+    st.header("📦 Analyse des Expéditions")
+
+    # Chargement des fichiers
+    try:
+        df_global = pd.read_csv("repartition_globale_par_zone.csv", sep=";")
+        df_agence = pd.read_csv("repartition_par_agence_et_zone.csv", sep=";")
+    except Exception as e:
+        st.error(f"Erreur de chargement des fichiers : {e}")
+        st.stop()
+
+    # Nettoyage
+    df_global = df_global.rename(columns={"% d'expéditions": "Pourcentage"})
+    df_agence = df_agence.rename(columns={"% d'expéditions": "Pourcentage"})
+
+    for df in [df_global, df_agence]:
+        df["Pourcentage"] = df["Pourcentage"].astype(str).str.replace(",", ".").astype(float)
+
+    # Section 1 : Répartition Globale
+    st.subheader("🌍 Répartition globale par zone")
+    st.dataframe(df_global)
+    st.bar_chart(df_global.set_index("Zone")["Pourcentage"])
+
+    # Section 2 : Répartition par Agence
+    st.subheader("🏢 Répartition par agence")
+    agence_choisie = st.selectbox("Sélectionnez une agence :", df_agence["Code agence"].unique())
+    df_agence_filtre = df_agence[df_agence["Code agence"] == agence_choisie]
+    st.dataframe(df_agence_filtre)
+    st.bar_chart(df_agence_filtre.set_index("Zone")["Pourcentage"])
+
 
 st.markdown("---")
 st.caption("Normatrans © 2025 - FennynChaimaa")
