@@ -160,10 +160,17 @@ elif menu == "Calcul des Tarifs":
 elif menu == "Analyse des Expéditions":
     st.header("📦 Analyse des Expéditions")
 
-    # Chargement des fichiers
+    # Uploader fichiers ou utiliser ceux par défaut
+    default_global_file = "repartition_par_zone.csv"
+    default_agence_file = "repartition_par_agence_et_zone.csv"
+
+    uploaded_global = st.file_uploader("📁 Uploader le fichier global (optionnel)", type=["csv"])
+    uploaded_agence = st.file_uploader("📁 Uploader le fichier par agence (optionnel)", type=["csv"])
+
     try:
-        df_global = pd.read_csv("repartition_par_zone.csv", sep=";")
-        df_agence = pd.read_csv("repartition_par_agence_et_zone.csv", sep=";")
+        df_global = pd.read_csv(uploaded_global if uploaded_global else default_global_file, sep=";", encoding="utf-8")
+        df_agence = pd.read_csv(uploaded_agence if uploaded_agence else default_agence_file, sep=";", encoding="utf-8")
+        st.success("✅ Fichiers chargés avec succès")
     except Exception as e:
         st.error(f"Erreur de chargement des fichiers : {e}")
         st.stop()
@@ -186,19 +193,18 @@ elif menu == "Analyse des Expéditions":
     df_agence_filtre = df_agence[df_agence["Code agence"] == agence_choisie]
     st.dataframe(df_agence_filtre)
     st.bar_chart(df_agence_filtre.set_index("Zone")["Pourcentage"])
-    
-    csv_global = df_global.to_csv(index=False).encode("utf-8")
+
+    # Téléchargement des CSV
     st.download_button(
         label="📥 Télécharger la répartition globale",
-        data=csv_global,
+        data=df_global.to_csv(index=False).encode("utf-8"),
         file_name="repartition_globale_par_zone.csv",
         mime="text/csv"
     )
 
-    csv_agence = df_agence_filtre.to_csv(index=False).encode("utf-8")
     st.download_button(
         label=f"📥 Télécharger les données de l'agence {agence_choisie}",
-        data=csv_agence,
+        data=df_agence_filtre.to_csv(index=False).encode("utf-8"),
         file_name=f"repartition_{agence_choisie}.csv",
         mime="text/csv"
     )
