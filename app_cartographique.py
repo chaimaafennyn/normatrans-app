@@ -200,6 +200,67 @@ elif menu == "Analyse des Expéditions":
         file_name=f"repartition_{agence_choisie}.csv",
         mime="text/csv"
     )
+
+
+# =======================
+# Partie 4 : Analyse des Poids
+# =======================
+elif menu == "Analyse des Poids":
+    st.header("⚖️ Analyse des Poids par Zone et par Agence")
+
+    default_poids_file = "commune_zone_poids_um_exp.csv"
+
+    uploaded_poids = st.file_uploader("📂 Uploader un autre fichier de poids (optionnel)", type=["csv"], key="poids")
+
+    if uploaded_poids:
+        df_poids = pd.read_csv(uploaded_poids, sep=";", encoding="latin-1")
+        st.success("✅ Fichier importé avec succès")
+    else:
+        df_poids = pd.read_csv(default_poids_file, sep=";", encoding="latin-1")
+        st.info(f"📄 Fichier par défaut utilisé : {default_poids_file}")
+
+    # Nettoyage
+    df_poids.columns = df_poids.columns.str.strip()
+    df_poids["nb_Poids"] = df_poids["nb_Poids"].astype(str).str.replace(",", ".").astype(float)
+
+    # Agrégation
+    df_result = df_poids.groupby(["Code agence", "Zone"]).agg(
+        Poids_total=("nb_Poids", "sum")
+    ).reset_index()
+
+    # Total par agence
+    df_totaux = df_result.groupby("Code agence")["Poids_total"].sum().reset_index().rename(columns={"Poids_total": "Total_agence"})
+
+    df_result = pd.merge(df_result, df_totaux, on="Code agence")
+    df_result["% du poids"] = round((df_result["Poids_total"] / df_result["Total_agence"]) * 100, 2)
+
+    # Affichage tableau
+    st.subheader("📋 Répartition des poids par zone")
+    st.dataframe(df_result)
+
+    # Sélecteur agence
+    agence_selection = st.selectbox("🏢 Sélectionner une agence :", df_result["Code agence"].unique(), key="agence_poids")
+    df_agence_poids = df_result[df_result["Code agence"] == agence_selection]
+
+    # Graphe camembert
+    fig_pie = px.pie(
+        df_agence_poids,
+        values="Poids_total",
+        names="Zone",
+        title=f"Répartition des poids - Agence {agence_selection}",
+        hole=0.4
+    )
+    st.plotly_chart(fig_pie)
+
+    # Bouton export
+    poids_csv = df_result.to_csv(index=False).encode("utf-8")
+    st.download_button(
+        label="📥 Télécharger le fichier des poids",
+        data=poids_csv,
+        file_name="poids_par_zone.csv",
+        mime="text/csv"
+    )
+
     
 
 
