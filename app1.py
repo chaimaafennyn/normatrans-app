@@ -222,11 +222,11 @@ elif menu == "Analyse des Poids":
 
     # Nettoyage
     df_poids.columns = df_poids.columns.str.strip()
-    df_poids["nb_Poids"] = df_poids["nb_Poids"].astype(str).str.replace(",", ".").astype(float)
+    df_poids["Poids_total"] = df_poids["Poids_total"].astype(str).str.replace(",", ".").astype(float)
 
     # Agrégation
     df_result = df_poids.groupby(["Code agence", "Zone"]).agg(
-        Poids_total=("nb_Poids", "sum")
+        Poids_total=("Poids_total", "sum")
     ).reset_index()
 
     # Total par agence
