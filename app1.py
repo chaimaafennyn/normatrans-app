@@ -209,54 +209,55 @@ elif menu == "Analyse des Expéditions":
 elif menu == "Analyse des Poids":
     st.header("⚖️ Analyse des Poids")
 
-    default_file_poids = "analyse_poids_par_agence_et_zone.csv"
+    # Fichier par défaut
+    default_file = "analyse_poids_par_agence_et_zone.csv"
 
-    uploaded_file_poids = st.file_uploader("Uploader un autre fichier des poids (optionnel)", type=["csv"])
+    # Upload facultatif
+    uploaded_poids = st.file_uploader("Uploader un autre fichier des poids (optionnel)", type=["csv"])
 
-    if uploaded_file_poids is not None:
-        df_poids = pd.read_csv(uploaded_file_poids, sep=";", encoding="utf-8")
-        st.success("✅ Nouveau fichier de poids chargé !")
+    if uploaded_poids is not None:
+        df_poids = pd.read_csv(uploaded_poids, sep=";", encoding="latin-1")
+        st.success("✅ Fichier poids chargé avec succès !")
     else:
-        df_poids = pd.read_csv(default_file_poids, sep=";", encoding="utf-8")
-        st.info(f"📂 Fichier par défaut utilisé : {default_file_poids}")
+        df_poids = pd.read_csv(default_file, sep=";", encoding="latin-1")
+        st.info(f"📂 Fichier par défaut utilisé : {default_file}")
 
-    # Afficher les noms de colonnes pour s'assurer
+    # Nettoyage des colonnes
     df_poids.columns = df_poids.columns.str.strip()
-    st.write("Colonnes détectées :", df_poids.columns.tolist())
+    st.markdown("**Colonnes détectées :**")
+    st.write(df_poids.columns.tolist())
 
     try:
-        # Nettoyage pour convertir correctement les virgules en points
+        # Remplacer les virgules par des points dans les colonnes numériques
         df_poids["Poids_total"] = df_poids["Poids_total"].astype(str).str.replace(",", ".").astype(float)
         df_poids["% Poids"] = df_poids["% Poids"].astype(str).str.replace(",", ".").astype(float)
 
-        st.subheader("📋 Tableau des poids par agence et zone")
+        # Affichage tableau
+        st.subheader("📋 Détail par agence et par zone")
         st.dataframe(df_poids)
 
-        # Graphique global
-        st.subheader("📊 Répartition globale des poids (camembert)")
-        df_global_poids = df_poids.groupby("Zone")["Poids_total"].sum().reset_index()
-        fig_pie = px.pie(df_global_poids, names="Zone", values="Poids_total", title="Répartition des poids par zone")
-        st.plotly_chart(fig_pie)
+        # Répartition globale par zone
+        st.subheader("📊 Répartition globale des poids par zone")
+        poids_global = df_poids.groupby("Zone")["Poids_total"].sum().reset_index()
+        poids_global["% Poids"] = 100 * poids_global["Poids_total"] / poids_global["Poids_total"].sum()
+        st.dataframe(poids_global.round(2))
 
-        # Graphique par agence
-        agence_choisie = st.selectbox("Sélectionner une agence pour l’analyse :", df_poids["Code agence"].unique())
-        df_agence_poids = df_poids[df_poids["Code agence"] == agence_choisie]
-        st.dataframe(df_agence_poids)
+        # Graphique camembert
+        st.subheader("🥧 Camembert des poids globaux par zone")
+        fig = px.pie(poids_global, values="Poids_total", names="Zone", title="Part de chaque zone dans le poids total")
+        st.plotly_chart(fig)
 
-        fig_pie_agence = px.pie(df_agence_poids, names="Zone", values="Poids_total", title=f"Poids par zone - {agence_choisie}")
-        st.plotly_chart(fig_pie_agence)
-
-        # Téléchargement
-        csv_poids = df_poids.to_csv(index=False).encode("utf-8")
+        # Export CSV
         st.download_button(
-            label="📥 Télécharger les données de poids",
-            data=csv_poids,
-            file_name="analyse_poids.csv",
+            label="📥 Télécharger les poids globaux",
+            data=poids_global.to_csv(index=False).encode("utf-8"),
+            file_name="repartition_poids_globale.csv",
             mime="text/csv"
         )
 
     except Exception as e:
         st.error(f"❌ Erreur dans l’analyse des poids : {e}")
+
 
 
 
