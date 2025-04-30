@@ -204,4 +204,4 @@ elif menu == "Analyse des Expéditions":
 
 
 st.markdown("---")
-st.caption("Normatrans © 2025 - Fennynchaimaa")
+st.caption("Normatrans © 2025 - Fennynch")
