@@ -210,7 +210,7 @@ elif menu == "Analyse des Poids":
     st.header("⚖️ Analyse des Poids")
 
     # Fichier par défaut
-    default_file = "analyse_poids_par_agence_et_zone.csv"
+    default_file = "analyse_poids_par_agence_et_zones.csv"
 
     # Upload facultatif
     uploaded_poids = st.file_uploader("Uploader un autre fichier des poids (optionnel)", type=["csv"])
