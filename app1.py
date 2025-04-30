@@ -51,7 +51,7 @@ if menu == "Analyse des Zones":
     coord_agence = df_agence[["Latitude_agence", "Longitude_agence"]].iloc[0]
 
     st.subheader("📊 Statistiques générales")
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
     col1.metric("Nombre de localités", len(df_agence))
     col2.metric("Zone 1", len(df_agence[df_agence["Zone"] == "Zone 1"]))
     col3.metric("Zone 2", len(df_agence[df_agence["Zone"] == "Zone 2"]))
