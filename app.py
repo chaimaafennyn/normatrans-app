@@ -269,4 +269,4 @@ elif menu == "Analyse des Poids":
 
 
 st.markdown("---")
-st.caption("Normatrans © 2025 - Fennynch")
+st.caption("Normatrans © 2025 - Fennynchaimaa")
