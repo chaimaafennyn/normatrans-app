@@ -224,8 +224,8 @@ elif menu == "Analyse des Poids":
 
     # Nettoyage des colonnes
     df_poids.columns = df_poids.columns.str.strip()
-    st.markdown("**Colonnes détectées :**")
-    st.write(df_poids.columns.tolist())
+    # st.markdown("**Colonnes détectées :**")
+    # st.write(df_poids.columns.tolist())
 
     try:
         # Remplacer les virgules par des points dans les colonnes numériques
