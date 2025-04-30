@@ -171,7 +171,7 @@ elif menu == "Analyse des Expéditions":
     df_agence = df_agence.rename(columns={"% d'expéditions": "Pourcentage"})
 
     for df in [df_global, df_agence]:
-        df["Pourcentage"] = df["Pourcentage"].astype(str).str.replace(",", ".").astype(float)
+        df["Pourcentage"] = df["Pourcentage"].astype(str).str.replace(";", ".").astype(float)
 
     # Section 1 : Répartition Globale
     st.subheader("🌍 Répartition globale par zone")
