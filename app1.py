@@ -245,7 +245,7 @@ elif menu == "Analyse des Poids":
 
         # Graphique camembert
         #st.subheader("🥧 Camembert des poids globaux par zone")
-        fig = px.pie(poids_global, values="Poids_total", names="Zone", title="Part de chaque zone dans le poids total")
+        fig = px.pie(poids_global, values="Poids_total", names="Zone", title="")
         st.plotly_chart(fig)
 
         # Export CSV
