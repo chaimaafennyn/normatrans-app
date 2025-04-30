@@ -209,7 +209,7 @@ elif menu == "Analyse des Expéditions":
 elif menu == "Analyse des Poids":
     st.header("⚖️ Analyse des Poids par Zone et par Agence")
 
-    default_poids_file = "commune_zone_poids_um_exp.csv"
+    default_poids_file = "analyse_poids_par_agence_et_zone.csv"
 
     uploaded_poids = st.file_uploader("📂 Uploader un autre fichier de poids (optionnel)", type=["csv"], key="poids")
 
