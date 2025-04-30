@@ -10,7 +10,7 @@ st.title("🚚 Normatrans - Zones et Tarifs de Livraison")
 
 menu = st.sidebar.radio(
     "Navigation",
-    ["Analyse des Zones", "Calcul des Tarifs", "Analyse des Expéditions"],
+    ["Analyse des Zones", "Calcul des Tarifs", "Analyse des Expéditions", "Analyse des Poids"],
     index=0
 )
 
@@ -206,62 +206,58 @@ elif menu == "Analyse des Expéditions":
 # Partie 4 : Analyse des Poids
 # =======================
 elif menu == "Analyse des Poids":
-    st.header("⚖️ Analyse des Poids par Zone et par Agence")
+    st.header("⚖️ Analyse des Poids")
 
-    default_poids_file = "commune_zone_poids_um_exp.csv"
+    # Fichier par défaut
+    default_file = "analyse_poids_par_agence_et_zones.csv"
 
-    uploaded_poids = st.file_uploader("📂 Uploader un autre fichier de poids (optionnel)", type=["csv"], key="poids")
+    # Upload facultatif
+    uploaded_poids = st.file_uploader("Uploader un autre fichier des poids (optionnel)", type=["csv"])
 
-    if uploaded_poids:
+    if uploaded_poids is not None:
         df_poids = pd.read_csv(uploaded_poids, sep=";", encoding="latin-1")
-        st.success("✅ Fichier importé avec succès")
+        st.success("✅ Fichier poids chargé avec succès !")
     else:
-        df_poids = pd.read_csv(default_poids_file, sep=";", encoding="latin-1")
-        st.info(f"📄 Fichier par défaut utilisé : {default_poids_file}")
+        df_poids = pd.read_csv(default_file, sep=";", encoding="latin-1")
+        st.info(f"📂 Fichier par défaut utilisé : {default_file}")
 
-    # Nettoyage
+    # Nettoyage des colonnes
     df_poids.columns = df_poids.columns.str.strip()
-    df_poids["nb_Poids"] = df_poids["nb_Poids"].astype(str).str.replace(",", ".").astype(float)
+    # st.markdown("**Colonnes détectées :**")
+    # st.write(df_poids.columns.tolist())
 
-    # Agrégation
-    df_result = df_poids.groupby(["Code agence", "Zone"]).agg(
-        Poids_total=("nb_Poids", "sum")
-    ).reset_index()
+    try:
+        # Remplacer les virgules par des points dans les colonnes numériques
+        df_poids["Poids_total"] = df_poids["Poids_total"].astype(str).str.replace(",", ".").astype(float)
+        df_poids["% Poids"] = df_poids["% Poids"].astype(str).str.replace(",", ".").astype(float)
 
-    # Total par agence
-    df_totaux = df_result.groupby("Code agence")["Poids_total"].sum().reset_index().rename(columns={"Poids_total": "Total_agence"})
+        # Affichage tableau
+        st.subheader("📋 Détail par agence et par zone")
+        st.dataframe(df_poids)
 
-    df_result = pd.merge(df_result, df_totaux, on="Code agence")
-    df_result["% du poids"] = round((df_result["Poids_total"] / df_result["Total_agence"]) * 100, 2)
+        # Répartition globale par zone
+        st.subheader("📊 Répartition globale des poids par zone")
+        poids_global = df_poids.groupby("Zone")["Poids_total"].sum().reset_index()
+        poids_global["% Poids"] = 100 * poids_global["Poids_total"] / poids_global["Poids_total"].sum()
+        st.dataframe(poids_global.round(2))
 
-    # Affichage tableau
-    st.subheader("📋 Répartition des poids par zone")
-    st.dataframe(df_result)
+        # Graphique camembert
+        st.subheader("🥧 Camembert des poids globaux par zone")
+        fig = px.pie(poids_global, values="Poids_total", names="Zone", title="Part de chaque zone dans le poids total")
+        st.plotly_chart(fig)
 
-    # Sélecteur agence
-    agence_selection = st.selectbox("🏢 Sélectionner une agence :", df_result["Code agence"].unique(), key="agence_poids")
-    df_agence_poids = df_result[df_result["Code agence"] == agence_selection]
+        # Export CSV
+        st.download_button(
+            label="📥 Télécharger les poids globaux",
+            data=poids_global.to_csv(index=False).encode("utf-8"),
+            file_name="repartition_poids_globale.csv",
+            mime="text/csv"
+        )
 
-    # Graphe camembert
-    fig_pie = px.pie(
-        df_agence_poids,
-        values="Poids_total",
-        names="Zone",
-        title=f"Répartition des poids - Agence {agence_selection}",
-        hole=0.4
-    )
-    st.plotly_chart(fig_pie)
+    except Exception as e:
+        st.error(f"❌ Erreur dans l’analyse des poids : {e}")
 
-    # Bouton export
-    poids_csv = df_result.to_csv(index=False).encode("utf-8")
-    st.download_button(
-        label="📥 Télécharger le fichier des poids",
-        data=poids_csv,
-        file_name="poids_par_zone.csv",
-        mime="text/csv"
-    )
 
-    
 
 
 st.markdown("---")
