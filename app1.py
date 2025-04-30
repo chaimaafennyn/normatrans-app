@@ -54,7 +54,8 @@ if menu == "Analyse des Zones":
     col1, col2, col3 = st.columns(3)
     col1.metric("Nombre de localités", len(df_agence))
     col2.metric("Zone 1", len(df_agence[df_agence["Zone"] == "Zone 1"]))
-    col3.metric("Zone 2 & 3", len(df_agence[df_agence["Zone"] != "Zone 1"]))
+    col3.metric("Zone 2", len(df_agence[df_agence["Zone"] == "Zone 2"]))
+    col4.metric("Zone 3", len(df_agence[df_agence["Zone"] == "Zone 3"]))
 
     fig = px.histogram(df_agence, x="Zone", color="Zone", title="📈 Répartition des localités par zone")
     st.plotly_chart(fig)
