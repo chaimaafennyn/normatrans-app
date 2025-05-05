@@ -1,9 +1,22 @@
 import streamlit as st
 import streamlit_authenticator as stauth
 
+# Pas besoin de faire: credentials = st.secrets["credentials"]
+# On copie les infos dans un vrai dictionnaire
+credentials = {
+    "usernames": {
+        "chaimaa": {
+            "name": st.secrets["credentials"]["usernames"]["chaimaa"]["name"],
+            "password": st.secrets["credentials"]["usernames"]["chaimaa"]["password"],
+            "email": st.secrets["credentials"]["usernames"]["chaimaa"]["email"]
+        }
+    }
+}
 
-credentials = st.secrets["credentials"]
-cookie = st.secrets["cookie"]
+cookie = {
+    "expiry_days": st.secrets["cookie"]["expiry_days"],
+    "key": st.secrets["cookie"]["key"]
+}
 
 authenticator = stauth.Authenticate(
     credentials,
@@ -12,7 +25,6 @@ authenticator = stauth.Authenticate(
     cookie_expiry_days=cookie["expiry_days"]
 )
 
-# Affiche le formulaire de connexion
 name, authentication_status, username = authenticator.login("Connexion", "main")
 
 if authentication_status is False:
@@ -24,6 +36,9 @@ if authentication_status is None:
 if authentication_status:
     authenticator.logout("Se déconnecter", "sidebar")
     st.sidebar.success(f"Connecté en tant que {name}")
+
+    # Le reste de ton app ici 👇
+
 
 
 
