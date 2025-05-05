@@ -5,6 +5,13 @@ import streamlit_authenticator as stauth
 credentials = st.secrets["credentials"]
 cookie = st.secrets["cookie"]
 
+authenticator = stauth.Authenticate(
+    credentials,
+    cookie_name="my_app",
+    key=cookie["key"],
+    cookie_expiry_days=cookie["expiry_days"]
+)
+
 
 
 import pandas as pd
