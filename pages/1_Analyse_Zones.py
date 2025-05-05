@@ -6,26 +6,35 @@ from streamlit_folium import st_folium
 import plotly.express as px
 from sqlalchemy import create_engine
 
-# ✅ Définir la config de page
+# Configuration
 st.set_page_config(page_title="Analyse des Zones", layout="wide")
 
-# ✅ Convertir les secrets en dicts modifiables
-credentials = dict(st.secrets["credentials"])
-cookie = dict(st.secrets["cookie"])
+# Authentification
+names = st.secrets["credentials"]["names"]
+usernames = st.secrets["credentials"]["usernames"]
+passwords = st.secrets["credentials"]["passwords"]
 
-# ✅ Hasher les mots de passe (obligatoire)
-hashed_passwords = stauth.Hasher(credentials["passwords"]).generate()
+hashed_passwords = stauth.Hasher(passwords).generate()
+
+credentials = {
+    "usernames": {
+        usernames[0]: {
+            "name": names[0],
+            "password": hashed_passwords[0],
+            "email": st.secrets["credentials"]["emails"][0]
+        }
+    }
+}
+
+cookie = st.secrets["cookie"]
 
 authenticator = stauth.Authenticate(
-    names=credentials["names"],
-    usernames=credentials["usernames"],
-    passwords=hashed_passwords,
-    cookie_name="streamlit_app",
-    key=cookie["key"],
-    expiry_days=cookie["expiry_days"]
+    credentials,
+    cookie["key"],
+    cookie["expiry_days"],
+    cookie_name="streamlit_app"
 )
 
-# ✅ Interface de connexion
 name, authentication_status, username = authenticator.login("Connexion", "main")
 
 if authentication_status is False:
@@ -36,7 +45,9 @@ elif authentication_status:
     authenticator.logout("Se déconnecter", "sidebar")
     st.sidebar.success(f"Connecté en tant que {name}")
 
-    # 🔐 Connexion base PostgreSQL Supabase
+    st.header("🔎 Analyse des zones de livraison - depuis Supabase")
+
+    # Connexion à la base
     db = st.secrets["database"]
     engine = create_engine(
         f"postgresql://{db.user}:{db.password}@{db.host}:{db.port}/{db.dbname}"
@@ -47,6 +58,7 @@ elif authentication_status:
         return pd.read_sql("SELECT * FROM zones_localites", engine)
 
     df = charger_donnees()
+
     df = df.rename(columns={
         "commune": "Commune",
         "code_agence": "Code agence",
@@ -59,18 +71,19 @@ elif authentication_status:
     })
 
     required_cols = ["Commune", "Code agence", "Latitude", "Longitude", "Zone", "Distance (km)", "Latitude_agence", "Longitude_agence"]
-    if any(col not in df.columns for col in required_cols):
-        st.error("❌ Colonnes manquantes dans la base.")
+    missing_cols = [col for col in required_cols if col not in df.columns]
+    if missing_cols:
+        st.error(f"❌ Colonnes manquantes dans la base : {missing_cols}")
         st.stop()
 
     df = df.dropna(subset=["Latitude", "Longitude"])
-
-    st.subheader("📊 Statistiques générales")
     agences = df["Code agence"].dropna().unique()
     agence_selectionnee = st.selectbox("🏢 Choisissez une agence :", agences)
+
     df_agence = df[df["Code agence"] == agence_selectionnee]
     coord_agence = df_agence[["Latitude_agence", "Longitude_agence"]].iloc[0]
 
+    st.subheader("📊 Statistiques générales")
     col1, col2, col3, col4 = st.columns(4)
     col1.metric("Nombre de localités", len(df_agence))
     col2.metric("Zone 1", len(df_agence[df_agence["Zone"] == "Zone 1"]))
