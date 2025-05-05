@@ -5,4 +5,5 @@ streamlit-folium
 plotly
 streamlit-authenticator
 PyYAML
+sqlalchemy
 
