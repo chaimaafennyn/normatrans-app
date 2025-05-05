@@ -5,17 +5,23 @@ credentials = st.secrets["credentials"]
 cookie = st.secrets["cookie"]
 
 authenticator = stauth.Authenticate(
-    credentials=credentials,
-    cookie_name=cookie["name"],
-    key=cookie["key"],
-    cookie_expiry_days=cookie["expiry_days"]
+    credentials,
+    cookie["name"],
+    cookie["key"],
+    cookie["expiry_days"]
 )
 
-name, auth_status, username = authenticator.login("🔐 Connexion", "main")
+name, auth_status, username = authenticator.login("Connexion", "main")
 
-if not auth_status:
-    st.warning("Vous devez vous connecter pour accéder à cette page.")
-    st.stop()
+if auth_status == False:
+    st.error("Nom d’utilisateur ou mot de passe incorrect.")
+elif auth_status == None:
+    st.warning("Veuillez saisir vos identifiants.")
+elif auth_status:
+    authenticator.logout("Déconnexion", "sidebar")
+    st.success(f"Bienvenue {name} 👋")
+    # ton app ici
+
 
 
 import pandas as pd
