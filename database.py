@@ -1,3 +1,4 @@
+import streamlit as st
 from sqlalchemy import create_engine
 import pandas as pd
 
@@ -16,3 +17,4 @@ def get_zones():
     engine = get_engine()
     query = "SELECT * FROM zones_localites"
     return pd.read_sql(query, engine)
+
