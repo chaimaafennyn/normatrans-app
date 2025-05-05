@@ -9,7 +9,6 @@ authenticator = stauth.Authenticate(
     credentials,
     cookie["key"],
     cookie["expiry_days"],
-    cookie_name="streamlit_app"
 )
 
 name, authentication_status, username = authenticator.login("Connexion", "main")
