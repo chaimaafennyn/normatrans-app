@@ -6,4 +6,5 @@ plotly
 streamlit-authenticator
 PyYAML
 sqlalchemy
+psycopg2-binary
 
