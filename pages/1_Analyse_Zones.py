@@ -1,6 +1,7 @@
 import streamlit as st
 import streamlit_authenticator as stauth
 
+# 🔐 Authentification
 credentials = st.secrets["credentials"]
 cookie = st.secrets["cookie"]
 
@@ -14,15 +15,15 @@ authenticator = stauth.Authenticate(
 name, auth_status, username = authenticator.login("🔐 Connexion", "main")
 
 if auth_status is False:
-    st.error("Identifiants invalides")
+    st.error("Identifiants incorrects")
     st.stop()
 elif auth_status is None:
     st.warning("Veuillez entrer vos identifiants")
     st.stop()
 
+# Barre latérale de déconnexion
 authenticator.logout("Se déconnecter", "sidebar")
 st.sidebar.success(f"Connecté en tant que : {name}")
-
 
 
 
