@@ -1,0 +1,10 @@
+credentials:
+  usernames:
+    admin:
+      name: Admin Normatrans
+      email: admin@normatrans.fr
+      password: "$2b$12$EIXMIvjOZaU1Xk2MgxJ1JuyV3Mg1CGPKRlsQ2uZXBDiGU4/fU6x9m"  # mot de passe : "azerty123"
+cookie:
+  name: normatrans_auth
+  key: "secret_cookie_key"
+  expiry_days: 30
