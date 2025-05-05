@@ -1,3 +1,4 @@
+import streamlit as st
 import streamlit_authenticator as stauth
 
 credentials = st.secrets["credentials"]
@@ -17,7 +18,6 @@ if not auth_status:
     st.stop()
 
 
-import streamlit as st
 import pandas as pd
 import folium
 from streamlit_folium import st_folium
