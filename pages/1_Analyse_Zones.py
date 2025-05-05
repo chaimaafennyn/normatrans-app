@@ -1,16 +1,17 @@
 import streamlit as st
 import streamlit_authenticator as stauth
 
-# 🔐 Authentification
+
 credentials = st.secrets["credentials"]
 cookie = st.secrets["cookie"]
 
 authenticator = stauth.Authenticate(
-    credentials,
+    credentials=credentials,
     cookie_name="my_app",
     key=cookie["key"],
     cookie_expiry_days=cookie["expiry_days"]
 )
+
 
 name, auth_status, username = authenticator.login("🔐 Connexion", "main")
 
