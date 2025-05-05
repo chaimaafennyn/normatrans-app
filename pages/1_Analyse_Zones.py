@@ -6,12 +6,11 @@ from streamlit_folium import st_folium
 import plotly.express as px
 from sqlalchemy import create_engine
 
-# ✅ Configuration de la page
 st.set_page_config(page_title="Analyse des Zones", layout="wide")
 
-# 🔐 Lecture des secrets
-credentials = st.secrets["credentials"]
-cookie = st.secrets["cookie"]
+credentials = dict(st.secrets["credentials"])
+cookie = dict(st.secrets["cookie"])
+
 db = st.secrets["database"]
 
 # 🔐 Authentification
