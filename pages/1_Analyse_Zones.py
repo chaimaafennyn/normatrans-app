@@ -6,21 +6,23 @@ cookie = st.secrets["cookie"]
 
 authenticator = stauth.Authenticate(
     credentials,
-    cookie["name"],
-    cookie["key"],
-    cookie["expiry_days"]
+    cookie_name="my_app",
+    key=cookie["key"],
+    cookie_expiry_days=cookie["expiry_days"]
 )
 
-name, auth_status, username = authenticator.login("Connexion", "main")
+name, auth_status, username = authenticator.login("🔐 Connexion", "main")
 
-if auth_status == False:
-    st.error("Nom d’utilisateur ou mot de passe incorrect.")
-elif auth_status == None:
-    st.warning("Veuillez saisir vos identifiants.")
-elif auth_status:
-    authenticator.logout("Déconnexion", "sidebar")
-    st.success(f"Bienvenue {name} 👋")
-    # ton app ici
+if auth_status is False:
+    st.error("Identifiants invalides")
+    st.stop()
+elif auth_status is None:
+    st.warning("Veuillez entrer vos identifiants")
+    st.stop()
+
+authenticator.logout("Se déconnecter", "sidebar")
+st.sidebar.success(f"Connecté en tant que : {name}")
+
 
 
 
