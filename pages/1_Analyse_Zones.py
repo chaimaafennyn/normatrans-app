@@ -1,22 +1,21 @@
 import streamlit as st
 import streamlit_authenticator as stauth
 
-
 import streamlit as st
 import streamlit_authenticator as stauth
 
-# Charger les secrets
+# Charger les credentials et les cookies directement
 credentials = st.secrets["credentials"]
 cookie = st.secrets["cookie"]
 
-# Authentificateur
+# Initialiser le module d'authentification
 authenticator = stauth.Authenticate(
-    credentials,
-    cookie["key"],
+    credentials, 
+    cookie["key"], 
     cookie["expiry_days"]
 )
 
-# Affichage du formulaire de login dans la barre latérale
+# Interface de login
 name, authentication_status, username = authenticator.login("Connexion", location="sidebar")
 
 if authentication_status is False:
@@ -25,7 +24,9 @@ elif authentication_status is None:
     st.warning("Veuillez entrer vos identifiants.")
 elif authentication_status:
     authenticator.logout("Déconnexion", location="sidebar")
-    st.success(f"Bienvenue, {name} 👋")
+    st.success(f"Bienvenue {name} 👋")
+    # ➕ Ici, tu peux afficher la suite de ton application
+
 
 
 
