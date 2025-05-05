@@ -1,43 +1,32 @@
 import streamlit as st
 import streamlit_authenticator as stauth
 
-# Pas besoin de faire: credentials = st.secrets["credentials"]
-# On copie les infos dans un vrai dictionnaire
-credentials = {
-    "usernames": {
-        "chaimaa": {
-            "name": st.secrets["credentials"]["usernames"]["chaimaa"]["name"],
-            "password": st.secrets["credentials"]["usernames"]["chaimaa"]["password"],
-            "email": st.secrets["credentials"]["usernames"]["chaimaa"]["email"]
-        }
-    }
-}
 
-cookie = {
-    "expiry_days": st.secrets["cookie"]["expiry_days"],
-    "key": st.secrets["cookie"]["key"]
-}
+import streamlit as st
+import streamlit_authenticator as stauth
 
+# Charger les secrets
+credentials = st.secrets["credentials"]
+cookie = st.secrets["cookie"]
+
+# Authentificateur
 authenticator = stauth.Authenticate(
     credentials,
-    cookie_name="my_app",
-    key=cookie["key"],
-    cookie_expiry_days=cookie["expiry_days"]
+    cookie["key"],
+    cookie["expiry_days"]
 )
 
+# Affichage du formulaire de login dans la barre latérale
 name, authentication_status, username = authenticator.login("Connexion", location="sidebar")
 
 if authentication_status is False:
-    st.error("Nom d'utilisateur ou mot de passe incorrect")
+    st.error("Nom d'utilisateur ou mot de passe incorrect.")
+elif authentication_status is None:
+    st.warning("Veuillez entrer vos identifiants.")
+elif authentication_status:
+    authenticator.logout("Déconnexion", location="sidebar")
+    st.success(f"Bienvenue, {name} 👋")
 
-if authentication_status is None:
-    st.warning("Veuillez entrer vos identifiants")
-
-if authentication_status:
-    authenticator.logout("Se déconnecter", "sidebar")
-    st.sidebar.success(f"Connecté en tant que {name}")
-
-    # Le reste de ton app ici 👇
 
 
 
