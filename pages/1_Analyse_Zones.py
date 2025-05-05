@@ -12,6 +12,19 @@ authenticator = stauth.Authenticate(
     cookie_expiry_days=cookie["expiry_days"]
 )
 
+# Affiche le formulaire de connexion
+name, authentication_status, username = authenticator.login("Connexion", "main")
+
+if authentication_status is False:
+    st.error("Nom d'utilisateur ou mot de passe incorrect")
+
+if authentication_status is None:
+    st.warning("Veuillez entrer vos identifiants")
+
+if authentication_status:
+    authenticator.logout("Se déconnecter", "sidebar")
+    st.sidebar.success(f"Connecté en tant que {name}")
+
 
 
 import pandas as pd
