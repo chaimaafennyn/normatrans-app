@@ -6,20 +6,26 @@ from streamlit_folium import st_folium
 import plotly.express as px
 from sqlalchemy import create_engine
 
+# ✅ Définir la config de page
 st.set_page_config(page_title="Analyse des Zones", layout="wide")
 
+# ✅ Convertir les secrets en dicts modifiables
 credentials = dict(st.secrets["credentials"])
 cookie = dict(st.secrets["cookie"])
 
-db = st.secrets["database"]
+# ✅ Hasher les mots de passe (obligatoire)
+hashed_passwords = stauth.Hasher(credentials["passwords"]).generate()
 
-# 🔐 Authentification
 authenticator = stauth.Authenticate(
-    credentials,
-    cookie["key"],
-    cookie["expiry_days"]
+    names=credentials["names"],
+    usernames=credentials["usernames"],
+    passwords=hashed_passwords,
+    cookie_name="streamlit_app",
+    key=cookie["key"],
+    expiry_days=cookie["expiry_days"]
 )
 
+# ✅ Interface de connexion
 name, authentication_status, username = authenticator.login("Connexion", "main")
 
 if authentication_status is False:
@@ -30,19 +36,17 @@ elif authentication_status:
     authenticator.logout("Se déconnecter", "sidebar")
     st.sidebar.success(f"Connecté en tant que {name}")
 
-    # 💾 Connexion à la base PostgreSQL
+    # 🔐 Connexion base PostgreSQL Supabase
+    db = st.secrets["database"]
     engine = create_engine(
         f"postgresql://{db.user}:{db.password}@{db.host}:{db.port}/{db.dbname}"
     )
 
-    # 📥 Lecture des données
     @st.cache_data
     def charger_donnees():
         return pd.read_sql("SELECT * FROM zones_localites", engine)
 
     df = charger_donnees()
-
-    # 🧽 Renommage des colonnes
     df = df.rename(columns={
         "commune": "Commune",
         "code_agence": "Code agence",
@@ -54,35 +58,28 @@ elif authentication_status:
         "longitude_agence": "Longitude_agence"
     })
 
-    # ✅ Vérification des colonnes
     required_cols = ["Commune", "Code agence", "Latitude", "Longitude", "Zone", "Distance (km)", "Latitude_agence", "Longitude_agence"]
-    missing_cols = [col for col in required_cols if col not in df.columns]
-    if missing_cols:
-        st.error(f"❌ Colonnes manquantes : {missing_cols}")
+    if any(col not in df.columns for col in required_cols):
+        st.error("❌ Colonnes manquantes dans la base.")
         st.stop()
 
     df = df.dropna(subset=["Latitude", "Longitude"])
 
-    # 🔽 Sélection d'agence
+    st.subheader("📊 Statistiques générales")
     agences = df["Code agence"].dropna().unique()
     agence_selectionnee = st.selectbox("🏢 Choisissez une agence :", agences)
-
     df_agence = df[df["Code agence"] == agence_selectionnee]
     coord_agence = df_agence[["Latitude_agence", "Longitude_agence"]].iloc[0]
 
-    # 📊 Statistiques
-    st.subheader("📊 Statistiques générales")
     col1, col2, col3, col4 = st.columns(4)
     col1.metric("Nombre de localités", len(df_agence))
     col2.metric("Zone 1", len(df_agence[df_agence["Zone"] == "Zone 1"]))
     col3.metric("Zone 2", len(df_agence[df_agence["Zone"] == "Zone 2"]))
     col4.metric("Zone 3", len(df_agence[df_agence["Zone"] == "Zone 3"]))
 
-    # 📈 Histogramme
     fig = px.histogram(df_agence, x="Zone", color="Zone", title="📈 Répartition des localités par zone")
     st.plotly_chart(fig)
 
-    # 📏 Moyenne des distances
     st.write("### 📏 Distances moyennes par zone")
     st.dataframe(
         df_agence.groupby("Zone")["Distance (km)"]
@@ -91,7 +88,6 @@ elif authentication_status:
         .round(2)
     )
 
-    # 🗺️ Carte interactive
     st.subheader("🗺️ Carte interactive des localités")
     m = folium.Map(location=[coord_agence["Latitude_agence"], coord_agence["Longitude_agence"]], zoom_start=9)
 
@@ -117,7 +113,6 @@ elif authentication_status:
 
     st_folium(m, width=1100, height=600)
 
-    # 📥 Export CSV
     st.download_button(
         label="📥 Télécharger les données de cette agence",
         data=df_agence.to_csv(index=False),
