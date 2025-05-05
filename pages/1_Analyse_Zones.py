@@ -1,31 +1,31 @@
 import streamlit as st
 import streamlit_authenticator as stauth
 
-import streamlit as st
-import streamlit_authenticator as stauth
-
-# Charger les credentials et les cookies directement
+# Charger les credentials et cookies depuis secrets.toml
 credentials = st.secrets["credentials"]
 cookie = st.secrets["cookie"]
 
-# Initialiser le module d'authentification
+# Créer l'authentificateur
 authenticator = stauth.Authenticate(
-    credentials, 
-    cookie["key"], 
-    cookie["expiry_days"]
+    credentials,
+    cookie["key"],
+    cookie["expiry_days"],
+    cookie_name="streamlit_app"
 )
 
-# Interface de login
-name, authentication_status, username = authenticator.login("Connexion", location="sidebar")
+# Afficher le formulaire de connexion
+name, authentication_status, username = authenticator.login("Connexion", "main")
 
+# Gérer l'état d'authentification
 if authentication_status is False:
     st.error("Nom d'utilisateur ou mot de passe incorrect.")
 elif authentication_status is None:
     st.warning("Veuillez entrer vos identifiants.")
 elif authentication_status:
-    authenticator.logout("Déconnexion", location="sidebar")
-    st.success(f"Bienvenue {name} 👋")
-    # ➕ Ici, tu peux afficher la suite de ton application
+    authenticator.logout("Se déconnecter", "sidebar")
+    st.sidebar.success(f"Connecté en tant que {name}")
+    # 🔽 ICI tu mets le reste de ton app : chargement des données, affichage, etc.
+
 
 
 
