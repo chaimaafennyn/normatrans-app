@@ -2,6 +2,7 @@ import streamlit_authenticator as stauth
 
 credentials = st.secrets["credentials"]
 cookie = st.secrets["cookie"]
+
 authenticator = stauth.Authenticate(
     credentials=credentials,
     cookie_name=cookie["name"],
@@ -12,7 +13,9 @@ authenticator = stauth.Authenticate(
 name, auth_status, username = authenticator.login("🔐 Connexion", "main")
 
 if not auth_status:
+    st.warning("Vous devez vous connecter pour accéder à cette page.")
     st.stop()
+
 
 import streamlit as st
 import pandas as pd
