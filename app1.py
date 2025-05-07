@@ -278,7 +278,7 @@ elif menu == "Analyse des Tournées":
         df_tournee = pd.read_csv(uploaded_tournee, sep=";", encoding="latin1")
         st.success("✅ Nouveau fichier de tournée chargé.")
     else:
-        df_tournee = pd.read_csv(default_tournee, sep=";", encoding="latin")
+        df_tournee = pd.read_csv(default_tournee, sep=";", encoding="latin1")
         st.info(f"📂 Fichier de tournée par défaut utilisé : {default_tournee}")
 
     # Nettoyage
