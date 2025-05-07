@@ -332,8 +332,58 @@ elif menu == "Analyse des Tournées":
         file_name=f"tournee_{tournee_select}.csv",
         mime="text/csv"
     )
-
-
+    # === MARGUERITE : Visualisation des trajets entre agence et localités ===
+    st.subheader("🌼 Visualisation Marguerite : trajets agence → localités")
+    
+    # Charger les coordonnées des agences
+    try:
+        df_coord_agence = pd.read_csv("coordonnees_agences_normatrans.csv", sep=";", encoding="utf-8")
+        df_coord_agence.columns = df_coord_agence.columns.str.strip()
+    except Exception as e:
+        st.error(f"Erreur lors du chargement des coordonnées des agences : {e}")
+        st.stop()
+    
+    # Récupérer coordonnées agence sélectionnée
+    coord_ag = df_coord_agence[df_coord_agence["Code agence"] == agence]
+    if coord_ag.empty:
+        st.warning("Coordonnées non trouvées pour cette agence.")
+    else:
+        lat_ag, lon_ag = coord_ag.iloc[0]["Latitude"], coord_ag.iloc[0]["Longitude"]
+    
+        # Nouvelle carte
+        m_marguerite = folium.Map(location=[lat_ag, lon_ag], zoom_start=10)
+    
+        # Marquer l'agence
+        folium.Marker(
+            location=[lat_ag, lon_ag],
+            popup="Agence",
+            icon=folium.Icon(color="black", icon="building")
+        ).add_to(m_marguerite)
+    
+        # Ajouter les lignes vers chaque point
+        for _, row in df_map.iterrows():
+            # Lignes
+            folium.PolyLine(
+                locations=[[lat_ag, lon_ag], [row["Latitude"], row["Longitude"]]],
+                color="blue",
+                weight=2,
+                opacity=0.6
+            ).add_to(m_marguerite)
+            
+            # Marqueur ville
+            folium.CircleMarker(
+                location=[row["Latitude"], row["Longitude"]],
+                radius=4,
+                color="green",
+                fill=True,
+                fill_opacity=0.8,
+                popup=row["Commune"]
+            ).add_to(m_marguerite)
+    
+        st_folium(m_marguerite, width=1000, height=600)
+    
+    
+    
 
 
 
