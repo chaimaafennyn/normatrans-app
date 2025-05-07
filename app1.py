@@ -329,4 +329,4 @@ elif menu == "Analyse des Tournées":
 
 
 st.markdown("---")
-st.caption("Normatrans © 2025 - Fennynchaimaa")
+st.caption("Normatrans © 2025 - Fennynch")
