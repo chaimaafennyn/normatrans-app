@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import folium
@@ -11,7 +10,7 @@ st.title("🚚 Normatrans - Zones et Tarifs de Livraison")
 
 menu = st.sidebar.radio(
     "Navigation",
-    ["Analyse des Zones", "Calcul des Tarifs", "Analyse des Expéditions", "Analyse des Poids"],
+    ["Analyse des Zones", "Calcul des Tarifs", "Analyse des Expéditions", "Analyse des Poids", "Analyse des Tournées"],
     index=0
 )
 
@@ -265,8 +264,69 @@ elif menu == "Analyse des Poids":
     except Exception as e:
         st.error(f"❌ Erreur dans l’analyse des poids : {e}")
 
+# =======================
+# Partie 5 : Analyse des Tournées
+# =======================
+elif menu == "Analyse des Tournées":
+    st.header("🔄 Analyse des Tournées de Livraison")
+
+    # Fichier par défaut ou upload
+    default_tournee = "livraison_par_tournee.csv"
+    uploaded_tournee = st.file_uploader("Uploader un fichier de livraisons par tournée (optionnel)", type=["csv"])
+
+    if uploaded_tournee:
+        df_tournee = pd.read_csv(uploaded_tournee, sep=";", encoding="utf-8")
+        st.success("✅ Nouveau fichier de tournée chargé.")
+    else:
+        df_tournee = pd.read_csv(default_tournee, sep=";", encoding="utf-8")
+        st.info(f"📂 Fichier de tournée par défaut utilisé : {default_tournee}")
+
+    # Nettoyage
+    df_tournee.columns = df_tournee.columns.str.strip()
+    df_tournee["Poids"] = df_tournee["Poids"].astype(str).str.replace(",", ".").astype(float)
+
+    # Sélection agence
+    agence = st.selectbox("Choisissez une agence :", df_tournee["Code agence"].dropna().unique())
+    df_ag = df_tournee[df_tournee["Code agence"] == agence]
+
+    st.subheader("📋 Résumé par tournée")
+    df_resume = df_ag.groupby("Tournée").agg(
+        Nb_localités=("Commune", "nunique"),
+        Total_poids=("Poids", "sum")
+    ).reset_index()
+    st.dataframe(df_resume.round(2))
+
+    st.subheader("🗺️ Visualisation d'une tournée (carte)")
+    tournee_select = st.selectbox("Choisissez une tournée :", df_ag["Tournée"].dropna().unique())
+    df_map = df_ag[df_ag["Tournée"] == tournee_select]
+
+    import folium
+    from streamlit_folium import st_folium
+
+    m = folium.Map(location=[df_map["Latitude"].mean(), df_map["Longitude"].mean()], zoom_start=10)
+
+    for _, row in df_map.iterrows():
+        folium.CircleMarker(
+            location=[row["Latitude"], row["Longitude"]],
+            radius=5,
+            color="blue",
+            fill=True,
+            fill_opacity=0.7,
+            popup=f"{row['Commune']} - {row['Poids']} kg"
+        ).add_to(m)
+
+    st_folium(m, width=1000, height=600)
+
+    st.download_button(
+        label="📥 Télécharger les données de cette tournée",
+        data=df_map.to_csv(index=False),
+        file_name=f"tournee_{tournee_select}.csv",
+        mime="text/csv"
+    )
+
+
 
 
 
 st.markdown("---")
-st.caption("Normatrans © 2025 - Fennynch")
+st.caption("Normatrans © 2025 - Fennynchaimaa")
