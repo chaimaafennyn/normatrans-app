@@ -284,15 +284,17 @@ elif menu == "Analyse des Tournées":
     # Nettoyage
     df_tournee.columns = df_tournee.columns.str.strip()
     df_tournee["Poids"] = df_tournee["Poids"].astype(str).str.replace(",", ".").astype(float)
+    df_tournee["UM"] = df_tournee["UM"].astype(str).str.replace(",", ".").astype(float)
 
     # Sélection agence
     agence = st.selectbox("Choisissez une agence :", df_tournee["Code agence"].dropna().unique())
     df_ag = df_tournee[df_tournee["Code agence"] == agence]
 
     st.subheader("📋 Résumé par tournée")
-    df_resume = df_ag.groupby("Tournee").agg(
+    df_resume = df_ag.groupby("Tournée").agg(
         Nb_localités=("Commune", "nunique"),
-        Total_poids=("Poids", "sum")
+        Total_poids=("Poids", "sum"),
+        Total_UM=("UM", "sum")
     ).reset_index()
     st.dataframe(df_resume.round(2))
 
@@ -312,7 +314,7 @@ elif menu == "Analyse des Tournées":
             color="blue",
             fill=True,
             fill_opacity=0.7,
-            popup=f"{row['Commune']} - {row['Poids']} kg"
+            popup=f"{row['Commune']}<br>Poids : {row['Poids']} kg<br>UM : {row['UM']}"
         ).add_to(m)
 
     st_folium(m, width=1000, height=600)
@@ -323,6 +325,7 @@ elif menu == "Analyse des Tournées":
         file_name=f"tournee_{tournee_select}.csv",
         mime="text/csv"
     )
+
 
 
 
