@@ -290,15 +290,15 @@ elif menu == "Analyse des Tournées":
     df_ag = df_tournee[df_tournee["Code agence"] == agence]
 
     st.subheader("📋 Résumé par tournée")
-    df_resume = df_ag.groupby("Tournée").agg(
+    df_resume = df_ag.groupby("Tournee").agg(
         Nb_localités=("Commune", "nunique"),
         Total_poids=("Poids", "sum")
     ).reset_index()
     st.dataframe(df_resume.round(2))
 
     st.subheader("🗺️ Visualisation d'une tournée (carte)")
-    tournee_select = st.selectbox("Choisissez une tournée :", df_ag["Tournée"].dropna().unique())
-    df_map = df_ag[df_ag["Tournée"] == tournee_select]
+    tournee_select = st.selectbox("Choisissez une tournée :", df_ag["Tournee"].dropna().unique())
+    df_map = df_ag[df_ag["Tournee"] == tournee_select]
 
     import folium
     from streamlit_folium import st_folium
