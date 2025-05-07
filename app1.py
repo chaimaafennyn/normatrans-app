@@ -291,7 +291,7 @@ elif menu == "Analyse des Tournées":
     df_ag = df_tournee[df_tournee["Code agence"] == agence]
 
     st.subheader("📋 Résumé par tournée")
-    df_resume = df_ag.groupby("Tournée").agg(
+    df_resume = df_ag.groupby("Tournee").agg(
         Nb_localités=("Commune", "nunique"),
         Total_poids=("Poids", "sum"),
         Total_UM=("UM", "sum")
