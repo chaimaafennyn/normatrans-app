@@ -356,7 +356,6 @@ elif menu == "Marguerite par Agence":
     df_tournee.columns = df_tournee.columns.str.strip()
     df_agences.columns = df_agences.columns.str.strip()
 
-    # Forcer le bon format
     try:
         df_tournee["Poids"] = df_tournee["Poids"].astype(str).str.replace(",", ".").astype(float)
         df_tournee["Latitude"] = df_tournee["Latitude"].astype(float)
@@ -379,6 +378,10 @@ elif menu == "Marguerite par Agence":
 
     st.subheader(f"🗺️ Carte Marguerite - Agence {agence_select}")
 
+    import random
+    import folium
+    from streamlit_folium import st_folium
+
     m = folium.Map(location=[coord["Latitude"], coord["Longitude"]], zoom_start=10)
 
     folium.Marker(
@@ -387,19 +390,30 @@ elif menu == "Marguerite par Agence":
         icon=folium.Icon(color="red", icon="building")
     ).add_to(m)
 
+    # Générateur de couleurs uniques par tournée
+    tournées = df_ag["Tournee"].dropna().unique()
+    couleurs = {tournee: f"#{random.randint(0, 0xFFFFFF):06x}" for tournee in tournées}
+
     for tournee, group in df_ag.groupby("Tournee"):
         points = [[row["Latitude"], row["Longitude"]] for _, row in group.iterrows()]
+        couleur = couleurs[tournee]
+
         if points:
             folium.PolyLine(
-                [ [coord["Latitude"], coord["Longitude"]] ] + points + [ [coord["Latitude"], coord["Longitude"]] ],
-                color="blue",
+                [[coord["Latitude"], coord["Longitude"]]] + points + [[coord["Latitude"], coord["Longitude"]]],
+                color=couleur,
                 weight=2,
                 tooltip=f"Tournée {tournee}"
             ).add_to(m)
 
     st_folium(m, width=1000, height=600)
 
-
+    # Légende
+    st.markdown("### Légende des tournées")
+    legend_html = ""
+    for tournee, couleur in couleurs.items():
+        legend_html += f'<div style="display:inline-block;width:20px;height:10px;background:{couleur};margin-right:10px;"></div>Tournée {tournee}<br>'
+    st.markdown(legend_html, unsafe_allow_html=True)
 
 
 
