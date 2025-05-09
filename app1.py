@@ -345,7 +345,7 @@ elif menu == "Marguerite des Agences":
     agences_file = "coordonnees_agences_normatrans.csv"
 
     try:
-        df_tournee = pd.read_csv(tournee_file, sep=";", encoding="latin1")
+        df_tournee = pd.read_csv(tournee_file, sep=";", encoding="latin-1")
         df_agences = pd.read_csv(agences_file, sep=";", encoding="utf-8")
     except Exception as e:
         st.error(f"Erreur de chargement : {e}")
