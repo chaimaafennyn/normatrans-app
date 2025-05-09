@@ -347,9 +347,9 @@ elif menu == "Marguerite par Agence":
     try:
         df_tournee = pd.read_csv(tournee_file, sep=";", encoding="latin-1")
         df_agences = pd.read_csv(agences_file, sep=";", encoding="utf-8")
-        st.success("Fichiers chargés avec succès.")
+        st.success("✅ Fichiers chargés avec succès.")
     except Exception as e:
-        st.error(f"Erreur de chargement des fichiers : {e}")
+        st.error(f"❌ Erreur de chargement des fichiers : {e}")
         st.stop()
 
     # Nettoyage
@@ -357,32 +357,32 @@ elif menu == "Marguerite par Agence":
     df_agences.columns = df_agences.columns.str.strip()
 
     try:
-        df_tournee["Poids"] = df_tournee["Poids"].astype(str).str.replace(",", ".").astype(float)
         df_tournee["Latitude"] = df_tournee["Latitude"].astype(float)
         df_tournee["Longitude"] = df_tournee["Longitude"].astype(float)
+        df_tournee["Tournee"] = df_tournee["Tournee"].astype(str)
         df_agences["Latitude"] = df_agences["Latitude"].astype(float)
         df_agences["Longitude"] = df_agences["Longitude"].astype(float)
     except Exception as e:
-        st.error(f"Erreur dans le traitement des colonnes numériques : {e}")
+        st.error(f"❌ Erreur dans le traitement des colonnes numériques : {e}")
         st.stop()
 
     agence_select = st.selectbox("Sélectionnez une agence :", df_tournee["Code agence"].dropna().unique())
     df_ag = df_tournee[df_tournee["Code agence"] == agence_select]
 
-    # Vérification coordonnées agence
+    # Coordonnées agence
     if agence_select not in df_agences["Code agence"].values:
-        st.error("Coordonnées de cette agence non trouvées.")
+        st.error("❌ Coordonnées manquantes pour cette agence.")
         st.stop()
 
     coord = df_agences[df_agences["Code agence"] == agence_select][["Latitude", "Longitude"]].iloc[0]
 
     st.subheader(f"🗺️ Carte Marguerite - Agence {agence_select}")
 
-    import random
     import folium
+    import random
     from streamlit_folium import st_folium
 
-    m = folium.Map(location=[coord["Latitude"], coord["Longitude"]], zoom_start=10)
+    m = folium.Map(location=[coord["Latitude"], coord["Longitude"]], zoom_start=9)
 
     folium.Marker(
         location=[coord["Latitude"], coord["Longitude"]],
@@ -390,24 +390,27 @@ elif menu == "Marguerite par Agence":
         icon=folium.Icon(color="red", icon="building")
     ).add_to(m)
 
-    # Générateur de couleurs uniques par tournée
-    tournées = df_ag["Tournee"].dropna().unique()
-    couleurs = {tournee: f"#{random.randint(0, 0xFFFFFF):06x}" for tournee in tournées}
+    colors = {}  # dictionnaire des couleurs par tournée
+    colormap = ["red", "blue", "green", "orange", "purple", "darkred", "cadetblue", "darkblue",
+                "darkgreen", "darkpurple", "pink", "gray", "black", "lightblue", "beige", "lightgreen"]
 
-    for tournee, group in df_ag.groupby("Tournee"):
+    for i, (tournee, group) in enumerate(df_ag.groupby("Tournee")):
+        color = colormap[i % len(colormap)]
+        colors[tournee] = color
         points = [[row["Latitude"], row["Longitude"]] for _, row in group.iterrows()]
-        couleur = couleurs[tournee]
-
-        if points:
-            folium.PolyLine(
-                [[coord["Latitude"], coord["Longitude"]]] + points + [[coord["Latitude"], coord["Longitude"]]],
-                color=couleur,
-                weight=2,
-                tooltip=f"Tournée {tournee}"
-            ).add_to(m)
+        folium.PolyLine(
+            [ [coord["Latitude"], coord["Longitude"]] ] + points + [ [coord["Latitude"], coord["Longitude"]] ],
+            color=color,
+            weight=2,
+            tooltip=f"Tournée {tournee}"
+        ).add_to(m)
 
     st_folium(m, width=1000, height=600)
 
+    # Légende
+    st.subheader("🗂️ Légende des tournées")
+    for tournee, color in colors.items():
+        st.markdown(f"<span style='color:{color}'>■</span> Tournée {tournee}", unsafe_allow_html=True)
 
 
 
