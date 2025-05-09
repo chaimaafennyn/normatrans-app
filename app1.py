@@ -266,27 +266,25 @@ elif menu == "Analyse des Poids":
 
 
 # =======================
-# Partie 5 : Analyse des Tournées
+# Partie 5 : Analyse des Tournées (avec marguerite)
 # =======================
 elif menu == "Analyse des Tournées":
     st.header("🔄 Analyse des Tournées de Livraison")
 
     default_tournee = "livraison_par_tournee.csv"
-    uploaded_tournee = st.file_uploader("Uploader un fichier de livraisons par tournée (optionnel)", type=["csv"])
+    default_agences = "coordonnees_agences_normatrans.csv"
 
-    if uploaded_tournee:
-        df_tournee = pd.read_csv(uploaded_tournee, sep=";", encoding="latin1")
-        st.success("✅ Nouveau fichier de tournée chargé.")
-    else:
-        df_tournee = pd.read_csv(default_tournee, sep=";", encoding="latin1")
-        st.info(f"📂 Fichier de tournée par défaut utilisé : {default_tournee}")
+    uploaded_tournee = st.file_uploader("Uploader un fichier de livraisons par tournée (optionnel)", type=["csv"])
+    uploaded_agences = st.file_uploader("Uploader un fichier des coordonnées agences (optionnel)", type=["csv"])
+
+    df_tournee = pd.read_csv(uploaded_tournee if uploaded_tournee else default_tournee, sep=";", encoding="latin1")
+    df_agences = pd.read_csv(uploaded_agences if uploaded_agences else default_agences, sep=";", encoding="utf-8")
 
     df_tournee.columns = df_tournee.columns.str.strip()
+    df_agences.columns = df_agences.columns.str.strip()
+
     df_tournee["Poids"] = df_tournee["Poids"].astype(str).str.replace(",", ".").astype(float)
     df_tournee["UM"] = df_tournee["UM"].astype(str).str.replace(",", ".").astype(float)
-
-    # Gestion de l'indice par tournée
-    df_tournee["Indice"] = df_tournee.groupby(["Code agence", "Tournee"]).cumcount() + 1
 
     agence = st.selectbox("Choisissez une agence :", df_tournee["Code agence"].dropna().unique())
     df_ag = df_tournee[df_tournee["Code agence"] == agence]
@@ -294,43 +292,48 @@ elif menu == "Analyse des Tournées":
     st.subheader("📋 Résumé par tournée")
     df_resume = df_ag.groupby("Tournee").agg(
         Nb_localités=("Commune", "nunique"),
-        Nb_passages=("Indice", "max"),
         Total_poids=("Poids", "sum"),
         Total_UM=("UM", "sum")
     ).reset_index()
     st.dataframe(df_resume.round(2))
 
-    st.subheader("🗺️ Visualisation des tournées (Marguerite 🌼)")
+    st.subheader("🌼 Carte marguerite : Visualisation d'une tournée")
+    tournee_select = st.selectbox("Choisissez une tournée :", df_ag["Tournee"].dropna().unique())
+    df_map = df_ag[df_ag["Tournee"] == tournee_select]
 
-    import random
-    m = folium.Map(location=[df_ag["Latitude"].mean(), df_ag["Longitude"].mean()], zoom_start=9)
+    lat_ag = df_agences[df_agences["Code agence"] == agence]["Latitude"].values[0]
+    lon_ag = df_agences[df_agences["Code agence"] == agence]["Longitude"].values[0]
 
-    tournees = df_ag["Tournee"].unique()
-    colors = {}
+    m = folium.Map(location=[lat_ag, lon_ag], zoom_start=9)
 
-    for tournee in tournees:
-        couleur = "#{:06x}".format(random.randint(0, 0xFFFFFF))
-        colors[tournee] = couleur
-        df_t = df_ag[df_ag["Tournee"] == tournee]
+    # Marquer l'agence (centre de la marguerite)
+    folium.Marker(
+        location=[lat_ag, lon_ag],
+        icon=folium.Icon(color="red"),
+        popup=f"Agence {agence}"
+    ).add_to(m)
 
-        for _, row in df_t.iterrows():
-            folium.CircleMarker(
-                location=[row["Latitude"], row["Longitude"]],
-                radius=5,
-                color=couleur,
-                fill=True,
-                fill_opacity=0.7,
-                popup=f"Tournée : {row['Tournee']}<br>Indice : {row['Indice']}<br>Commune : {row['Commune']}<br>Poids : {row['Poids']} kg<br>UM : {row['UM']}"
-            ).add_to(m)
+    # Marquer les points de la tournée
+    for _, row in df_map.iterrows():
+        folium.PolyLine([[lat_ag, lon_ag], [row["Latitude"], row["Longitude"]]], color="gray", weight=1).add_to(m)
+        folium.CircleMarker(
+            location=[row["Latitude"], row["Longitude"]],
+            radius=5,
+            color="blue",
+            fill=True,
+            fill_opacity=0.7,
+            popup=f"{row['Commune']}<br>Poids : {row['Poids']} kg<br>UM : {row['UM']}"
+        ).add_to(m)
 
     st_folium(m, width=1000, height=600)
 
     st.download_button(
-        label="📥 Télécharger toutes les données tournées de l’agence",
-        data=df_ag.to_csv(index=False),
-        file_name=f"donnees_tournees_{agence}.csv",
+        label="📥 Télécharger les données de cette tournée",
+        data=df_map.to_csv(index=False),
+        file_name=f"tournee_{tournee_select}.csv",
         mime="text/csv"
     )
+
 
 
 
