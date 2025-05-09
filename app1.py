@@ -408,12 +408,6 @@ elif menu == "Marguerite par Agence":
 
     st_folium(m, width=1000, height=600)
 
-    # Légende
-    st.markdown("### Légende des tournées")
-    legend_html = ""
-    for tournee, couleur in couleurs.items():
-        legend_html += f'<div style="display:inline-block;width:20px;height:10px;background:{couleur};margin-right:10px;"></div>Tournée {tournee}<br>'
-    st.markdown(legend_html, unsafe_allow_html=True)
 
 
 
