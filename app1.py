@@ -10,7 +10,7 @@ st.title("🚚 Normatrans - Zones et Tarifs de Livraison")
 
 menu = st.sidebar.radio(
     "Navigation",
-    ["Analyse des Zones", "Calcul des Tarifs", "Analyse des Expéditions", "Analyse des Poids", "Analyse des Tournées",  "Marguerite par Agence"],
+    ["Analyse des Zones", "Calcul des Tarifs", "Analyse des Expéditions", "Analyse des Poids", "Analyse des Tournées",  "Marguerite par Agence", "Visualisation Marguerite"],
     index=0
 )
 
@@ -411,6 +411,70 @@ elif menu == "Marguerite par Agence":
     st.subheader("🗂️ Légende des tournées")
     for tournee, color in colors.items():
         st.markdown(f"<span style='color:{color}'>■</span> Tournée {tournee}", unsafe_allow_html=True)
+
+# =======================
+# Partie 7 : Visualisation Marguerite
+# =======================
+elif menu == "Visualisation Marguerite":
+    st.header("🌼 Visualisation Marguerite des Tournées")
+
+    # Chargement des fichiers
+    try:
+        df_tournee = pd.read_csv("livraison_par_tournee.csv", sep=";", encoding="latin1")
+        df_agences = pd.read_csv("coordonnees_agences_normatrans.csv", sep=";", encoding="utf-8")
+    except Exception as e:
+        st.error(f"Erreur de chargement : {e}")
+        st.stop()
+
+    df_tournee.columns = df_tournee.columns.str.strip()
+    df_agences.columns = df_agences.columns.str.strip()
+
+    df_tournee["Latitude"] = df_tournee["Latitude"].astype(float)
+    df_tournee["Longitude"] = df_tournee["Longitude"].astype(float)
+
+    # Sélection de l'agence
+    agence = st.selectbox("Choisissez une agence :", df_tournee["Code agence"].dropna().unique())
+    df_ag = df_tournee[df_tournee["Code agence"] == agence]
+
+    coord_agence = df_agences[df_agences["Code agence"] == agence][["Latitude", "Longitude"]].iloc[0]
+
+    # Sélection de l'indice (optionnel)
+    if "Indice" in df_ag.columns:
+        indice = st.selectbox("Indice de tournée :", df_ag["Indice"].dropna().unique())
+        df_ag = df_ag[df_ag["Indice"] == indice]
+
+    # Création de la carte
+    m = folium.Map(location=[coord_agence["Latitude"], coord_agence["Longitude"]], zoom_start=10)
+
+    # Marqueur Agence
+    folium.Marker(
+        location=[coord_agence["Latitude"], coord_agence["Longitude"]],
+        popup=f"Agence : {agence}",
+        icon=folium.Icon(color="black")
+    ).add_to(m)
+
+    # Marguerite : lignes vers localités
+    for _, row in df_ag.iterrows():
+        folium.PolyLine(
+            locations=[
+                [coord_agence["Latitude"], coord_agence["Longitude"]],
+                [row["Latitude"], row["Longitude"]]
+            ],
+            color="blue",
+            weight=2
+        ).add_to(m)
+
+        folium.CircleMarker(
+            location=[row["Latitude"], row["Longitude"]],
+            radius=4,
+            color="green",
+            fill=True,
+            popup=f"{row['Commune']}<br>Poids : {row['Poids']} kg<br>UM : {row['UM']}"
+        ).add_to(m)
+
+    st.subheader("🗺️ Carte Marguerite")
+    st_folium(m, width=1000, height=600)
+
 
 
 
