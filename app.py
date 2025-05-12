@@ -10,7 +10,7 @@ st.title("🚚 Normatrans - Zones et Tarifs de Livraison")
 
 menu = st.sidebar.radio(
     "Navigation",
-    ["Analyse des Zones", "Calcul des Tarifs", "Analyse des Expéditions", "Analyse des Poids", "Analyse des Tournées"],
+    ["Analyse des Zones", "Calcul des Tarifs", "Analyse des Expéditions", "Analyse des Poids", "Analyse des Tournées", "Analyse des Tournées avec Indice" ],
     index=0
 )
 
@@ -333,6 +333,79 @@ elif menu == "Analyse des Tournées":
         mime="text/csv"
     )
 
+
+# =======================
+# Partie 6 : Analyse des Tournées avec Indice 
+# =======================
+elif menu == "Analyse des Tournées":
+    st.header("🔄 Analyse des Tournées de Livraison")
+
+    default_tournee = "livraison_par_tournee.csv"
+    default_agences = "coordonnees_agences_normatrans.csv"
+
+    uploaded_tournee = st.file_uploader("Uploader un fichier de livraisons par tournée (optionnel)", type=["csv"])
+    uploaded_agences = st.file_uploader("Uploader un fichier des coordonnées agences (optionnel)", type=["csv"])
+
+    df_tournee = pd.read_csv(uploaded_tournee if uploaded_tournee else default_tournee, sep=";", encoding="latin1")
+    df_agences = pd.read_csv(uploaded_agences if uploaded_agences else default_agences, sep=";", encoding="utf-8")
+
+    df_tournee.columns = df_tournee.columns.str.strip()
+    df_agences.columns = df_agences.columns.str.strip()
+
+    df_tournee["Poids"] = df_tournee["Poids"].astype(str).str.replace(",", ".").astype(float)
+    df_tournee["UM"] = df_tournee["UM"].astype(str).str.replace(",", ".").astype(float)
+    df_tournee["Indice"] = df_tournee["Indice"].astype(str)
+
+    agence = st.selectbox("Choisissez une agence :", df_tournee["Code agence"].dropna().unique())
+    df_ag = df_tournee[df_tournee["Code agence"] == agence]
+
+    st.subheader("📋 Résumé par tournée et indice")
+    df_resume = df_ag.groupby(["Tournee", "Indice"]).agg(
+        Nb_localités=("Commune", "nunique"),
+        Total_poids=("Poids", "sum"),
+        Total_UM=("UM", "sum")
+    ).reset_index()
+    st.dataframe(df_resume.round(2))
+
+    st.subheader("🌼 Carte marguerite : Visualisation par tournée + indice")
+    tournee_select = st.selectbox("Choisissez une tournée :", sorted(df_ag["Tournee"].dropna().unique()))
+    indices = df_ag[df_ag["Tournee"] == tournee_select]["Indice"].unique()
+    indice_select = st.selectbox("Choisissez l'indice (sortie) :", sorted(indices))
+
+    df_map = df_ag[(df_ag["Tournee"] == tournee_select) & (df_ag["Indice"] == indice_select)]
+
+    lat_ag = df_agences[df_agences["Code agence"] == agence]["Latitude"].values[0]
+    lon_ag = df_agences[df_agences["Code agence"] == agence]["Longitude"].values[0]
+
+    m = folium.Map(location=[lat_ag, lon_ag], zoom_start=9)
+
+    # Point agence
+    folium.Marker(
+        location=[lat_ag, lon_ag],
+        icon=folium.Icon(color="red"),
+        popup=f"Agence {agence}"
+    ).add_to(m)
+
+    # Lignes marguerite
+    for _, row in df_map.iterrows():
+        folium.PolyLine([[lat_ag, lon_ag], [row["Latitude"], row["Longitude"]]], color="gray", weight=1).add_to(m)
+        folium.CircleMarker(
+            location=[row["Latitude"], row["Longitude"]],
+            radius=5,
+            color="blue",
+            fill=True,
+            fill_opacity=0.7,
+            popup=f"{row['Commune']}<br>Poids : {row['Poids']} kg<br>UM : {row['UM']}"
+        ).add_to(m)
+
+    st_folium(m, width=1000, height=600)
+
+    st.download_button(
+        label="📥 Télécharger les données de cette tournée",
+        data=df_map.to_csv(index=False),
+        file_name=f"tournee_{tournee_select}_indice_{indice_select}.csv",
+        mime="text/csv"
+    )
 
 
 
