@@ -472,9 +472,6 @@ elif menu == "Visualisation Marguerite":
 
 
 
-
-
-
     
 
 
