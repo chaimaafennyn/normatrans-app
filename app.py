@@ -337,7 +337,7 @@ elif menu == "Analyse des Tournées":
 # =======================
 # Partie 6 : Analyse des Tournées avec Indice 
 # =======================
-elif menu == "Analyse des Tournées":
+elif menu == "Analyse des Tournées avec indice":
     st.header("🔄 Analyse des Tournées de Livraison")
 
     default_tournee = "livraison_par_tournee.csv"
