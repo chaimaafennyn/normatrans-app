@@ -10,7 +10,7 @@ st.title("🚚 Normatrans - Zones et Tarifs de Livraison")
 
 menu = st.sidebar.radio(
     "Navigation",
-    ["Analyse des Zones", "Calcul des Tarifs", "Analyse des Expéditions", "Analyse des Poids", "Analyse des Tournées",  "Marguerite par Agence", "Visualisation Marguerite"],
+    ["Analyse des Zones", "Calcul des Tarifs", "Analyse des Expéditions", "Analyse des Poids", "Analyse des Tournées",  "Marguerite par Agence", "Visualisation des Tournées avec Marguerite"],
     index=0
 )
 
@@ -413,62 +413,72 @@ elif menu == "Marguerite par Agence":
         st.markdown(f"<span style='color:{color}'>■</span> Tournée {tournee}", unsafe_allow_html=True)
 
 # =======================
-# Partie 7 : Visualisation Marguerite (Tournées colorées)
+# Partie 7 : Carte Marguerite (par Tournées)
 # =======================
-elif menu == "Visualisation Marguerite":
-    st.header("🌸 Visualisation Marguerite des Tournées")
+elif menu == "Visualisation des Tournées avec Marguerite":
+    st.header("🌸 Visualisation des Tournées - Carte Marguerite")
 
-    default_file = "livraison_par_tournee.csv"
-    uploaded_file = st.file_uploader("Uploader un fichier de tournées (optionnel)", type=["csv"])
+    # Upload des fichiers
+    tournee_file = st.file_uploader("Uploader le fichier des tournées", type=["csv"])
+    agence_file = st.file_uploader("Uploader le fichier des coordonnées agences", type=["csv"])
 
-    if uploaded_file:
-        df_tournee = pd.read_csv(uploaded_file, sep=";", encoding="latin1")
-        st.success("✅ Nouveau fichier de tournée chargé.")
-    else:
-        df_tournee = pd.read_csv(default_file, sep=";", encoding="latin1")
-        st.info(f"📂 Fichier par défaut utilisé : {default_file}")
+    if tournee_file and agence_file:
+        df = pd.read_csv(tournee_file, sep=";", encoding="latin1")
+        df_agences = pd.read_csv(agence_file, sep=";", encoding="latin1")
 
-    df_tournee.columns = df_tournee.columns.str.strip()
-    df_tournee["Latitude"] = df_tournee["Latitude"].astype(float)
-    df_tournee["Longitude"] = df_tournee["Longitude"].astype(float)
+        df.columns = df.columns.str.strip()
+        df_agences.columns = df_agences.columns.str.strip()
 
-    agence_select = st.selectbox("Choisissez une agence :", df_tournee["Code agence"].dropna().unique())
-    df_agence = df_tournee[df_tournee["Code agence"] == agence_select]
+        df["Poids"] = df["Poids"].astype(str).str.replace(",", ".").astype(float)
+        df["Latitude"] = df["Latitude"].astype(float)
+        df["Longitude"] = df["Longitude"].astype(float)
 
-    tournees = df_agence["Tournee"].dropna().unique()
-    couleurs = px.colors.qualitative.Set1  # 10 couleurs
+        agence_choisie = st.selectbox("Choisissez une agence :", df["Code agence"].unique())
+        df_ag = df[df["Code agence"] == agence_choisie]
 
-    m = folium.Map(location=[df_agence["Latitude"].mean(), df_agence["Longitude"].mean()], zoom_start=9)
+        agence_coord = df_agences[df_agences["Code agence"] == agence_choisie]
+        if not agence_coord.empty:
+            lat_ag = agence_coord["Latitude"].values[0]
+            lon_ag = agence_coord["Longitude"].values[0]
+        else:
+            st.error("Coordonnées de l'agence non trouvées.")
+            st.stop()
 
-    for i, tournee in enumerate(tournees):
-        df_t = df_agence[df_agence["Tournee"] == tournee]
-        couleur = couleurs[i % len(couleurs)]
+        import folium
+        from streamlit_folium import st_folium
+        import matplotlib.colors as mcolors
+        import random
 
-        folium.PolyLine(
-            locations=df_t[["Latitude", "Longitude"]].values,
-            color=couleur,
-            weight=3,
-            popup=f"Tournée {tournee}"
+        m = folium.Map(location=[lat_ag, lon_ag], zoom_start=9)
+
+        # Marquer l’agence
+        folium.CircleMarker(
+            location=[lat_ag, lon_ag],
+            radius=8,
+            color="black",
+            fill=True,
+            fill_opacity=1,
+            popup=f"Agence : {agence_choisie}"
         ).add_to(m)
 
-        for _, row in df_t.iterrows():
-            folium.CircleMarker(
-                location=[row["Latitude"], row["Longitude"]],
-                radius=4,
-                color=couleur,
-                fill=True,
-                fill_opacity=0.7,
-                popup=f"{row['Commune']}<br>Tournée : {tournee}"
-            ).add_to(m)
+        couleurs = list(mcolors.TABLEAU_COLORS.values()) + list(mcolors.CSS4_COLORS.values())
+        random.shuffle(couleurs)
 
-    st_folium(m, width=1100, height=600)
+        for i, (tournee, group) in enumerate(df_ag.groupby("Tournee")):
+            color = couleurs[i % len(couleurs)]
+            for _, row in group.iterrows():
+                folium.CircleMarker(
+                    location=[row["Latitude"], row["Longitude"]],
+                    radius=5,
+                    color=color,
+                    fill=True,
+                    fill_opacity=0.8,
+                    popup=f"Tournée {tournee} - {row['Commune']}"
+                ).add_to(m)
 
-    st.download_button(
-        label="📥 Télécharger les données tournées de l'agence",
-        data=df_agence.to_csv(index=False),
-        file_name=f"tournées_{agence_select}.csv",
-        mime="text/csv"
-    )
+        st_folium(m, width=1100, height=650)
+    else:
+        st.info("Veuillez uploader les deux fichiers pour visualiser la carte.")
 
 
 
