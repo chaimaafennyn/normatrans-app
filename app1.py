@@ -412,6 +412,68 @@ elif menu == "Marguerite par Agence":
     for tournee, color in colors.items():
         st.markdown(f"<span style='color:{color}'>■</span> Tournée {tournee}", unsafe_allow_html=True)
 
+# =======================
+# Partie 7 : Marguerite - Visualisation des Tournées depuis l'agence
+# =======================
+elif menu == "Visualisation Marguerite":
+    st.header("🌼 Visualisation des tournées en marguerite")
+
+    # Fichier des livraisons par tournée
+    tournee_file = "livraison_par_tournee.csv"
+    agence_file = "coordonnees_agences_normatrans.csv"
+
+    uploaded_tournee = st.file_uploader("Uploader un fichier des tournées (optionnel)", type=["csv"])
+    uploaded_agence = st.file_uploader("Uploader le fichier des coordonnées agences", type=["csv"])
+
+    try:
+        df_tournee = pd.read_csv(uploaded_tournee if uploaded_tournee else tournee_file, sep=";", encoding="latin1")
+        df_agences = pd.read_csv(uploaded_agence if uploaded_agence else agence_file, sep=";", encoding="utf-8")
+    except Exception as e:
+        st.error(f"Erreur de chargement : {e}")
+        st.stop()
+
+    df_tournee.columns = df_tournee.columns.str.strip()
+    df_tournee["Poids"] = df_tournee["Poids"].astype(str).str.replace(",", ".").astype(float)
+    df_tournee["Tournee"] = df_tournee["Tournee"].astype(str)
+
+    agence_selectionnee = st.selectbox("Choisissez une agence :", df_tournee["Code agence"].dropna().unique())
+    df_ag = df_tournee[df_tournee["Code agence"] == agence_selectionnee]
+
+    # Coordonnées agence
+    coords_ag = df_agences[df_agences["Code agence"] == agence_selectionnee]
+    if coords_ag.empty:
+        st.error("Coordonnées de l'agence introuvables.")
+        st.stop()
+    lat_ag, lon_ag = coords_ag.iloc[0]["Latitude"], coords_ag.iloc[0]["Longitude"]
+
+    # Création de la carte
+    m = folium.Map(location=[lat_ag, lon_ag], zoom_start=9)
+
+    import matplotlib.colors as mcolors
+    import random
+    couleurs = list(mcolors.TABLEAU_COLORS.values())
+    random.shuffle(couleurs)
+    palette = {t: couleurs[i % len(couleurs)] for i, t in enumerate(df_ag["Tournee"].unique())}
+
+    for _, row in df_ag.iterrows():
+        coul = palette.get(row["Tournee"], "gray")
+        folium.PolyLine(
+            locations=[[lat_ag, lon_ag], [row["Latitude"], row["Longitude"]]],
+            color=coul, weight=2
+        ).add_to(m)
+        folium.CircleMarker(
+            location=[row["Latitude"], row["Longitude"]],
+            radius=5,
+            color=coul,
+            fill=True,
+            fill_opacity=0.7,
+            popup=f"Tournée {row['Tournee']}<br>{row['Commune']}"
+        ).add_to(m)
+
+    st.subheader("🗺️ Carte des tournées en marguerite")
+    st_folium(m, width=1000, height=600)
+
+
 
 
 
