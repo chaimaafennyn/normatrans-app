@@ -413,65 +413,62 @@ elif menu == "Marguerite par Agence":
         st.markdown(f"<span style='color:{color}'>■</span> Tournée {tournee}", unsafe_allow_html=True)
 
 # =======================
-# Partie 7 : Marguerite - Visualisation des Tournées depuis l'agence
+# Partie 7 : Visualisation Marguerite (Tournées colorées)
 # =======================
 elif menu == "Visualisation Marguerite":
-    st.header("🌼 Visualisation des tournées en marguerite")
+    st.header("🌸 Visualisation Marguerite des Tournées")
 
-    # Fichier des livraisons par tournée
-    tournee_file = "livraison_par_tournee.csv"
-    agence_file = "coordonnees_agences_normatrans.csv"
+    default_file = "livraison_par_tournee.csv"
+    uploaded_file = st.file_uploader("Uploader un fichier de tournées (optionnel)", type=["csv"])
 
-    uploaded_tournee = st.file_uploader("Uploader un fichier des tournées (optionnel)", type=["csv"])
-    uploaded_agence = st.file_uploader("Uploader le fichier des coordonnées agences", type=["csv"])
-
-    try:
-        df_tournee = pd.read_csv(uploaded_tournee if uploaded_tournee else tournee_file, sep=";", encoding="latin1")
-        df_agences = pd.read_csv(uploaded_agence if uploaded_agence else agence_file, sep=";", encoding="utf-8")
-    except Exception as e:
-        st.error(f"Erreur de chargement : {e}")
-        st.stop()
+    if uploaded_file:
+        df_tournee = pd.read_csv(uploaded_file, sep=";", encoding="latin1")
+        st.success("✅ Nouveau fichier de tournée chargé.")
+    else:
+        df_tournee = pd.read_csv(default_file, sep=";", encoding="latin1")
+        st.info(f"📂 Fichier par défaut utilisé : {default_file}")
 
     df_tournee.columns = df_tournee.columns.str.strip()
-    df_tournee["Poids"] = df_tournee["Poids"].astype(str).str.replace(",", ".").astype(float)
-    df_tournee["Tournee"] = df_tournee["Tournee"].astype(str)
+    df_tournee["Latitude"] = df_tournee["Latitude"].astype(float)
+    df_tournee["Longitude"] = df_tournee["Longitude"].astype(float)
 
-    agence_selectionnee = st.selectbox("Choisissez une agence :", df_tournee["Code agence"].dropna().unique())
-    df_ag = df_tournee[df_tournee["Code agence"] == agence_selectionnee]
+    agence_select = st.selectbox("Choisissez une agence :", df_tournee["Code agence"].dropna().unique())
+    df_agence = df_tournee[df_tournee["Code agence"] == agence_select]
 
-    # Coordonnées agence
-    coords_ag = df_agences[df_agences["Code agence"] == agence_selectionnee]
-    if coords_ag.empty:
-        st.error("Coordonnées de l'agence introuvables.")
-        st.stop()
-    lat_ag, lon_ag = coords_ag.iloc[0]["Latitude"], coords_ag.iloc[0]["Longitude"]
+    tournees = df_agence["Tournee"].dropna().unique()
+    couleurs = px.colors.qualitative.Set1  # 10 couleurs
 
-    # Création de la carte
-    m = folium.Map(location=[lat_ag, lon_ag], zoom_start=9)
+    m = folium.Map(location=[df_agence["Latitude"].mean(), df_agence["Longitude"].mean()], zoom_start=9)
 
-    import matplotlib.colors as mcolors
-    import random
-    couleurs = list(mcolors.TABLEAU_COLORS.values())
-    random.shuffle(couleurs)
-    palette = {t: couleurs[i % len(couleurs)] for i, t in enumerate(df_ag["Tournee"].unique())}
+    for i, tournee in enumerate(tournees):
+        df_t = df_agence[df_agence["Tournee"] == tournee]
+        couleur = couleurs[i % len(couleurs)]
 
-    for _, row in df_ag.iterrows():
-        coul = palette.get(row["Tournee"], "gray")
         folium.PolyLine(
-            locations=[[lat_ag, lon_ag], [row["Latitude"], row["Longitude"]]],
-            color=coul, weight=2
-        ).add_to(m)
-        folium.CircleMarker(
-            location=[row["Latitude"], row["Longitude"]],
-            radius=5,
-            color=coul,
-            fill=True,
-            fill_opacity=0.7,
-            popup=f"Tournée {row['Tournee']}<br>{row['Commune']}"
+            locations=df_t[["Latitude", "Longitude"]].values,
+            color=couleur,
+            weight=3,
+            popup=f"Tournée {tournee}"
         ).add_to(m)
 
-    st.subheader("🗺️ Carte des tournées en marguerite")
-    st_folium(m, width=1000, height=600)
+        for _, row in df_t.iterrows():
+            folium.CircleMarker(
+                location=[row["Latitude"], row["Longitude"]],
+                radius=4,
+                color=couleur,
+                fill=True,
+                fill_opacity=0.7,
+                popup=f"{row['Commune']}<br>Tournée : {tournee}"
+            ).add_to(m)
+
+    st_folium(m, width=1100, height=600)
+
+    st.download_button(
+        label="📥 Télécharger les données tournées de l'agence",
+        data=df_agence.to_csv(index=False),
+        file_name=f"tournées_{agence_select}.csv",
+        mime="text/csv"
+    )
 
 
 
