@@ -335,7 +335,7 @@ elif menu == "Analyse des Tournées":
     )
 
 # =======================
-# Partie 6 : Marguerite par Agence
+# Partie 6 : Marguerite par Agence (Points seulement)
 # =======================
 elif menu == "Marguerite par Agence":
     st.header("🌸 Visualisation Marguerite - Tournées par Agence")
@@ -379,31 +379,34 @@ elif menu == "Marguerite par Agence":
     st.subheader(f"🗺️ Carte Marguerite - Agence {agence_select}")
 
     import folium
-    import random
     from streamlit_folium import st_folium
 
     m = folium.Map(location=[coord["Latitude"], coord["Longitude"]], zoom_start=9)
 
+    # Marquer l'agence
     folium.Marker(
         location=[coord["Latitude"], coord["Longitude"]],
         popup=f"Agence {agence_select}",
         icon=folium.Icon(color="red", icon="building")
     ).add_to(m)
 
-    colors = {}  # dictionnaire des couleurs par tournée
+    # Couleurs par tournée
     colormap = ["red", "blue", "green", "orange", "purple", "darkred", "cadetblue", "darkblue",
                 "darkgreen", "darkpurple", "pink", "gray", "black", "lightblue", "beige", "lightgreen"]
+    colors = {}
 
     for i, (tournee, group) in enumerate(df_ag.groupby("Tournee")):
         color = colormap[i % len(colormap)]
         colors[tournee] = color
-        points = [[row["Latitude"], row["Longitude"]] for _, row in group.iterrows()]
-        folium.PolyLine(
-            [ [coord["Latitude"], coord["Longitude"]] ] + points + [ [coord["Latitude"], coord["Longitude"]] ],
-            color=color,
-            weight=2,
-            tooltip=f"Tournée {tournee}"
-        ).add_to(m)
+        for _, row in group.iterrows():
+            folium.CircleMarker(
+                location=[row["Latitude"], row["Longitude"]],
+                radius=5,
+                color=color,
+                fill=True,
+                fill_opacity=0.8,
+                popup=f"{row['Commune']}<br>Tournée {tournee}"
+            ).add_to(m)
 
     st_folium(m, width=1000, height=600)
 
@@ -411,7 +414,6 @@ elif menu == "Marguerite par Agence":
     st.subheader("🗂️ Légende des tournées")
     for tournee, color in colors.items():
         st.markdown(f"<span style='color:{color}'>■</span> Tournée {tournee}", unsafe_allow_html=True)
-
 
 
 st.markdown("---")
