@@ -10,7 +10,7 @@ st.title("🚚 Normatrans - Zones et Tarifs de Livraison")
 
 menu = st.sidebar.radio(
     "Navigation",
-    ["Analyse des Zones", "Calcul des Tarifs", "Analyse des Expéditions", "Analyse des Poids", "Analyse des Tournées" ],
+    ["Analyse des Zones", "Calcul des Tarifs", "Analyse des Expéditions", "Analyse des Poids", "Analyse des Tournées", "Analyse des Tournées 2"],
     index=0
 )
 
@@ -332,6 +332,54 @@ elif menu == "Analyse des Tournées":
         file_name=f"tournee_{tournee_select}.csv",
         mime="text/csv"
     )
+
+# =======================
+# Partie 7 : Données optimisées par Agence et Commune
+# =======================
+elif menu == "Analyse des Tournées 2":
+    st.header("🧹 Optimisation des Données par Agence et Commune")
+
+    # Fichier de livraisons
+    default_file = "livraison_optimisee_par_agence_commune.csv"
+    uploaded_file = st.file_uploader("Uploader un fichier de livraisons (optionnel)", type=["csv"])
+
+    if uploaded_file:
+        df = pd.read_csv(uploaded_file, sep=";", encoding="latin1")
+        st.success("✅ Fichier chargé.")
+    else:
+        df = pd.read_csv(default_file, sep=";", encoding="latin1")
+        st.info(f"📂 Fichier par défaut utilisé : {default_file}")
+
+    # Nettoyage
+    df.columns = df.columns.str.strip()
+    df["Tournee"] = df["Tournee"].astype(str)
+    df["Poids"] = df["Poids"].astype(str).str.replace(",", ".").astype(float)
+    df["UM"] = df["UM"].astype(str).str.replace(",", ".").astype(float)
+
+    # Regroupement
+    df_optimise = df.groupby(["Code agence", "Commune"]).agg({
+        "Tournee": lambda x: ", ".join(sorted(set(x))),
+        "Code INSEE": "first",
+        "Latitude": "first",
+        "Longitude": "first",
+        "CP": "first",
+        "Zone": "first",
+        "UM": "sum",
+        "Poids": "sum"
+    }).reset_index()
+
+    st.subheader("📋 Données Agrégées par Agence et Commune")
+    st.dataframe(df_optimise.head(100))
+
+    # Télécharger
+    csv = df_optimise.to_csv(index=False, sep=";").encode("utf-8")
+    st.download_button(
+        label="📥 Télécharger les données optimisées",
+        data=csv,
+        file_name="livraison_optimisee_par_agence_commune.csv",
+        mime="text/csv"
+    )
+
 
 
 
