@@ -10,7 +10,7 @@ st.title("🚚 Normatrans - Zones et Tarifs de Livraison")
 
 menu = st.sidebar.radio(
     "Navigation",
-    ["Analyse des Zones", "Calcul des Tarifs", "Analyse des Expéditions", "Analyse des Poids", "Analyse des Tournées", "Analyse des Tournées 2"],
+    ["Analyse des Zones", "Calcul des Tarifs", "Analyse des Expéditions", "Analyse des Poids", "Analyse des Tournées", "Marguerite par Agence"],
     index=0
 )
 
@@ -337,7 +337,7 @@ elif menu == "Analyse des Tournées":
 # =======================
 # Partie 8 : Carte Marguerite (points uniquement)
 # =======================
-elif menu == "Marguerite par Agence (points)":
+elif menu == "Marguerite par Agence":
     st.header("🌼 Marguerite des tournées - Vue par points")
 
     # Chargement des données optimisées
