@@ -404,81 +404,92 @@ elif menu == "Marguerite par Agence":
     st_folium(m, width=1000, height=600)
 
 # =======================
-# Partie 8 : Marguerite par Agence (Cercle par tournée)
+# Partie 7 : Marguerite par Agence
 # =======================
 elif menu == "Marguerite par Agence2":
-    st.header("🌼 Marguerite des Tournées - Vue par regroupement")
+    st.header("🌸 Visualisation Marguerite - Tournées par Agence")
 
-    default_file = "livraison_optimisee_par_agence_commune.csv"
-    coord_agence_file = "coordonnees_agences_normatrans.csv"
+    import folium
+    import numpy as np
+    from shapely.geometry import MultiPoint
+    from shapely.geometry.polygon import Polygon
+    from streamlit_folium import st_folium
+    import matplotlib.pyplot as plt
+    from matplotlib import cm
 
-    uploaded_tournee = st.file_uploader("Uploader un fichier de livraisons (optionnel)", type=["csv"])
+    # Chargement des fichiers
+    tournee_file = "livraison_optimisee_par_agence_commune.csv"
+    agences_file = "coordonnees_agences_normatrans.csv"
+
+    uploaded_tournee = st.file_uploader("Uploader un fichier de livraisons par tournée", type=["csv"])
+    uploaded_agences = st.file_uploader("Uploader le fichier des coordonnées agences", type=["csv"])
 
     try:
-        df = pd.read_csv(uploaded_tournee if uploaded_tournee else default_file, sep=";", encoding="latin1")
-        df_agences = pd.read_csv(coord_agence_file, sep=";", encoding="utf-8")
-        st.success("✅ Fichiers chargés")
+        df_tournee = pd.read_csv(uploaded_tournee if uploaded_tournee else tournee_file, sep=";", encoding="latin1")
+        df_agences = pd.read_csv(uploaded_agences if uploaded_agences else agences_file, sep=";", encoding="utf-8")
+        st.success("✅ Données chargées avec succès.")
     except Exception as e:
-        st.error(f"Erreur de chargement : {e}")
+        st.error(f"❌ Erreur : {e}")
         st.stop()
 
     # Nettoyage
-    df.columns = df.columns.str.strip()
-    df["Latitude"] = df["Latitude"].astype(float)
-    df["Longitude"] = df["Longitude"].astype(float)
-    df["Tournee"] = df["Tournee"].astype(str)
-
+    df_tournee.columns = df_tournee.columns.str.strip()
     df_agences.columns = df_agences.columns.str.strip()
-    df_agences["Latitude"] = df_agences["Latitude"].astype(float)
-    df_agences["Longitude"] = df_agences["Longitude"].astype(float)
 
-    agence_select = st.selectbox("Sélectionnez une agence :", df["Code agence"].dropna().unique())
-    df_ag = df[df["Code agence"] == agence_select]
+    df_tournee["Latitude"] = df_tournee["Latitude"].astype(float)
+    df_tournee["Longitude"] = df_tournee["Longitude"].astype(float)
+    df_tournee["Tournee"] = df_tournee["Tournee"].astype(str)
+
+    # Sélection de l’agence
+    agence_select = st.selectbox("Choisissez une agence :", df_tournee["Code agence"].dropna().unique())
+    df_ag = df_tournee[df_tournee["Code agence"] == agence_select]
 
     if agence_select not in df_agences["Code agence"].values:
-        st.error("Coordonnées d'agence manquantes")
+        st.error("❌ Coordonnées manquantes pour cette agence.")
         st.stop()
 
     coord = df_agences[df_agences["Code agence"] == agence_select][["Latitude", "Longitude"]].iloc[0]
 
-    st.subheader(f"🗺️ Carte Marguerite - Agence {agence_select} (1 cercle par tournée)")
-
-    import folium
-    from streamlit_folium import st_folium
-    import random
-
+    # Carte centrée sur l’agence
     m = folium.Map(location=[coord["Latitude"], coord["Longitude"]], zoom_start=10)
+    folium.Marker([coord["Latitude"], coord["Longitude"]],
+                  popup=f"Agence {agence_select}",
+                  icon=folium.Icon(color="black", icon="building")).add_to(m)
 
-    # Marqueur agence
-    folium.Marker(
-        location=[coord["Latitude"], coord["Longitude"]],
-        popup=f"Agence {agence_select}",
-        icon=folium.Icon(color="black", icon="building")
-    ).add_to(m)
-
-    # Générer une couleur par tournée
-    color_list = ["red", "blue", "green", "orange", "purple", "darkred", "cadetblue", "darkblue",
-                  "darkgreen", "pink", "gray", "lightblue", "lightgreen"]
+    # Couleurs uniques
     tournees = df_ag["Tournee"].unique()
-    color_map = {t: color_list[i % len(color_list)] for i, t in enumerate(tournees)}
+    colormap = cm.get_cmap("tab20", len(tournees))
+    colors = [f"#{int(r*255):02x}{int(g*255):02x}{int(b*255):02x}" for r, g, b, _ in colormap(np.linspace(0, 1, len(tournees)))]
 
-    for tournee, group in df_ag.groupby("Tournee"):
-        lat_mean = group["Latitude"].mean()
-        lon_mean = group["Longitude"].mean()
-        folium.Circle(
-            location=[lat_mean, lon_mean],
-            radius=10000,  # ajuster selon besoin
-            color=color_map.get(tournee, "gray"),
-            fill=True,
-            fill_opacity=0.4,
-            popup=f"Tournée {tournee} ({len(group)} localités)"
-        ).add_to(m)
+    # Tracer les polygones convexes des tournées
+    for i, (tournee, group) in enumerate(df_ag.groupby("Tournee")):
+        color = colors[i % len(colors)]
+        points = list(zip(group["Latitude"], group["Longitude"]))
+        if len(points) >= 3:
+            hull = MultiPoint(points).convex_hull
+            if isinstance(hull, Polygon):
+                folium.Polygon(
+                    locations=[[lat, lon] for lat, lon in hull.exterior.coords],
+                    color=color,
+                    fill=True,
+                    fill_opacity=0.4,
+                    tooltip=f"Tournée {tournee}"
+                ).add_to(m)
 
-    st_folium(m, width=1000, height=600)
+        # Points des localités
+        for _, row in group.iterrows():
+            folium.CircleMarker(
+                location=[row["Latitude"], row["Longitude"]],
+                radius=3,
+                color=color,
+                fill=True,
+                fill_opacity=1,
+                popup=f"{row['Commune']} (Tournée {tournee})"
+            ).add_to(m)
 
+    st.subheader("🗺️ Carte des Tournées")
+    st_folium(m, width=1000, height=650)
 
-
-        
 
 
 
