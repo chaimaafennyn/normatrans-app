@@ -333,53 +333,78 @@ elif menu == "Analyse des Tournées":
         mime="text/csv"
     )
 
-# =======================
-# Partie 7 : Données optimisées par Agence et Commune
-# =======================
-elif menu == "Analyse des Tournées 2":
-    st.header("🧹 Optimisation des Données par Agence et Commune")
 
-    # Fichier de livraisons
+# =======================
+# Partie 8 : Carte Marguerite (points uniquement)
+# =======================
+elif menu == "Marguerite par Agence (points)":
+    st.header("🌼 Marguerite des tournées - Vue par points")
+
+    # Chargement des données optimisées
     default_file = "livraison_optimisee_par_agence_commune.csv"
-    uploaded_file = st.file_uploader("Uploader un fichier de livraisons (optionnel)", type=["csv"])
+    agence_coord_file = "coordonnees_agences_normatrans.csv"
 
-    if uploaded_file:
-        df = pd.read_csv(uploaded_file, sep=";", encoding="latin1")
-        st.success("✅ Fichier chargé.")
-    else:
-        df = pd.read_csv(default_file, sep=";", encoding="latin1")
-        st.info(f"📂 Fichier par défaut utilisé : {default_file}")
+    uploaded_tournee = st.file_uploader("Uploader un fichier de livraisons (optionnel)", type=["csv"])
+
+    try:
+        df = pd.read_csv(uploaded_tournee if uploaded_tournee else default_file, sep=";", encoding="latin1")
+        df_agences = pd.read_csv(agence_coord_file, sep=";", encoding="utf-8")
+        st.success("✅ Fichiers chargés")
+    except Exception as e:
+        st.error(f"Erreur de chargement : {e}")
+        st.stop()
 
     # Nettoyage
     df.columns = df.columns.str.strip()
     df["Tournee"] = df["Tournee"].astype(str)
-    df["Poids"] = df["Poids"].astype(str).str.replace(",", ".").astype(float)
-    df["UM"] = df["UM"].astype(str).str.replace(",", ".").astype(float)
+    df["Latitude"] = df["Latitude"].astype(float)
+    df["Longitude"] = df["Longitude"].astype(float)
 
-    # Regroupement
-    df_optimise = df.groupby(["Code agence", "Commune"]).agg({
-        "Tournee": lambda x: ", ".join(sorted(set(x))),
-        "Code INSEE": "first",
-        "Latitude": "first",
-        "Longitude": "first",
-        "CP": "first",
-        "Zone": "first",
-        "UM": "sum",
-        "Poids": "sum"
-    }).reset_index()
+    df_agences.columns = df_agences.columns.str.strip()
+    df_agences["Latitude"] = df_agences["Latitude"].astype(float)
+    df_agences["Longitude"] = df_agences["Longitude"].astype(float)
 
-    st.subheader("📋 Données Agrégées par Agence et Commune")
-    st.dataframe(df_optimise.head(100))
+    agence_select = st.selectbox("Sélectionnez une agence :", df["Code agence"].dropna().unique())
+    df_ag = df[df["Code agence"] == agence_select]
 
-    # Télécharger
-    csv = df_optimise.to_csv(index=False, sep=";").encode("utf-8")
-    st.download_button(
-        label="📥 Télécharger les données optimisées",
-        data=csv,
-        file_name="livraison_optimisee_par_agence_commune.csv",
-        mime="text/csv"
-    )
+    coord_agence = df_agences[df_agences["Code agence"] == agence_select][["Latitude", "Longitude"]].iloc[0]
 
+    st.subheader(f"🗺️ Carte des tournées - Agence {agence_select} (points uniquement)")
+
+    import folium
+    from streamlit_folium import st_folium
+    import random
+
+    m = folium.Map(location=[coord_agence["Latitude"], coord_agence["Longitude"]], zoom_start=10)
+
+    # Marqueur de l’agence
+    folium.Marker(
+        [coord_agence["Latitude"], coord_agence["Longitude"]],
+        popup=f"Agence {agence_select}",
+        icon=folium.Icon(color="black", icon="building")
+    ).add_to(m)
+
+    # Couleurs par tournée
+    tournees = df_ag["Tournee"].unique()
+    colors = ["red", "blue", "green", "orange", "purple", "darkred", "cadetblue", "darkblue", "darkgreen",
+              "darkpurple", "pink", "gray", "black", "lightblue", "beige", "lightgreen"]
+
+    color_map = {t: colors[i % len(colors)] for i, t in enumerate(tournees)}
+
+    for _, row in df_ag.iterrows():
+        folium.CircleMarker(
+            location=[row["Latitude"], row["Longitude"]],
+            radius=4,
+            color=color_map.get(row["Tournee"], "gray"),
+            fill=True,
+            fill_opacity=0.7,
+            popup=f"{row['Commune']}<br>Tournée : {row['Tournee']}"
+        ).add_to(m)
+
+    st_folium(m, width=1000, height=600)
+
+
+        
 
 
 
