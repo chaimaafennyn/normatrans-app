@@ -8,3 +8,4 @@ PyYAML
 sqlalchemy
 psycopg2-binary
 matplotlib
+shapely
