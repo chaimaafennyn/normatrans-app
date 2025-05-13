@@ -519,7 +519,7 @@ elif menu == "Marguerite par Agence2":
 # =======================
 # Partie 8 : Carte des Tournées (points uniquement)
 # =======================
-elif menu == "Analyse des tournees2:
+elif menu == "Analyse des tournees2":
     st.header("📍 Carte des Tournées (Points par agence)")
 
     # Fichiers par défaut
