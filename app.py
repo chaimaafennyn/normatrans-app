@@ -270,7 +270,7 @@ elif menu == "Analyse des Poids":
 elif menu == "Analyse des Tournées":
     st.header("🔄 Analyse des Tournées de Livraison")
 
-    default_tournee = "tournee_margueritte.csv"
+    default_tournee = "livraison_par_tournee.csv"
     default_agences = "coordonnees_agences_normatrans.csv"
 
     uploaded_tournee = st.file_uploader("Uploader un fichier de livraisons par tournée (optionnel)", type=["csv"])
