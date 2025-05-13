@@ -374,14 +374,6 @@ elif menu == "Marguerite par Agence":
     df_agences = df_agences.dropna(subset=["Latitude", "Longitude"])
 
 
-    
-
-
-    
-
-
-    
-
     agence_select = st.selectbox("Sélectionnez une agence :", df["Code agence"].dropna().unique())
     df_ag = df[df["Code agence"] == agence_select]
 
@@ -436,7 +428,7 @@ elif menu == "Marguerite par Agence2":
     from matplotlib import cm
 
     # Chargement des fichiers
-    tournee_file = "livraison_optimisee_par_agence_commune.csv"
+    tournee_file = "tournee_margueritte.csv"
     agences_file = "coordonnees_agences_normatrans.csv"
 
     uploaded_tournee = st.file_uploader("Uploader un fichier de livraisons par tournée", type=["csv"])
