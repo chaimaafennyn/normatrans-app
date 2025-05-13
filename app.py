@@ -354,26 +354,27 @@ elif menu == "Marguerite par Agence":
         st.error(f"Erreur de chargement : {e}")
         st.stop()
 
-    # Nettoyage des colonnes
-    df_tournee.columns = df_tournee.columns.str.strip()
+    # Nettoyage
+    df.columns = df.columns.str.strip()
+    df["Tournee"] = df["Tournee"].astype(str)
+    
+    # Conversion sécurisée de Latitude et Longitude
+    for col in ["Latitude", "Longitude"]:
+        df[col] = df[col].astype(str).str.replace(",", ".").str.strip()
+        df[col] = pd.to_numeric(df[col], errors="coerce")
+    
+    df = df.dropna(subset=["Latitude", "Longitude"])
+    
+    # Pour df_agences également :
     df_agences.columns = df_agences.columns.str.strip()
+    for col in ["Latitude", "Longitude"]:
+        df_agences[col] = df_agences[col].astype(str).str.replace(",", ".").str.strip()
+        df_agences[col] = pd.to_numeric(df_agences[col], errors="coerce")
     
-    # Nettoyage des données géographiques (remplacer virgules et valeurs vides)
-    df_tournee["Latitude"] = df_tournee["Latitude"].astype(str).str.replace(",", ".").str.strip()
-    df_tournee["Longitude"] = df_tournee["Longitude"].astype(str).str.replace(",", ".").str.strip()
-    
-    # Filtrer les lignes valides
-    df_tournee = df_tournee[df_tournee["Latitude"].str.match(r'^-?\d+(\.\d+)?$')]
-    df_tournee = df_tournee[df_tournee["Longitude"].str.match(r'^-?\d+(\.\d+)?$')]
-    
-    # Conversion après vérification
-    df_tournee["Latitude"] = df_tournee["Latitude"].astype(float)
-    df_tournee["Longitude"] = df_tournee["Longitude"].astype(float)
-    
-    # Pour les agences aussi
-    df_agences["Latitude"] = pd.to_numeric(df_agences["Latitude"], errors="coerce")
-    df_agences["Longitude"] = pd.to_numeric(df_agences["Longitude"], errors="coerce")
     df_agences = df_agences.dropna(subset=["Latitude", "Longitude"])
+
+
+    
 
 
     
@@ -449,13 +450,26 @@ elif menu == "Marguerite par Agence2":
         st.error(f"❌ Erreur : {e}")
         st.stop()
 
-   # Nettoyage
+    # Nettoyage des colonnes
     df_tournee.columns = df_tournee.columns.str.strip()
     df_agences.columns = df_agences.columns.str.strip()
-
+    
+    # Nettoyage des données géographiques (remplacer virgules et valeurs vides)
+    df_tournee["Latitude"] = df_tournee["Latitude"].astype(str).str.replace(",", ".").str.strip()
+    df_tournee["Longitude"] = df_tournee["Longitude"].astype(str).str.replace(",", ".").str.strip()
+    
+    # Filtrer les lignes valides
+    df_tournee = df_tournee[df_tournee["Latitude"].str.match(r'^-?\d+(\.\d+)?$')]
+    df_tournee = df_tournee[df_tournee["Longitude"].str.match(r'^-?\d+(\.\d+)?$')]
+    
+    # Conversion après vérification
     df_tournee["Latitude"] = df_tournee["Latitude"].astype(float)
     df_tournee["Longitude"] = df_tournee["Longitude"].astype(float)
-    df_tournee["Tournee"] = df_tournee["Tournee"].astype(str)
+    
+    # Pour les agences aussi
+    df_agences["Latitude"] = pd.to_numeric(df_agences["Latitude"], errors="coerce")
+    df_agences["Longitude"] = pd.to_numeric(df_agences["Longitude"], errors="coerce")
+    df_agences = df_agences.dropna(subset=["Latitude", "Longitude"])
 
 
     
