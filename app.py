@@ -444,24 +444,13 @@ elif menu == "Marguerite par Agence2":
         st.error(f"❌ Erreur : {e}")
         st.stop()
 
-    # Nettoyage
-    df.columns = df.columns.str.strip()
-    df["Tournee"] = df["Tournee"].astype(str)
-    
-    # Conversion sécurisée de Latitude et Longitude
-    for col in ["Latitude", "Longitude"]:
-        df[col] = df[col].astype(str).str.replace(",", ".").str.strip()
-        df[col] = pd.to_numeric(df[col], errors="coerce")
-    
-    df = df.dropna(subset=["Latitude", "Longitude"])
-    
-    # Pour df_agences également :
+   # Nettoyage
+    df_tournee.columns = df_tournee.columns.str.strip()
     df_agences.columns = df_agences.columns.str.strip()
-    for col in ["Latitude", "Longitude"]:
-        df_agences[col] = df_agences[col].astype(str).str.replace(",", ".").str.strip()
-        df_agences[col] = pd.to_numeric(df_agences[col], errors="coerce")
-    
-    df_agences = df_agences.dropna(subset=["Latitude", "Longitude"])
+
+    df_tournee["Latitude"] = df_tournee["Latitude"].astype(float)
+    df_tournee["Longitude"] = df_tournee["Longitude"].astype(float)
+    df_tournee["Tournee"] = df_tournee["Tournee"].astype(str)
 
 
     
