@@ -10,7 +10,7 @@ st.title("🚚 Normatrans - Zones et Tarifs de Livraison")
 
 menu = st.sidebar.radio(
     "Navigation",
-    ["Analyse des Zones", "Calcul des Tarifs", "Analyse des Expéditions", "Analyse des Poids", "Analyse des Tournées", "Marguerite par Agence", "Marguerite par Agence2", "Tournées Marguerite"],
+    ["Analyse des Zones", "Calcul des Tarifs", "Analyse des Expéditions", "Analyse des Poids", "Analyse des Tournées", "Marguerite par Agence", "Marguerite par Agence2", "Analyse des tournees2"],
     index=0
 )
 
@@ -515,8 +515,69 @@ elif menu == "Marguerite par Agence2":
 
     st.subheader("🗺️ Carte des Tournées")
     st_folium(m, width=1000, height=650)
+
+# =======================
+# Partie 8 : Carte des Tournées (points uniquement)
+# =======================
+elif menu == "Analyse des tournees2:
+    st.header("📍 Carte des Tournées (Points par agence)")
+
+    # Fichiers par défaut
+    default_tournee_file = "tournee_margueritte.csv"
+
+    uploaded_tournee_file = st.file_uploader("Uploader un fichier des tournées optimisées (optionnel)", type=["csv"])
+
+    if uploaded_tournee_file:
+        df_tournee = pd.read_csv(uploaded_tournee_file, sep=";", encoding="utf-8")
+        st.success("✅ Fichier de tournée optimisée chargé.")
+    else:
+        df_tournee = pd.read_csv(default_tournee_file, sep=";", encoding="utf-8")
+        st.info(f"📂 Fichier par défaut utilisé : {default_tournee_file}")
+
+    df_tournee.columns = df_tournee.columns.str.strip()
+
+    try:
+        df_tournee["Latitude"] = df_tournee["Latitude"].astype(float)
+        df_tournee["Longitude"] = df_tournee["Longitude"].astype(float)
+    except:
+        st.error("❌ Erreur dans la conversion des coordonnées.")
+        st.stop()
+
+    agence_select = st.selectbox("Choisissez une agence :", df_tournee["Code agence"].dropna().unique())
+    df_ag = df_tournee[df_tournee["Code agence"] == agence_select]
+
+    st.subheader(f"🗺️ Carte des tournées (agence {agence_select})")
+
+    import folium
+    from streamlit_folium import st_folium
+
+    m = folium.Map(location=[df_ag["Latitude"].mean(), df_ag["Longitude"].mean()], zoom_start=9)
+
+    for _, row in df_ag.iterrows():
+        folium.CircleMarker(
+            location=[row["Latitude"], row["Longitude"]],
+            radius=4,
+            color="blue",
+            fill=True,
+            fill_opacity=0.6,
+            popup=f"""
+                <b>Commune :</b> {row['Commune']}<br>
+                <b>Tournée(s) :</b> {row['Tournee']}<br>
+                <b>Poids :</b> {row['Poids']} kg<br>
+                <b>UM :</b> {row['UM']}
+            """,
+        ).add_to(m)
+
+    st_folium(m, width=1000, height=600)
+
+    st.download_button(
+        label="📥 Télécharger les données filtrées",
+        data=df_ag.to_csv(index=False),
+        file_name=f"tournée_points_{agence_select}.csv",
+        mime="text/csv"
+    )
+
     
 
-Tournées Marguerite]
 st.markdown("---")
 st.caption("Normatrans © 2025 - Fennynchaimaa")
