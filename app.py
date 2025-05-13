@@ -335,13 +335,13 @@ elif menu == "Analyse des Tournées":
 
 
 # =======================
-# Partie 8 : Carte Marguerite (points uniquement)
+# Partie 6 : Carte Marguerite (points uniquement)
 # =======================
 elif menu == "Marguerite par Agence":
     st.header("🌼 Marguerite des tournées - Vue par points")
 
     # Chargement des données optimisées
-    default_file = "livraison_optimisee_par_agence_commune.csv"
+    default_file = "tournee_margueritte.csv"
     agence_coord_file = "coordonnees_agences_normatrans.csv"
 
     uploaded_tournee = st.file_uploader("Uploader un fichier de livraisons (optionnel)", type=["csv"])
