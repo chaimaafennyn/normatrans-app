@@ -685,7 +685,7 @@ elif menu == "Analyse des Tranches de Poids":
 
    # === Statistiques globales (Zone / Agence) ===
     if "UM" in df_filtered.columns:
-        st.subheader("⚖️ Statistiques Poids / UM par Zone")
+        st.subheader("⚖️ Statistiques Poids / UM / Exp par Zone")
     
         stats_zone = df_filtered.groupby("Zone").agg(
             Exp_total=("Poids", "count"),
@@ -699,7 +699,7 @@ elif menu == "Analyse des Tranches de Poids":
         st.dataframe(stats_zone)
     
         if "Code agence" in df_filtered.columns:
-            st.subheader("🏢 Statistiques Poids / UM par Agence")
+            st.subheader("🏢 Statistiques Poids / UM / Exp par Agence")
     
             stats_agence = df_filtered.groupby("Code agence").agg(
                 Exp_total=("Poids", "count"),
