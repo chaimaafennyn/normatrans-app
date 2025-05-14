@@ -682,7 +682,7 @@ elif menu == "Analyse des Tranches de Poids":
     if "UM" in df_filtered.columns:
         st.subheader("⚖️ Statistiques Poids / UM / Exp par Zone")
         stats_zone = df_filtered.groupby("Zone").agg(
-            Nb_exp=("Poids", "count"),
+            Exp_total=("Poids", "count"),
             Poids_total=("Poids", "sum"),
             UM_total=("UM", "sum"),
             Poids_moyen=("Poids", "mean"),
@@ -694,7 +694,7 @@ elif menu == "Analyse des Tranches de Poids":
         if "Code agence" in df_filtered.columns:
             st.subheader("🏢 Statistiques Poids / UM / Exp par Agence")
             stats_agence = df_filtered.groupby("Code agence").agg(
-                Nb_exp=("Poids", "count"),
+                Exp_total=("Poids", "count"),
                 Poids_total=("Poids", "sum"),
                 UM_total=("UM", "sum"),
                 Poids_moyen=("Poids", "mean"),
