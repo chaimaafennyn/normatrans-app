@@ -688,7 +688,7 @@ elif menu == "Analyse des Tranches de Poids":
         st.subheader("⚖️ Statistiques Poids / UM par Zone")
     
         stats_zone = df_filtered.groupby("Zone").agg(
-            Nb_exp=("Poids", "count"),
+            Expédition_totam=("Poids", "count"),
             Poids_total=("Poids", "sum"),
             UM_total=("UM", "sum"),
             Poids_moyen=("Poids", "mean"),
