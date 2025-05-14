@@ -695,7 +695,6 @@ elif menu == "Analyse des Tranches de Poids":
             UM_total=("UM", "sum"),
             Poids_moyen=("Poids", "mean"),
             UM_moyenne=("UM", "mean"),
-            UM_par_kg=("UM", lambda x: x.sum() / df.loc[x.index, "Poids"].sum() if df.loc[x.index, "Poids"].sum() > 0 else 0)
         ).round(2)
         st.dataframe(stats_zone)
 
@@ -707,7 +706,6 @@ elif menu == "Analyse des Tranches de Poids":
             UM_total=("UM", "sum"),
             Poids_moyen=("Poids", "mean"),
             UM_moyenne=("UM", "mean"),
-            UM_par_kg=("UM", lambda x: x.sum() / df.loc[x.index, "Poids"].sum() if df.loc[x.index, "Poids"].sum() > 0 else 0)
         ).round(2)
         st.dataframe(stats_agence)
 
