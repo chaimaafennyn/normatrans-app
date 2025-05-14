@@ -671,7 +671,7 @@ elif menu == "Analyse des Tranches de Poids":
         top_communes = (
             detail.groupby("Commune")["Nb_expéditions"]
             .sum()
-            .nlargest(15)
+            .nlargest(100)
             .reset_index()
         )
         st.bar_chart(top_communes.set_index("Commune")["Nb_expéditions"])
