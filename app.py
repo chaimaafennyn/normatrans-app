@@ -602,7 +602,7 @@ elif menu == "Analyse des Tranches de Poids":
     if "UM" in df.columns:
         df["UM"] = df["UM"].astype(str).str.replace(",", ".").astype(float)
 
-    # Tranches
+    # Tranches de poids
     bins = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200, 300, 500, 700, 1000, 1500, 2000, 3000, float('inf')]
     labels = [
         "0-10kg", "10-20kg", "20-30kg", "30-40kg", "40-50kg",
@@ -613,96 +613,87 @@ elif menu == "Analyse des Tranches de Poids":
     df["Tranche"] = pd.cut(df["Poids"], bins=bins, labels=labels, right=False)
     df = df[df["Tranche"].notna()]
 
-    # Répartition par tranche
-    pivot = df.groupby(["Zone", "Tranche"]).size().reset_index(name="Nb_exp")
+    # === Filtres optionnels ===
+    zones = df["Zone"].dropna().unique()
+    agences = df["Code agence"].dropna().unique() if "Code agence" in df.columns else []
+
+    col1, col2 = st.columns(2)
+    selected_zone = col1.selectbox("🎯 Filtrer par zone", ["Toutes"] + list(zones))
+    selected_agence = col2.selectbox("🏢 Filtrer par agence", ["Toutes"] + list(agences) if agences else ["Aucune"])
+
+    df_filtered = df.copy()
+    if selected_zone != "Toutes":
+        df_filtered = df_filtered[df_filtered["Zone"] == selected_zone]
+    if selected_agence != "Toutes" and "Code agence" in df_filtered.columns:
+        df_filtered = df_filtered[df_filtered["Code agence"] == selected_agence]
+
+    # === Tranches par zone ===
+    st.subheader("📊 Répartition (%) des tranches de poids par zone")
+    pivot = df_filtered.groupby(["Zone", "Tranche"]).size().reset_index(name="Nb_exp")
     totaux = pivot.groupby("Zone")["Nb_exp"].sum().reset_index(name="Total")
     result = pd.merge(pivot, totaux, on="Zone")
     result["Pourcentage"] = (result["Nb_exp"] / result["Total"] * 100).round(2)
     tableau = result.pivot(index="Zone", columns="Tranche", values="Pourcentage").fillna(0)
-
-    st.subheader("📊 Répartition (%) des tranches par zone")
     st.dataframe(tableau)
-    st.download_button("📥 Télécharger ce tableau", data=tableau.to_csv().encode("utf-8"), file_name="repartition_tranches_par_zone.csv", mime="text/csv")
 
-    # Expéditions par zone
-    st.subheader("📦 Nombre total d'expéditions par zone")
-    st.dataframe(totaux)
-    st.bar_chart(totaux.set_index("Zone")["Total"])
+    st.download_button(
+        "📥 Télécharger les pourcentages par tranche et zone",
+        data=tableau.to_csv().encode("utf-8"),
+        file_name="repartition_tranches_par_zone.csv",
+        mime="text/csv"
+    )
 
-    # Par commune
-    if "Commune" in df.columns:
-        st.subheader("🏘️ Nombre d'expéditions par commune et zone")
-        exp_commune_zone = df.groupby(["Commune", "Zone"]).size().reset_index(name="Nb_exp")
-        st.dataframe(exp_commune_zone)
+    # === Résumé expéditions, poids, UM ===
+    st.subheader("📋 Détail global par agence, zone et commune")
 
-        top_communes = exp_commune_zone.groupby("Commune")["Nb_exp"].sum().nlargest(15).reset_index()
-        st.subheader("🏆 Top 15 communes")
-        st.bar_chart(top_communes.set_index("Commune")["Nb_exp"])
+    group_cols = ["Zone", "Commune"]
+    if "Code agence" in df_filtered.columns:
+        group_cols.insert(0, "Code agence")
 
-        st.download_button(
-            "📥 Télécharger les expéditions par commune",
-            data=exp_commune_zone.to_csv(index=False).encode("utf-8"),
-            file_name="expeditions_par_commune_et_zone.csv",
-            mime="text/csv"
-        )
+    aggregations = {
+        "Poids": ["count", "sum"],
+    }
+    if "UM" in df_filtered.columns:
+        aggregations["UM"] = "sum"
 
-    # Par agence
-    if "Code agence" in df.columns:
-        st.subheader("🏢 Nombre d'expéditions par agence")
-        exp_agence = df.groupby("Code agence").size().reset_index(name="Nb_exp")
-        st.dataframe(exp_agence)
-        st.bar_chart(exp_agence.set_index("Code agence")["Nb_exp"])
+    detail = df_filtered.groupby(group_cols).agg(aggregations)
+    detail.columns = ["Nb_expéditions", "Poids_total"] + (["UM_total"] if "UM" in df_filtered.columns else [])
+    detail = detail.reset_index().round(2)
 
-        exp_agence_detail = df.groupby(["Code agence", "Zone", "Commune"]).size().reset_index(name="Nb_exp")
-        st.subheader("📍 Détail agence / zone / commune")
-        st.dataframe(exp_agence_detail)
-        st.download_button(
-            "📥 Télécharger les données agence/zone/commune",
-            data=exp_agence_detail.to_csv(index=False).encode("utf-8"),
-            file_name="expeditions_par_agence_zone_commune.csv",
-            mime="text/csv"
-        )
+    st.dataframe(detail)
 
-    # Statistiques Poids / UM
-    st.subheader("⚖️ Statistiques sur Poids et UM")
-    if "UM" in df.columns:
-        stats_zone = df.groupby("Zone").agg(
-            Nb_expéditions=("Commune", "count"),
-            Poids_total=("Poids", "sum"),
-            UM_total=("UM", "sum"),
-            Poids_moyen=("Poids", "mean"),
-            UM_moyenne=("UM", "mean"),
-            UM_par_kg=("UM", lambda x: x.sum() / df.loc[x.index, "Poids"].sum())
-        ).round(2)
-        st.markdown("### 📦 Par Zone")
-        st.dataframe(stats_zone)
+    st.download_button(
+        "📥 Télécharger le tableau complet",
+        data=detail.to_csv(index=False).encode("utf-8"),
+        file_name="detail_agence_zone_commune.csv",
+        mime="text/csv"
+    )
 
-        stats_agence = df.groupby("Code agence").agg(
-            Nb_expéditions=("Commune", "count"),
-            Poids_total=("Poids", "sum"),
-            UM_total=("UM", "sum"),
-            Poids_moyen=("Poids", "mean"),
-            UM_moyenne=("UM", "mean"),
-            UM_par_kg=("UM", lambda x: x.sum() / df.loc[x.index, "Poids"].sum())
-        ).round(2)
-        st.markdown("### 🏢 Par Agence")
-        st.dataframe(stats_agence)
-
-        detail = df.groupby(["Code agence", "Zone", "Commune"]).agg(
+    # === Statistiques globales (Zone / Agence) ===
+    if "UM" in df_filtered.columns:
+        st.subheader("⚖️ Statistiques Poids / UM par Zone")
+        stats_zone = df_filtered.groupby("Zone").agg(
             Nb_expéditions=("Poids", "count"),
             Poids_total=("Poids", "sum"),
-            UM_total=("UM", "sum")
-        ).reset_index().round(2)
-        st.markdown("### 🧾 Détail complet exportable")
-        st.dataframe(detail)
-        st.download_button(
-            "📥 Télécharger les stats Poids/UM",
-            data=detail.to_csv(index=False).encode("utf-8"),
-            file_name="stats_poids_um_par_agence_zone_commune.csv",
-            mime="text/csv"
-        )
-    else:
-        st.warning("⚠️ Colonne 'UM' absente. Statistiques UM non disponibles.")
+            UM_total=("UM", "sum"),
+            Poids_moyen=("Poids", "mean"),
+            UM_moyenne=("UM", "mean"),
+            UM_par_kg=("UM", lambda x: x.sum() / df_filtered.loc[x.index, "Poids"].sum())
+        ).round(2)
+        st.dataframe(stats_zone)
+
+        if "Code agence" in df_filtered.columns:
+            st.subheader("🏢 Statistiques Poids / UM par Agence")
+            stats_agence = df_filtered.groupby("Code agence").agg(
+                Nb_expéditions=("Poids", "count"),
+                Poids_total=("Poids", "sum"),
+                UM_total=("UM", "sum"),
+                Poids_moyen=("Poids", "mean"),
+                UM_moyenne=("UM", "mean"),
+                UM_par_kg=("UM", lambda x: x.sum() / df_filtered.loc[x.index, "Poids"].sum())
+            ).round(2)
+            st.dataframe(stats_agence)
+
 
 
 st.markdown("---")
