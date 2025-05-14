@@ -667,7 +667,7 @@ elif menu == "Analyse des Tranches de Poids":
 
     # === Top 15 communes les plus livrées ===
     if "Commune" in detail.columns and "Nb_expéditions" in detail.columns:
-        st.subheader("🏆 Top 15 communes avec le plus d'expéditions")
+        st.subheader("🏆 Top 100 communes avec le plus d'expéditions")
         top_communes = (
             detail.groupby("Commune")["Nb_expéditions"]
             .sum()
@@ -707,6 +707,13 @@ elif menu == "Analyse des Tranches de Poids":
                 UM_par_kg=("UM", lambda x: x.sum() / df_filtered.loc[x.index, "Poids"].sum())
             ).round(2)
             st.dataframe(stats_agence)
+
+    st.subheader("🥧 Répartition globale des tranches de poids")
+    pie_tranches = df_filtered["Tranche"].value_counts().reset_index()
+    pie_tranches.columns = ["Tranche", "Nb_exp"]
+    fig = px.pie(pie_tranches, names="Tranche", values="Nb_exp", title="Répartition des tranches de poids")
+    st.plotly_chart(fig)
+
 
 
 
