@@ -644,14 +644,14 @@ elif menu == "Analyse des Tranches de Poids":
         st.bar_chart(top_communes.set_index("Commune")["Nb_exp"])
 
         # Export CSV
-        */st.download_button(
+        st.download_button(
             "📥 Télécharger les expéditions par commune",
             data=exp_commune_zone.to_csv(index=False).encode("utf-8"),
             file_name="expeditions_par_commune_et_zone.csv",
             mime="text/csv"
         )
     else:
-        st.warning("⚠️ La colonne 'Commune' est manquante dans les données.")*/
+        st.warning("⚠️ La colonne 'Commune' est manquante dans les données.")
 
         # ======================
     # 🏢 Analyse par agence
