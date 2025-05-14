@@ -629,7 +629,7 @@ elif menu == "Analyse des Tranches de Poids":
     tarif_tableau = result.pivot(index="Zone", columns="Tranche", values="Tarif (€)").fillna(0)
 
     st.subheader("💰 Répartition tarifaire estimée (€)")
-    st.dataframe(tarif_tableau)
+    #st.dataframe(tarif_tableau)
 
     # Export
     csv = tableau.to_csv().encode('utf-8')
