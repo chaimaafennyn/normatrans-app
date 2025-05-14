@@ -693,8 +693,6 @@ elif menu == "Analyse des Tranches de Poids":
             Nb_expéditions=("Commune", "count"),
             Poids_total=("Poids", "sum"),
             UM_total=("UM", "sum"),
-            Poids_moyen=("Poids", "mean"),
-            UM_moyenne=("UM", "mean"),
         ).round(2)
         st.dataframe(stats_zone)
 
@@ -704,8 +702,6 @@ elif menu == "Analyse des Tranches de Poids":
             Nb_expéditions=("Commune", "count"),
             Poids_total=("Poids", "sum"),
             UM_total=("UM", "sum"),
-            Poids_moyen=("Poids", "mean"),
-            UM_moyenne=("UM", "mean"),
         ).round(2)
         st.dataframe(stats_agence)
 
