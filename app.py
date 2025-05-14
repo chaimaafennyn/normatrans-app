@@ -621,14 +621,47 @@ elif menu == "Analyse des Tranches de Poids":
     st.subheader("📊 Répartition (%) des tranches de poids par zone")
     st.dataframe(tableau)
 
-    tarif_total = st.number_input("💶 Tarif global à répartir (€)", min_value=100.0, max_value=10000.0, value=1000.0, step=50.0)
+        # ======================
+    # 🔍 Analyse nb_exp par zone
+    # ======================
+    st.subheader("📦 Nombre total d'expéditions par zone")
+    st.dataframe(totaux)
 
-    result["Tarif (€)"] = (result["Pourcentage"] / 100) * tarif_total
-    result["Tarif (€)"] = result["Tarif (€)"].round(2)
+    # Graphique barres zones
+    st.bar_chart(totaux.set_index("Zone")["Total"])
 
-    tarif_tableau = result.pivot(index="Zone", columns="Tranche", values="Tarif (€)").fillna(0)
+    # ======================
+    # 🏘️ Analyse nb_exp par commune et par zone
+    # ======================
+    if "Commune" in df.columns:
+        st.subheader("🏘️ Nombre d'expéditions par commune et par zone")
+        exp_commune_zone = df.groupby(["Commune", "Zone"]).size().reset_index(name="Nb_exp")
+        st.dataframe(exp_commune_zone)
 
-    st.subheader("💰 Répartition tarifaire estimée (€)")
+        # Graphique par commune (optionnel selon volume)
+        top_communes = exp_commune_zone.groupby("Commune")["Nb_exp"].sum().nlargest(15).reset_index()
+        st.subheader("🏆 Top 15 communes avec le plus d'expéditions")
+        st.bar_chart(top_communes.set_index("Commune")["Nb_exp"])
+
+        # Export CSV
+        st.download_button(
+            "📥 Télécharger les expéditions par commune",
+            data=exp_commune_zone.to_csv(index=False).encode("utf-8"),
+            file_name="expeditions_par_commune_et_zone.csv",
+            mime="text/csv"
+        )
+    else:
+        st.warning("⚠️ La colonne 'Commune' est manquante dans les données.")
+
+
+    #tarif_total = st.number_input("💶 Tarif global à répartir (€)", min_value=100.0, max_value=10000.0, value=1000.0, step=50.0)
+
+    #result["Tarif (€)"] = (result["Pourcentage"] / 100) * tarif_total
+    #result["Tarif (€)"] = result["Tarif (€)"].round(2)
+
+    #tarif_tableau = result.pivot(index="Zone", columns="Tranche", values="Tarif (€)").fillna(0)
+
+    #st.subheader("💰 Répartition tarifaire estimée (€)")
     #st.dataframe(tarif_tableau)
 
     # Export
