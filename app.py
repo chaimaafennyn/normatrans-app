@@ -583,22 +583,25 @@ elif menu == "Analyse des tournees2":
 elif menu == "Analyse des Tranches de Poids":
     st.header("📦 Analyse des Tranches de Poids par Zone")
 
-    uploaded_file = st.file_uploader("Uploader le fichier des livraisons (livraison_par_tournee.csv)", type=["csv"])
+    uploaded_file = st.file_uploader("📤 Uploader le fichier des livraisons (livraison_par_tournee.csv)", type=["csv"])
     if uploaded_file is not None:
         df = pd.read_csv(uploaded_file, sep=";", encoding="latin1")
+        st.success("✅ Fichier chargé avec succès.")
     else:
         default_file = "livraison_par_tournee.csv"
         try:
             df = pd.read_csv(default_file, sep=";", encoding="latin1")
             st.info(f"📂 Fichier par défaut utilisé : {default_file}")
         except:
-            st.error("❌ Fichier manquant.")
+            st.error("❌ Fichier introuvable.")
             st.stop()
 
+    # Nettoyage de base
     df.columns = df.columns.str.strip()
     df["Poids"] = df["Poids"].astype(str).str.replace(",", ".").astype(float)
     df["Zone"] = df["Zone"].str.strip()
 
+    # Définir les tranches de poids
     bins = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200, 300, 500, 700, 1000, 1500, 2000, 3000, float('inf')]
     labels = [
         "0-10kg", "10-20kg", "20-30kg", "30-40kg", "40-50kg",
@@ -606,44 +609,45 @@ elif menu == "Analyse des Tranches de Poids":
         "100-200kg", "200-300kg", "300-500kg", "500-700kg",
         "700-1000kg", "1000-1500kg", "1500-2000kg", "2000-3000kg", ">3000kg"
     ]
-
     df["Tranche"] = pd.cut(df["Poids"], bins=bins, labels=labels, right=False)
     df = df[df["Tranche"].notna()]
 
-    # Calcul des expéditions par zone/tranche
+    # ======================
+    # 📊 Répartition par Tranche et Zone
+    # ======================
+    st.subheader("📊 Répartition (%) des tranches de poids par zone")
+
     pivot = df.groupby(["Zone", "Tranche"]).size().reset_index(name="Nb_exp")
     totaux = pivot.groupby("Zone")["Nb_exp"].sum().reset_index(name="Total")
     result = pd.merge(pivot, totaux, on="Zone")
     result["Pourcentage"] = (result["Nb_exp"] / result["Total"] * 100).round(2)
 
     tableau = result.pivot(index="Zone", columns="Tranche", values="Pourcentage").fillna(0)
-
-    st.subheader("📊 Répartition (%) des tranches de poids par zone")
     st.dataframe(tableau)
 
-        # ======================
-    # 🔍 Analyse nb_exp par zone
+    # Export CSV
+    csv = tableau.to_csv().encode('utf-8')
+    st.download_button("📥 Télécharger le tableau des pourcentages", data=csv, file_name="tranches_par_zone.csv", mime="text/csv")
+
+    # ======================
+    # 📦 Nb d’expéditions par zone
     # ======================
     st.subheader("📦 Nombre total d'expéditions par zone")
     st.dataframe(totaux)
-
-    # Graphique barres zones
     st.bar_chart(totaux.set_index("Zone")["Total"])
 
     # ======================
-    # 🏘️ Analyse nb_exp par commune et par zone
+    # 🏘️ Nb d’expéditions par commune + zone
     # ======================
     if "Commune" in df.columns:
         st.subheader("🏘️ Nombre d'expéditions par commune et par zone")
         exp_commune_zone = df.groupby(["Commune", "Zone"]).size().reset_index(name="Nb_exp")
         st.dataframe(exp_commune_zone)
 
-        # Graphique par commune (optionnel selon volume)
         top_communes = exp_commune_zone.groupby("Commune")["Nb_exp"].sum().nlargest(15).reset_index()
         st.subheader("🏆 Top 15 communes avec le plus d'expéditions")
         st.bar_chart(top_communes.set_index("Commune")["Nb_exp"])
 
-        # Export CSV
         st.download_button(
             "📥 Télécharger les expéditions par commune",
             data=exp_commune_zone.to_csv(index=False).encode("utf-8"),
@@ -654,20 +658,18 @@ elif menu == "Analyse des Tranches de Poids":
         st.warning("⚠️ La colonne 'Commune' est manquante dans les données.")
 
     # ======================
-    # 🏢 Analyse par agence
+    # 🏢 Nb d’expéditions par agence
     # ======================
     if "Code agence" in df.columns:
         st.subheader("🏢 Nombre total d'expéditions par agence")
         exp_agence = df.groupby("Code agence").size().reset_index(name="Nb_exp")
         st.dataframe(exp_agence)
-
         st.bar_chart(exp_agence.set_index("Code agence")["Nb_exp"])
 
         st.subheader("📍 Nombre d'expéditions par agence, par zone et commune")
         exp_agence_zone_commune = df.groupby(["Code agence", "Zone", "Commune"]).size().reset_index(name="Nb_exp")
         st.dataframe(exp_agence_zone_commune)
 
-        # Export CSV
         st.download_button(
             "📥 Télécharger les données agence/zone/commune",
             data=exp_agence_zone_commune.to_csv(index=False).encode("utf-8"),
@@ -677,7 +679,7 @@ elif menu == "Analyse des Tranches de Poids":
     else:
         st.warning("⚠️ La colonne 'Code agence' est manquante dans le fichier.")
 
-        # ======================
+    # ======================
     # ⚖️ Statistiques sur Poids et UM
     # ======================
     st.subheader("⚖️ Statistiques globales sur Poids et UM")
@@ -685,7 +687,7 @@ elif menu == "Analyse des Tranches de Poids":
     if "UM" in df.columns:
         df["UM"] = df["UM"].astype(str).str.replace(",", ".").astype(float)
 
-        # 1. Statistiques par zone
+        # 1. Par zone
         st.markdown("### 📦 Poids & UM par Zone")
         stats_zone = df.groupby("Zone").agg(
             Nb_expéditions=("Commune", "count"),
@@ -697,7 +699,7 @@ elif menu == "Analyse des Tranches de Poids":
         ).round(2)
         st.dataframe(stats_zone)
 
-        # 2. Statistiques par agence
+        # 2. Par agence
         st.markdown("### 🏢 Poids & UM par Agence")
         stats_agence = df.groupby("Code agence").agg(
             Nb_expéditions=("Commune", "count"),
@@ -728,22 +730,6 @@ elif menu == "Analyse des Tranches de Poids":
     else:
         st.warning("⚠️ La colonne 'UM' est manquante dans le fichier.")
 
-
-
-
-    #tarif_total = st.number_input("💶 Tarif global à répartir (€)", min_value=100.0, max_value=10000.0, value=1000.0, step=50.0)
-
-    #result["Tarif (€)"] = (result["Pourcentage"] / 100) * tarif_total
-    #result["Tarif (€)"] = result["Tarif (€)"].round(2)
-
-    #tarif_tableau = result.pivot(index="Zone", columns="Tranche", values="Tarif (€)").fillna(0)
-
-    #st.subheader("💰 Répartition tarifaire estimée (€)")
-    #st.dataframe(tarif_tableau)
-
-    # Export
-    csv = tableau.to_csv().encode('utf-8')
-    st.download_button("📥 Télécharger le tableau des pourcentages", data=csv, file_name="tranches_par_zone.csv", mime="text/csv")
 
 
     
