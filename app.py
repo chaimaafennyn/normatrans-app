@@ -677,6 +677,58 @@ elif menu == "Analyse des Tranches de Poids":
     else:
         st.warning("⚠️ La colonne 'Code agence' est manquante dans le fichier.")
 
+        # ======================
+    # ⚖️ Statistiques sur Poids et UM
+    # ======================
+    st.subheader("⚖️ Statistiques globales sur Poids et UM")
+
+    if "UM" in df.columns:
+        df["UM"] = df["UM"].astype(str).str.replace(",", ".").astype(float)
+
+        # 1. Statistiques par zone
+        st.markdown("### 📦 Poids & UM par Zone")
+        stats_zone = df.groupby("Zone").agg(
+            Nb_expéditions=("Commune", "count"),
+            Poids_total=("Poids", "sum"),
+            UM_total=("UM", "sum"),
+            Poids_moyen=("Poids", "mean"),
+            UM_moyenne=("UM", "mean"),
+            UM_par_kg=("UM", lambda x: x.sum() / df.loc[x.index, "Poids"].sum() if df.loc[x.index, "Poids"].sum() > 0 else 0)
+        ).round(2)
+        st.dataframe(stats_zone)
+
+        # 2. Statistiques par agence
+        st.markdown("### 🏢 Poids & UM par Agence")
+        stats_agence = df.groupby("Code agence").agg(
+            Nb_expéditions=("Commune", "count"),
+            Poids_total=("Poids", "sum"),
+            UM_total=("UM", "sum"),
+            Poids_moyen=("Poids", "mean"),
+            UM_moyenne=("UM", "mean"),
+            UM_par_kg=("UM", lambda x: x.sum() / df.loc[x.index, "Poids"].sum() if df.loc[x.index, "Poids"].sum() > 0 else 0)
+        ).round(2)
+        st.dataframe(stats_agence)
+
+        # 3. Détail complet
+        st.markdown("### 🧾 Détail par Agence, Zone et Commune")
+        stats_detail = df.groupby(["Code agence", "Zone", "Commune"]).agg(
+            Nb_expéditions=("Commune", "count"),
+            Poids_total=("Poids", "sum"),
+            UM_total=("UM", "sum")
+        ).reset_index().round(2)
+        st.dataframe(stats_detail)
+
+        st.download_button(
+            "📥 Télécharger les stats Poids/UM",
+            data=stats_detail.to_csv(index=False).encode("utf-8"),
+            file_name="stats_poids_um_par_agence_zone_commune.csv",
+            mime="text/csv"
+        )
+
+    else:
+        st.warning("⚠️ La colonne 'UM' est manquante dans le fichier.")
+
+
 
 
     #tarif_total = st.number_input("💶 Tarif global à répartir (€)", min_value=100.0, max_value=10000.0, value=1000.0, step=50.0)
