@@ -713,9 +713,38 @@ elif menu == "Analyse des Tranches de Poids":
     pie_tranches.columns = ["Tranche", "Nb_exp"]
     fig = px.pie(pie_tranches, names="Tranche", values="Nb_exp", title="Répartition des tranches de poids")
     st.plotly_chart(fig) 
+
+    # ============ 📊 Pie Chart – Nb d’expéditions par Zone ============
+    st.subheader("📊 Répartition globale du nombre d'expéditions par Zone")
+    zone_exp = df_filtered["Zone"].value_counts().reset_index()
+    zone_exp.columns = ["Zone", "Nb_exp"]
+    fig = px.pie(zone_exp, names="Zone", values="Nb_exp", title="Expéditions par Zone")
+    st.plotly_chart(fig)
+    
+    # ============ 🏢 Pie Chart – Nb d’expéditions par Agence ============
+    if "Code agence" in df_filtered.columns:
+        st.subheader("🏢 Répartition globale du nombre d'expéditions par Agence")
+        agence_exp = df_filtered["Code agence"].value_counts().reset_index()
+        agence_exp.columns = ["Code agence", "Nb_exp"]
+        fig = px.pie(agence_exp, names="Code agence", values="Nb_exp", title="Expéditions par Agence")
+        st.plotly_chart(fig)
+    
+    # ============ ⚖️ Pie Chart – Poids total par Zone ============
+    st.subheader("⚖️ Répartition globale du poids total par Zone")
+    zone_poids = df_filtered.groupby("Zone")["Poids"].sum().reset_index()
+    fig = px.pie(zone_poids, names="Zone", values="Poids", title="Poids total (kg) par Zone")
+    st.plotly_chart(fig)
+    
+    # ============ 📦 Pie Chart – UM total par Zone ============
+    if "UM" in df_filtered.columns:
+        st.subheader("📦 Répartition globale du UM total par Zone")
+        zone_um = df_filtered.groupby("Zone")["UM"].sum().reset_index()
+        fig = px.pie(zone_um, names="Zone", values="UM", title="UM total par Zone")
+        st.plotly_chart(fig)
+    
+            
         
-    
-    
+        
 
 
 
