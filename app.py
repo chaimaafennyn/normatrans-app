@@ -734,6 +734,13 @@ elif menu == "Analyse des Tranches de Poids":
     zone_poids = df_filtered.groupby("Zone")["Poids"].sum().reset_index()
     fig = px.pie(zone_poids, names="Zone", values="Poids", title="Poids total (kg) par Zone")
     st.plotly_chart(fig)
+
+    # ============ ⚖️ Pie Chart – Poids total par Agence ============
+    if "Code agence" in df_filtered.columns:
+        st.subheader("⚖️ Répartition du Poids total par Agence")
+        poids_agence = df_filtered.groupby("Code agence")["Poids"].sum().reset_index()
+        fig = px.pie(poids_agence, names="Code agence", values="Poids", title="Poids total (kg) par Agence")
+        st.plotly_chart(fig)
     
     # ============ 📦 Pie Chart – UM total par Zone ============
     if "UM" in df_filtered.columns:
@@ -741,6 +748,16 @@ elif menu == "Analyse des Tranches de Poids":
         zone_um = df_filtered.groupby("Zone")["UM"].sum().reset_index()
         fig = px.pie(zone_um, names="Zone", values="UM", title="UM total par Zone")
         st.plotly_chart(fig) 
+
+    
+    # ============ 📦 Pie Chart – UM total par agence ============
+    if "UM" in df_filtered.columns and "Code agence" in df_filtered.columns:
+        st.subheader("📦 Répartition du UM total par Agence")
+        um_agence = df_filtered.groupby("Code agence")["UM"].sum().reset_index()
+        fig = px.pie(um_agence, names="Code agence", values="UM", title="UM total par Agence")
+        st.plotly_chart(fig)
+
+
     
             
         
