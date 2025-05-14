@@ -666,8 +666,8 @@ elif menu == "Analyse des Tranches de Poids":
     st.dataframe(detail)
 
     top_communes = exp_commune_zone.groupby("Commune")["Nb_exp"].sum().nlargest(15).reset_index()
-        st.subheader("🏆 Top 15 communes avec le plus d'expéditions")
-        st.bar_chart(top_communes.set_index("Commune")["Nb_exp"])
+    st.subheader("🏆 Top 15 communes avec le plus d'expéditions")
+    st.bar_chart(top_communes.set_index("Commune")["Nb_exp"])
 
     st.download_button(
         "📥 Télécharger le tableau complet",
