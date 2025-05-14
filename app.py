@@ -644,14 +644,39 @@ elif menu == "Analyse des Tranches de Poids":
         st.bar_chart(top_communes.set_index("Commune")["Nb_exp"])
 
         # Export CSV
-        st.download_button(
+        */st.download_button(
             "📥 Télécharger les expéditions par commune",
             data=exp_commune_zone.to_csv(index=False).encode("utf-8"),
             file_name="expeditions_par_commune_et_zone.csv",
             mime="text/csv"
         )
     else:
-        st.warning("⚠️ La colonne 'Commune' est manquante dans les données.")
+        st.warning("⚠️ La colonne 'Commune' est manquante dans les données.")*/
+
+        # ======================
+    # 🏢 Analyse par agence
+    # ======================
+    if "Code agence" in df.columns:
+        st.subheader("🏢 Nombre total d'expéditions par agence")
+        exp_agence = df.groupby("Code agence").size().reset_index(name="Nb_exp")
+        st.dataframe(exp_agence)
+
+        st.bar_chart(exp_agence.set_index("Code agence")["Nb_exp"])
+
+        st.subheader("📍 Nombre d'expéditions par agence, par zone et commune")
+        exp_agence_zone_commune = df.groupby(["Code agence", "Zone", "Commune"]).size().reset_index(name="Nb_exp")
+        st.dataframe(exp_agence_zone_commune)
+
+        # Export CSV
+        st.download_button(
+            "📥 Télécharger les données agence/zone/commune",
+            data=exp_agence_zone_commune.to_csv(index=False).encode("utf-8"),
+            file_name="expeditions_par_agence_zone_commune.csv",
+            mime="text/csv"
+        )
+    else:
+        st.warning("⚠️ La colonne 'Code agence' est manquante dans le fichier.")
+
 
 
     #tarif_total = st.number_input("💶 Tarif global à répartir (€)", min_value=100.0, max_value=10000.0, value=1000.0, step=50.0)
@@ -666,7 +691,7 @@ elif menu == "Analyse des Tranches de Poids":
 
     # Export
     csv = tableau.to_csv().encode('utf-8')
-    st.download_button("📥 Télécharger le tableau des pourcentages", data=csv, file_name="tranches_par_zone.csv", mime="text/csv")
+    #st.download_button("📥 Télécharger le tableau des pourcentages", data=csv, file_name="tranches_par_zone.csv", mime="text/csv")
 
 
     
