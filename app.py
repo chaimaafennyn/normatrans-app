@@ -619,7 +619,10 @@ elif menu == "Analyse des Tranches de Poids":
 
     col1, col2 = st.columns(2)
     selected_zone = col1.selectbox("🎯 Filtrer par zone", ["Toutes"] + list(zones))
-    selected_agence = col2.selectbox("🏢 Filtrer par agence", ["Toutes"] + list(agences) if agences else ["Aucune"])
+    selected_agence = col2.selectbox(
+        "🏢 Filtrer par agence",
+        ["Toutes"] + list(agences) if len(agences) > 0 else ["Aucune"]
+    )
 
     df_filtered = df.copy()
     if selected_zone != "Toutes":
