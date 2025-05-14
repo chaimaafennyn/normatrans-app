@@ -653,7 +653,7 @@ elif menu == "Analyse des Tranches de Poids":
     else:
         st.warning("⚠️ La colonne 'Commune' est manquante dans les données.")
 
-        # ======================
+    # ======================
     # 🏢 Analyse par agence
     # ======================
     if "Code agence" in df.columns:
@@ -691,7 +691,7 @@ elif menu == "Analyse des Tranches de Poids":
 
     # Export
     csv = tableau.to_csv().encode('utf-8')
-    #st.download_button("📥 Télécharger le tableau des pourcentages", data=csv, file_name="tranches_par_zone.csv", mime="text/csv")
+    st.download_button("📥 Télécharger le tableau des pourcentages", data=csv, file_name="tranches_par_zone.csv", mime="text/csv")
 
 
     
