@@ -683,30 +683,35 @@ elif menu == "Analyse des Tranches de Poids":
         mime="text/csv"
     )
 
-    # === Statistiques globales (Zone / Agence) ===
+   # === Statistiques globales (Zone / Agence) ===
     if "UM" in df_filtered.columns:
         st.subheader("⚖️ Statistiques Poids / UM par Zone")
+    
         stats_zone = df_filtered.groupby("Zone").agg(
-            Nb_expéditions=("Poids", "count"),
+            Nb_exp=("Poids", "count"),
             Poids_total=("Poids", "sum"),
             UM_total=("UM", "sum"),
             Poids_moyen=("Poids", "mean"),
             UM_moyenne=("UM", "mean"),
             UM_par_kg=("UM", lambda x: x.sum() / df_filtered.loc[x.index, "Poids"].sum())
         ).round(2)
+    
         st.dataframe(stats_zone)
-
+    
         if "Code agence" in df_filtered.columns:
             st.subheader("🏢 Statistiques Poids / UM par Agence")
+    
             stats_agence = df_filtered.groupby("Code agence").agg(
-                Nb_expéditions=("Poids", "count"),
+                Nb_exp=("Poids", "count"),
                 Poids_total=("Poids", "sum"),
                 UM_total=("UM", "sum"),
                 Poids_moyen=("Poids", "mean"),
                 UM_moyenne=("UM", "mean"),
                 UM_par_kg=("UM", lambda x: x.sum() / df_filtered.loc[x.index, "Poids"].sum())
             ).round(2)
+    
             st.dataframe(stats_agence)
+
 
     st.subheader("🥧 Répartition globale des tranches de poids")
     pie_tranches = df_filtered["Tranche"].value_counts().reset_index()
