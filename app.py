@@ -636,7 +636,26 @@ elif menu == "Analyse des Tranches de Poids":
     st.dataframe(totaux)
     st.bar_chart(totaux.set_index("Zone")["Total"])
 
-    
+    # ======================
+    # 🏘️ Nb d’expéditions par commune + zone
+    # ======================
+    if "Commune" in df.columns:
+        st.subheader("🏘️ Nombre d'expéditions par commune et par zone")
+        exp_commune_zone = df.groupby(["Commune", "Zone"]).size().reset_index(name="Nb_exp")
+        st.dataframe(exp_commune_zone)
+
+        top_communes = exp_commune_zone.groupby("Commune")["Nb_exp"].sum().nlargest(15).reset_index()
+        st.subheader("🏆 Top 15 communes avec le plus d'expéditions")
+        st.bar_chart(top_communes.set_index("Commune")["Nb_exp"])
+
+        st.download_button(
+            "📥 Télécharger les expéditions par commune",
+            data=exp_commune_zone.to_csv(index=False).encode("utf-8"),
+            file_name="expeditions_par_commune_et_zone.csv",
+            mime="text/csv"
+        )
+    else:
+        st.warning("⚠️ La colonne 'Commune' est manquante dans les données.")
 
     # ======================
     # 🏢 Nb d’expéditions par agence
@@ -674,6 +693,9 @@ elif menu == "Analyse des Tranches de Poids":
             Nb_expéditions=("Commune", "count"),
             Poids_total=("Poids", "sum"),
             UM_total=("UM", "sum"),
+            Poids_moyen=("Poids", "mean"),
+            UM_moyenne=("UM", "mean"),
+            UM_par_kg=("UM", lambda x: x.sum() / df.loc[x.index, "Poids"].sum() if df.loc[x.index, "Poids"].sum() > 0 else 0)
         ).round(2)
         st.dataframe(stats_zone)
 
@@ -683,6 +705,9 @@ elif menu == "Analyse des Tranches de Poids":
             Nb_expéditions=("Commune", "count"),
             Poids_total=("Poids", "sum"),
             UM_total=("UM", "sum"),
+            Poids_moyen=("Poids", "mean"),
+            UM_moyenne=("UM", "mean"),
+            UM_par_kg=("UM", lambda x: x.sum() / df.loc[x.index, "Poids"].sum() if df.loc[x.index, "Poids"].sum() > 0 else 0)
         ).round(2)
         st.dataframe(stats_agence)
 
@@ -704,10 +729,6 @@ elif menu == "Analyse des Tranches de Poids":
 
     else:
         st.warning("⚠️ La colonne 'UM' est manquante dans le fichier.")
-
-
-
-    
 
 
 
