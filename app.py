@@ -740,7 +740,7 @@ elif menu == "Analyse des Tranches de Poids":
         st.subheader("📦 Répartition globale du UM total par Zone")
         zone_um = df_filtered.groupby("Zone")["UM"].sum().reset_index()
         fig = px.pie(zone_um, names="Zone", values="UM", title="UM total par Zone")
-        st.plotly_chart(fig)
+        st.plotly_chart(fig) 
     
             
         
