@@ -576,14 +576,13 @@ elif menu == "Analyse des tournees2":
         file_name=f"tournée_points_{agence_select}.csv",
         mime="text/csv"
     )
-
 # =======================
 # Partie 9 : Analyse des Tranches de Poids
 # =======================
 elif menu == "Analyse des Tranches de Poids":
     st.header("📦 Analyse des Tranches de Poids par Zone")
 
-    uploaded_file = st.file_uploader("📤 Uploader le fichier des livraisons (livraison_par_tournee.csv)", type=["csv"])
+    uploaded_file = st.file_uploader("📄 Uploader le fichier des livraisons (livraison_par_tournee.csv)", type=["csv"])
     if uploaded_file:
         df = pd.read_csv(uploaded_file, sep=";", encoding="latin1")
         st.success("✅ Fichier chargé")
@@ -618,7 +617,7 @@ elif menu == "Analyse des Tranches de Poids":
     agences = df["Code agence"].dropna().unique() if "Code agence" in df.columns else []
 
     col1, col2 = st.columns(2)
-    selected_zone = col1.selectbox("🎯 Filtrer par zone", ["Toutes"] + list(zones))
+    selected_zone = col1.selectbox("🌟 Filtrer par zone", ["Toutes"] + list(zones))
     selected_agence = col2.selectbox(
         "🏢 Filtrer par agence",
         ["Toutes"] + list(agences) if len(agences) > 0 else ["Aucune"]
@@ -630,6 +629,8 @@ elif menu == "Analyse des Tranches de Poids":
     if selected_agence != "Toutes" and "Code agence" in df_filtered.columns:
         df_filtered = df_filtered[df_filtered["Code agence"] == selected_agence]
 
+    st.markdown(f"🔎 **Filtres actifs :** Zone = `{selected_zone}` | Agence = `{selected_agence}`")
+
     # === Tranches par zone ===
     st.subheader("📊 Répartition (%) des tranches de poids par zone")
     pivot = df_filtered.groupby(["Zone", "Tranche"]).size().reset_index(name="Nb_exp")
@@ -640,15 +641,14 @@ elif menu == "Analyse des Tranches de Poids":
     st.dataframe(tableau)
 
     st.download_button(
-        "📥 Télécharger les pourcentages par tranche et zone",
+        "📅 Télécharger les pourcentages par tranche et zone",
         data=tableau.to_csv().encode("utf-8"),
         file_name="repartition_tranches_par_zone.csv",
         mime="text/csv"
     )
 
-    # === Résumé expéditions, poids, UM ===
+    # === Détail global
     st.subheader("📋 Détail global par agence, zone et commune")
-
     group_cols = ["Zone", "Commune"]
     if "Code agence" in df_filtered.columns:
         group_cols.insert(0, "Code agence")
@@ -665,107 +665,89 @@ elif menu == "Analyse des Tranches de Poids":
 
     st.dataframe(detail)
 
-    # === Top 15 communes les plus livrées ===
-    if "Commune" in detail.columns and "Nb_expéditions" in detail.columns:
+    # === Top 100 communes
+    if "Commune" in detail.columns:
         st.subheader("🏆 Top 100 communes avec le plus d'expéditions")
-        top_communes = (
-            detail.groupby("Commune")["Nb_expéditions"]
-            .sum()
-            .nlargest(100)
-            .reset_index()
-        )
+        top_communes = detail.groupby("Commune")["Nb_expéditions"].sum().nlargest(100).reset_index()
         st.bar_chart(top_communes.set_index("Commune")["Nb_expéditions"])
 
     st.download_button(
-        "📥 Télécharger le tableau complet",
+        "📅 Télécharger le tableau complet",
         data=detail.to_csv(index=False).encode("utf-8"),
         file_name="detail_agence_zone_commune.csv",
         mime="text/csv"
     )
 
-   # === Statistiques globales (Zone / Agence) ===
+    # === Statistiques globales Zone / Agence
     if "UM" in df_filtered.columns:
         st.subheader("⚖️ Statistiques Poids / UM / Exp par Zone")
-    
         stats_zone = df_filtered.groupby("Zone").agg(
-            Exp_total=("Poids", "count"),
+            Nb_exp=("Poids", "count"),
             Poids_total=("Poids", "sum"),
             UM_total=("UM", "sum"),
             Poids_moyen=("Poids", "mean"),
             UM_moyenne=("UM", "mean"),
             UM_par_kg=("UM", lambda x: x.sum() / df_filtered.loc[x.index, "Poids"].sum())
         ).round(2)
-    
         st.dataframe(stats_zone)
-    
+
         if "Code agence" in df_filtered.columns:
             st.subheader("🏢 Statistiques Poids / UM / Exp par Agence")
-    
             stats_agence = df_filtered.groupby("Code agence").agg(
-                Exp_total=("Poids", "count"),
+                Nb_exp=("Poids", "count"),
                 Poids_total=("Poids", "sum"),
                 UM_total=("UM", "sum"),
                 Poids_moyen=("Poids", "mean"),
                 UM_moyenne=("UM", "mean"),
                 UM_par_kg=("UM", lambda x: x.sum() / df_filtered.loc[x.index, "Poids"].sum())
             ).round(2)
-    
             st.dataframe(stats_agence)
 
+    # === Graphiques camembert globaux
+    st.subheader("🥧 Graphiques de répartition globaux")
 
-    st.subheader("🥧 Répartition globale des tranches de poids")
+    # Tranches
     pie_tranches = df_filtered["Tranche"].value_counts().reset_index()
     pie_tranches.columns = ["Tranche", "Nb_exp"]
     fig = px.pie(pie_tranches, names="Tranche", values="Nb_exp", title="Répartition des tranches de poids")
-    st.plotly_chart(fig) 
+    st.plotly_chart(fig)
 
-    # ============ 📊 Pie Chart – Nb d’expéditions par Zone ============
-    st.subheader("📊 Répartition globale du nombre d'expéditions par Zone")
+    # Expéditions par Zone
     zone_exp = df_filtered["Zone"].value_counts().reset_index()
     zone_exp.columns = ["Zone", "Nb_exp"]
     fig = px.pie(zone_exp, names="Zone", values="Nb_exp", title="Expéditions par Zone")
     st.plotly_chart(fig)
-    
-    # ============ 🏢 Pie Chart – Nb d’expéditions par Agence ============
+
+    # Expéditions par Agence
     if "Code agence" in df_filtered.columns:
-        st.subheader("🏢 Répartition globale du nombre d'expéditions par Agence")
         agence_exp = df_filtered["Code agence"].value_counts().reset_index()
         agence_exp.columns = ["Code agence", "Nb_exp"]
         fig = px.pie(agence_exp, names="Code agence", values="Nb_exp", title="Expéditions par Agence")
         st.plotly_chart(fig)
-    
-    # ============ ⚖️ Pie Chart – Poids total par Zone ============
-    st.subheader("⚖️ Répartition globale du poids total par Zone")
+
+    # Poids total par Zone
     zone_poids = df_filtered.groupby("Zone")["Poids"].sum().reset_index()
     fig = px.pie(zone_poids, names="Zone", values="Poids", title="Poids total (kg) par Zone")
     st.plotly_chart(fig)
 
-    # ============ ⚖️ Pie Chart – Poids total par Agence ============
+    # Poids total par Agence
     if "Code agence" in df_filtered.columns:
-        st.subheader("⚖️ Répartition du Poids total par Agence")
         poids_agence = df_filtered.groupby("Code agence")["Poids"].sum().reset_index()
         fig = px.pie(poids_agence, names="Code agence", values="Poids", title="Poids total (kg) par Agence")
         st.plotly_chart(fig)
-    
-    # ============ 📦 Pie Chart – UM total par Zone ============
+
+    # UM total par Zone
     if "UM" in df_filtered.columns:
-        st.subheader("📦 Répartition globale du UM total par Zone")
         zone_um = df_filtered.groupby("Zone")["UM"].sum().reset_index()
         fig = px.pie(zone_um, names="Zone", values="UM", title="UM total par Zone")
-        st.plotly_chart(fig) 
+        st.plotly_chart(fig)
 
-    
-    # ============ 📦 Pie Chart – UM total par agence ============
+    # UM total par Agence
     if "UM" in df_filtered.columns and "Code agence" in df_filtered.columns:
-        st.subheader("📦 Répartition du UM total par Agence")
         um_agence = df_filtered.groupby("Code agence")["UM"].sum().reset_index()
         fig = px.pie(um_agence, names="Code agence", values="UM", title="UM total par Agence")
         st.plotly_chart(fig)
 
-
-    
-            
-        
         
 
 
