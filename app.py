@@ -708,11 +708,53 @@ elif menu == "Analyse des Tranches de Poids":
             ).round(2)
             st.dataframe(stats_agence)
 
-    st.subheader("🥧 Répartition globale des tranches de poids")
-    pie_tranches = df_filtered["Tranche"].value_counts().reset_index()
-    pie_tranches.columns = ["Tranche", "Nb_exp"]
-    fig = px.pie(pie_tranches, names="Tranche", values="Nb_exp", title="Répartition des tranches de poids")
-    st.plotly_chart(fig)
+    # =========================
+    # 🥧 Camemberts globaux
+    # =========================
+    st.subheader("🥧 Répartition globale par zone et par tranche")
+    
+    # 1. Camembert Nb_expéditions par zone
+    if "Zone" in detail.columns and "Nb_expéditions" in detail.columns:
+        exp_pie = (
+            detail.groupby("Zone")["Nb_expéditions"]
+            .sum()
+            .reset_index()
+        )
+        fig_exp = px.pie(
+            exp_pie, names="Zone", values="Nb_expéditions",
+            title="Répartition du nombre d'expéditions par zone"
+        )
+        st.plotly_chart(fig_exp)
+    
+    # 2. Camembert UM_total par zone
+    if "Zone" in detail.columns and "UM_total" in detail.columns:
+        um_pie = (
+            detail.groupby("Zone")["UM_total"]
+            .sum()
+            .reset_index()
+        )
+        fig_um = px.pie(
+            um_pie, names="Zone", values="UM_total",
+            title="Répartition des UM totales par zone"
+        )
+        st.plotly_chart(fig_um)
+    
+    # 3. Camembert Tranches de poids (global)
+    if "Tranche" in df_filtered.columns:
+        st.subheader("📦 Répartition globale des tranches de poids")
+        pie_tranches = (
+            df_filtered["Tranche"]
+            .value_counts()
+            .reset_index()
+            .rename(columns={"index": "Tranche", "Tranche": "Nb_exp"})
+            .sort_values("Tranche")
+        )
+        fig_tranches = px.pie(
+            pie_tranches, names="Tranche", values="Nb_exp",
+            title="Répartition des tranches de poids"
+        )
+        st.plotly_chart(fig_tranches)
+
 
 
 
