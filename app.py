@@ -750,7 +750,7 @@ elif menu == "Analyse des Tranches de Poids":
 
 
 # =======================
-# Partie 10 : Calcul des Tarifs par Zone et Tranche (avec pondération)
+# Partie 10 : Calcul des Tarifs par Zone et Tranche (basé sur volumes et pondération)
 # =======================
 elif menu == "Tarif par Zone et Tranche":
     st.header("💰 Répartition du Chiffre d'Affaires par Zone et Tranche de Poids")
@@ -787,10 +787,12 @@ elif menu == "Tarif par Zone et Tranche":
     # Calcul du nombre d'expéditions par zone et tranche
     grouped = df.groupby(["Zone", "Tranche"]).size().reset_index(name="Nb_exp")
 
-    # Entrée utilisateur : chiffre d'affaires total
-    ca_total = st.number_input("💶 Chiffre d'affaires total à répartir (€)", min_value=100.0, value=100000.0, step=500.0)
+    # Chiffre d'affaires de référence basé sur l'historique (ancien modèle)
+    ca_total = 3_000_000
+    st.markdown(f"💶 Chiffre d'affaires total à répartir : **{ca_total:,.2f} €** (basé sur les anciens tarifs)")
 
-    st.markdown("### 🎯 Pondération par zone (plus la zone est éloignée, plus elle coûte)")
+    # Coefficients de pondération par zone (Zone 1 < Zone 2 < Zone 3)
+    st.markdown("### 🎯 Pondération par zone")
     coef_zone1 = st.number_input("Coefficient Zone 1", min_value=0.1, value=1.0, step=0.1)
     coef_zone2 = st.number_input("Coefficient Zone 2", min_value=0.1, value=2.0, step=0.1)
     coef_zone3 = st.number_input("Coefficient Zone 3", min_value=0.1, value=3.0, step=0.1)
@@ -807,7 +809,7 @@ elif menu == "Tarif par Zone et Tranche":
     st.subheader("📋 Répartition pondérée du chiffre d'affaires par Zone et Tranche")
     st.dataframe(grouped)
 
-     # ========== 📊 Visualisation graphique ==========
+    # ========== 📊 Visualisation graphique ==========
     st.subheader("📊 Visualisation du Chiffre d'Affaires réparti")
 
     # Par Zone (somme de toutes les tranches)
@@ -823,7 +825,6 @@ elif menu == "Tarif par Zone et Tranche":
     fig_tranche.update_layout(xaxis_tickangle=-45)
     st.plotly_chart(fig_tranche)
 
-
     # Export CSV
     csv_export = grouped.to_csv(index=False).encode("utf-8")
     st.download_button(
@@ -832,10 +833,6 @@ elif menu == "Tarif par Zone et Tranche":
         file_name="tarif_pondere_par_zone_et_tranche.csv",
         mime="text/csv"
     )
-
-
-        
-
 
 
 
