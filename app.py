@@ -3,7 +3,7 @@ import pandas as pd
 import folium
 from streamlit_folium import st_folium
 import plotly.express as px
-
+ 
 st.set_page_config(page_title="Normatrans - Zones et Tarifs", layout="wide")
 
 st.title("🚚 Normatrans - Zones et Tarifs de Livraison")
