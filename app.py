@@ -10,7 +10,7 @@ st.title("🚚 Normatrans - Zones et Tarifs de Livraison")
 
 menu = st.sidebar.radio(
     "Navigation",
-    ["Analyse des Zones", "Calcul des Tarifs",  "Analyse des Tranches de Poids"],
+    ["Analyse des Zones", "Calcul des Tarifs",  "Analyse des Tranches de Poids", "Tarif par Zone et Tranche"],
     index=0
 )
 
@@ -806,6 +806,23 @@ elif menu == "Tarif par Zone et Tranche":
     # Affichage
     st.subheader("📋 Répartition pondérée du chiffre d'affaires par Zone et Tranche")
     st.dataframe(grouped)
+
+     # ========== 📊 Visualisation graphique ==========
+    st.subheader("📊 Visualisation du Chiffre d'Affaires réparti")
+
+    # Par Zone (somme de toutes les tranches)
+    montant_zone = grouped.groupby("Zone")["Tarif (€)"].sum().reset_index()
+    fig_zone = px.bar(montant_zone, x="Zone", y="Tarif (€)", title="Chiffre d'affaires par Zone", text="Tarif (€)")
+    fig_zone.update_traces(texttemplate='%{text:.2f} €', textposition='outside')
+    st.plotly_chart(fig_zone)
+
+    # Par Tranche (toutes zones confondues)
+    montant_tranche = grouped.groupby("Tranche")["Tarif (€)"].sum().reset_index()
+    fig_tranche = px.bar(montant_tranche, x="Tranche", y="Tarif (€)", title="Chiffre d'affaires par Tranche", text="Tarif (€)")
+    fig_tranche.update_traces(texttemplate='%{text:.2f} €', textposition='outside')
+    fig_tranche.update_layout(xaxis_tickangle=-45)
+    st.plotly_chart(fig_tranche)
+
 
     # Export CSV
     csv_export = grouped.to_csv(index=False).encode("utf-8")
