@@ -748,9 +748,8 @@ elif menu == "Analyse des Tranches de Poids":
         fig = px.pie(um_agence, names="Code agence", values="UM", title="UM total par Agence")
         st.plotly_chart(fig)
 
-
 # =======================
-# Partie 10 : Calcul des Tarifs par Zone et Tranche (basé sur volumes et pondération)
+# Partie 10 : Calcul des Tarifs par Zone et Tranche (avec logique Forfait / 100kg)
 # =======================
 elif menu == "Tarif par Zone et Tranche":
     st.header("💰 Répartition du Chiffre d'Affaires par Zone et Tranche de Poids")
@@ -784,53 +783,69 @@ elif menu == "Tarif par Zone et Tranche":
     df["Tranche"] = pd.cut(df["Poids"], bins=bins, labels=labels, right=False)
     df = df[df["Tranche"].notna()]
 
-    # Calcul du nombre d'expéditions par zone et tranche
-    grouped = df.groupby(["Zone", "Tranche"]).size().reset_index(name="Nb_exp")
-
-    # Chiffre d'affaires de référence basé sur l'historique (ancien modèle)
+    # Chiffre d'affaires total basé sur historique
     ca_total = 3_000_000
     st.markdown(f"💶 Chiffre d'affaires total à répartir : **{ca_total:,.2f} €** (basé sur les anciens tarifs)")
 
-    # Coefficients de pondération par zone (Zone 1 < Zone 2 < Zone 3)
+    # Pondération par zone
     st.markdown("### 🎯 Pondération par zone")
     coef_zone1 = st.number_input("Coefficient Zone 1", min_value=0.1, value=1.0, step=0.1)
     coef_zone2 = st.number_input("Coefficient Zone 2", min_value=0.1, value=2.0, step=0.1)
     coef_zone3 = st.number_input("Coefficient Zone 3", min_value=0.1, value=3.0, step=0.1)
 
     coef_dict = {"Zone 1": coef_zone1, "Zone 2": coef_zone2, "Zone 3": coef_zone3}
-    grouped["Coef"] = grouped["Zone"].map(coef_dict).fillna(1.0)
-    grouped["Pondéré"] = grouped["Nb_exp"] * grouped["Coef"]
+    df["Coef"] = df["Zone"].map(coef_dict).fillna(1.0)
+    df["Pondéré"] = df["Coef"]
 
-    total_pondéré = grouped["Pondéré"].sum()
-    grouped["Pourcentage"] = grouped["Pondéré"] / total_pondéré
-    grouped["Tarif (€)"] = (grouped["Pourcentage"] * ca_total).round(2)
+    # Regrouper les données par Zone + Tranche
+    regroup = df.groupby(["Zone", "Tranche"]).agg(
+        Nb_exp=("Poids", "count"),
+        Total_poids=("Poids", "sum"),
+        Pondéré_sum=("Pondéré", "sum")
+    ).reset_index()
+
+    regroup["Pondération"] = regroup["Nb_exp"] * regroup["Pondéré_sum"]
+    total_pondéré = regroup["Pondération"].sum()
+    regroup["Pourcentage"] = regroup["Pondération"] / total_pondéré
+    regroup["Montant attribué (€)"] = (regroup["Pourcentage"] * ca_total).round(2)
+
+    # Déterminer le mode de calcul et le tarif unitaire
+    def mode_calcul(tranche):
+        seuil = ["100-200kg", "200-300kg", "300-500kg", "500-700kg", "700-1000kg", "1000-1500kg", "1500-2000kg", "2000-3000kg", ">3000kg"]
+        return "/100kg" if tranche in seuil else "Forfait"
+
+    regroup["Mode"] = regroup["Tranche"].astype(str).apply(mode_calcul)
+
+    regroup["Tarif unitaire (€)"] = regroup.apply(
+        lambda row: (row["Montant attribué (€)"] / row["Nb_exp"]) if row["Mode"] == "Forfait"
+        else (row["Montant attribué (€)"] / (row["Total_poids"] / 100)) if row["Total_poids"] > 0 else 0,
+        axis=1
+    ).round(2)
 
     # Affichage
-    st.subheader("📋 Répartition pondérée du chiffre d'affaires par Zone et Tranche")
-    st.dataframe(grouped)
+    st.subheader("📋 Répartition du chiffre d'affaires + Tarif unitaire par tranche")
+    st.dataframe(regroup[["Zone", "Tranche", "Nb_exp", "Total_poids", "Mode", "Montant attribué (€)", "Tarif unitaire (€)"]])
 
-    # ========== 📊 Visualisation graphique ==========
-    st.subheader("📊 Visualisation du Chiffre d'Affaires réparti")
-
-    # Par Zone (somme de toutes les tranches)
-    montant_zone = grouped.groupby("Zone")["Tarif (€)"].sum().reset_index()
-    fig_zone = px.bar(montant_zone, x="Zone", y="Tarif (€)", title="Chiffre d'affaires par Zone", text="Tarif (€)")
+    # Visualisation
+    st.subheader("📊 Visualisation du chiffre d'affaires par Zone")
+    fig_zone = px.bar(regroup.groupby("Zone")["Montant attribué (€)"].sum().reset_index(),
+                      x="Zone", y="Montant attribué (€)", title="CA par Zone", text="Montant attribué (€)")
     fig_zone.update_traces(texttemplate='%{text:.2f} €', textposition='outside')
     st.plotly_chart(fig_zone)
 
-    # Par Tranche (toutes zones confondues)
-    montant_tranche = grouped.groupby("Tranche")["Tarif (€)"].sum().reset_index()
-    fig_tranche = px.bar(montant_tranche, x="Tranche", y="Tarif (€)", title="Chiffre d'affaires par Tranche", text="Tarif (€)")
+    st.subheader("📊 Visualisation du chiffre d'affaires par Tranche")
+    fig_tranche = px.bar(regroup.groupby("Tranche")["Montant attribué (€)"].sum().reset_index(),
+                         x="Tranche", y="Montant attribué (€)", title="CA par Tranche", text="Montant attribué (€)")
     fig_tranche.update_traces(texttemplate='%{text:.2f} €', textposition='outside')
     fig_tranche.update_layout(xaxis_tickangle=-45)
     st.plotly_chart(fig_tranche)
 
-    # Export CSV
-    csv_export = grouped.to_csv(index=False).encode("utf-8")
+    # Export
+    csv_export = regroup.to_csv(index=False).encode("utf-8")
     st.download_button(
-        "📥 Télécharger le tableau des tarifs pondérés",
+        "📥 Télécharger le tableau complet",
         data=csv_export,
-        file_name="tarif_pondere_par_zone_et_tranche.csv",
+        file_name="tarif_zone_tranche_forfait_100kg.csv",
         mime="text/csv"
     )
 
