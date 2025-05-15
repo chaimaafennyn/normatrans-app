@@ -10,7 +10,7 @@ st.title("🚚 Normatrans - Zones et Tarifs de Livraison")
 
 menu = st.sidebar.radio(
     "Navigation",
-    ["Analyse des Zones", "Calcul des Tarifs",  "Analyse des Tranches de Poids"],
+    ["Analyse des Zones", "Calcul des Tarifs",  "Analyse des Tranches de Poids", "Tarif par Zone et Tranche"],
     index=0
 )
 
@@ -750,10 +750,10 @@ elif menu == "Analyse des Tranches de Poids":
 
 
 # =======================
-# Partie 10 : Calcul des Tarifs par Zone et Tranche
+# Partie 10 : Calcul des Tarifs par Zone et Tranche (avec pondération)
 # =======================
 elif menu == "Tarif par Zone et Tranche":
-    st.header("💰 Répartition du Tarif Global par Zone et Tranche de Poids")
+    st.header("💰 Répartition du Chiffre d'Affaires par Zone et Tranche de Poids")
 
     uploaded_file = st.file_uploader("📤 Uploader le fichier des livraisons (livraison_par_tournee.csv)", type=["csv"])
     if uploaded_file:
@@ -787,26 +787,32 @@ elif menu == "Tarif par Zone et Tranche":
     # Calcul du nombre d'expéditions par zone et tranche
     grouped = df.groupby(["Zone", "Tranche"]).size().reset_index(name="Nb_exp")
 
-    # Total global des expéditions
-    total_global = grouped["Nb_exp"].sum()
+    # Entrée utilisateur : chiffre d'affaires total
+    ca_total = st.number_input("💶 Chiffre d'affaires total à répartir (€)", min_value=100.0, value=100000.0, step=500.0)
 
-    # Entrée utilisateur : tarif total
-    tarif_total = st.number_input("💶 Tarif total global à répartir (€)", min_value=10.0, value=1000.0, step=10.0)
+    st.markdown("### 🎯 Pondération par zone (plus la zone est éloignée, plus elle coûte)")
+    coef_zone1 = st.number_input("Coefficient Zone 1", min_value=0.1, value=1.0, step=0.1)
+    coef_zone2 = st.number_input("Coefficient Zone 2", min_value=0.1, value=2.0, step=0.1)
+    coef_zone3 = st.number_input("Coefficient Zone 3", min_value=0.1, value=3.0, step=0.1)
 
-    # Calcul du tarif par zone et tranche
-    grouped["Pourcentage"] = grouped["Nb_exp"] / total_global
-    grouped["Tarif (€)"] = (grouped["Pourcentage"] * tarif_total).round(2)
+    coef_dict = {"Zone 1": coef_zone1, "Zone 2": coef_zone2, "Zone 3": coef_zone3}
+    grouped["Coef"] = grouped["Zone"].map(coef_dict).fillna(1.0)
+    grouped["Pondéré"] = grouped["Nb_exp"] * grouped["Coef"]
+
+    total_pondéré = grouped["Pondéré"].sum()
+    grouped["Pourcentage"] = grouped["Pondéré"] / total_pondéré
+    grouped["Tarif (€)"] = (grouped["Pourcentage"] * ca_total).round(2)
 
     # Affichage
-    st.subheader("📋 Répartition du tarif par Zone et Tranche")
+    st.subheader("📋 Répartition pondérée du chiffre d'affaires par Zone et Tranche")
     st.dataframe(grouped)
 
     # Export CSV
     csv_export = grouped.to_csv(index=False).encode("utf-8")
     st.download_button(
-        "📥 Télécharger le tableau des tarifs",
+        "📥 Télécharger le tableau des tarifs pondérés",
         data=csv_export,
-        file_name="tarif_par_zone_et_tranche.csv",
+        file_name="tarif_pondere_par_zone_et_tranche.csv",
         mime="text/csv"
     )
 
