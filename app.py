@@ -10,7 +10,7 @@ st.title("🚚 Normatrans - Zones et Tarifs de Livraison")
 
 menu = st.sidebar.radio(
     "Navigation",
-    ["Analyse des Zones", "Calcul des Tarifs",  "Analyse des Tranches de Poids"],
+    ["Analyse des Zones", "Calcul des Tarifs",  "Analyse des Tranches de Poids", "Tarif par Zone et Tranche"],
     index=0
 )
 
@@ -747,6 +747,69 @@ elif menu == "Analyse des Tranches de Poids":
         um_agence = df_filtered.groupby("Code agence")["UM"].sum().reset_index()
         fig = px.pie(um_agence, names="Code agence", values="UM", title="UM total par Agence")
         st.plotly_chart(fig)
+
+
+# =======================
+# Partie 10 : Calcul des Tarifs par Zone et Tranche
+# =======================
+elif menu == "Tarif par Zone et Tranche":
+    st.header("💰 Répartition du Tarif Global par Zone et Tranche de Poids")
+
+    uploaded_file = st.file_uploader("📤 Uploader le fichier des livraisons (livraison_par_tournee.csv)", type=["csv"])
+    if uploaded_file:
+        df = pd.read_csv(uploaded_file, sep=";", encoding="latin1")
+        st.success("✅ Fichier chargé avec succès")
+    else:
+        default_file = "livraison_par_tournee.csv"
+        try:
+            df = pd.read_csv(default_file, sep=";", encoding="latin1")
+            st.info(f"📂 Fichier par défaut utilisé : {default_file}")
+        except:
+            st.error("❌ Fichier introuvable")
+            st.stop()
+
+    # Nettoyage des colonnes
+    df.columns = df.columns.str.strip()
+    df["Poids"] = df["Poids"].astype(str).str.replace(",", ".").astype(float)
+    df["Zone"] = df["Zone"].str.strip()
+
+    # Définition des tranches de poids
+    bins = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200, 300, 500, 700, 1000, 1500, 2000, 3000, float('inf')]
+    labels = [
+        "0-10kg", "10-20kg", "20-30kg", "30-40kg", "40-50kg",
+        "50-60kg", "60-70kg", "70-80kg", "80-90kg", "90-100kg",
+        "100-200kg", "200-300kg", "300-500kg", "500-700kg",
+        "700-1000kg", "1000-1500kg", "1500-2000kg", "2000-3000kg", ">3000kg"
+    ]
+    df["Tranche"] = pd.cut(df["Poids"], bins=bins, labels=labels, right=False)
+    df = df[df["Tranche"].notna()]
+
+    # Calcul du nombre d'expéditions par zone et tranche
+    grouped = df.groupby(["Zone", "Tranche"]).size().reset_index(name="Nb_exp")
+
+    # Total global des expéditions
+    total_global = grouped["Nb_exp"].sum()
+
+    # Entrée utilisateur : tarif total
+    tarif_total = st.number_input("💶 Tarif total global à répartir (€)", min_value=10.0, value=1000.0, step=10.0)
+
+    # Calcul du tarif par zone et tranche
+    grouped["Pourcentage"] = grouped["Nb_exp"] / total_global
+    grouped["Tarif (€)"] = (grouped["Pourcentage"] * tarif_total).round(2)
+
+    # Affichage
+    st.subheader("📋 Répartition du tarif par Zone et Tranche")
+    st.dataframe(grouped)
+
+    # Export CSV
+    csv_export = grouped.to_csv(index=False).encode("utf-8")
+    st.download_button(
+        "📥 Télécharger le tableau des tarifs",
+        data=csv_export,
+        file_name="tarif_par_zone_et_tranche.csv",
+        mime="text/csv"
+    )
+
 
         
 
