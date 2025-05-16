@@ -10,7 +10,7 @@ st.title("🚚 Normatrans - Zones et Tarifs de Livraison")
 
 menu = st.sidebar.radio(
     "Navigation",
-    ["Analyse des Zones", "Calcul des Tarifs", "Analyse des Expéditions", "Analyse des Poids", "Analyse des Tournées", "Calcul des Tarifs"],
+    ["Analyse des Zones", "Tarif", "Analyse des Expéditions", "Analyse des Poids", "Analyse des Tournées", "Calcul des Tarifs"],
     index=0
 )
 
@@ -102,7 +102,7 @@ if menu == "Analyse des Zones":
 # =======================
 # Partie 2 : Calcul des Tarifs
 # =======================
-elif menu == "Calcul des Tarifs":
+elif menu == "Tarif":
     st.header("💶 Calcul Global des Tarifs Pondérés par Zones")
 
     default_tarif_file = "repartition_par_zone.csv"
