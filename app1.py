@@ -10,7 +10,7 @@ st.title("🚚 Normatrans - Zones et Tarifs de Livraison")
 
 menu = st.sidebar.radio(
     "Navigation",
-    ["Analyse des Zones", "Calcul des Tarifs", "Analyse des Expéditions", "Analyse des Poids", "Analyse des Tournées"],
+    ["Analyse des Zones", "Calcul des Tarifs", "Analyse des Expéditions", "Analyse des Poids", "Analyse des Tournées", "Calcul des Tarifs"],
     index=0
 )
 
@@ -333,6 +333,68 @@ elif menu == "Analyse des Tournées":
         file_name=f"tournee_{tournee_select}.csv",
         mime="text/csv"
     )
+
+# =======================
+# Partie : Calcul des Tarifs par Zone et Tranche
+# =======================
+elif menu == "Calcul des Tarifs":
+    st.header("💶 Calcul des Tarifs Pondérés par Zone et Tranche")
+
+    # --- Chargement du fichier ---
+    uploaded_tarif_file = st.file_uploader("📤 Uploader la répartition par zone et tranche", type=["csv"])
+    if uploaded_tarif_file:
+        df_tarif = pd.read_csv(uploaded_tarif_file, sep=";", encoding="utf-8")
+        st.success("✅ Fichier de répartition chargé")
+    else:
+        default_tarif_file = "repartition_tranches_par_zone.csv"
+        try:
+            df_tarif = pd.read_csv(default_tarif_file, sep=",", encoding="utf-8")
+            st.info(f"📂 Fichier par défaut utilisé : {default_tarif_file}")
+        except:
+            st.error("❌ Aucun fichier disponible")
+            st.stop()
+
+    # --- Nettoyage ---
+    df_tarif.columns = df_tarif.columns.str.strip()
+    df_tarif = df_tarif.reset_index().melt(id_vars="Zone", var_name="Tranche", value_name="Pourcentage")
+    df_tarif["Pourcentage"] = pd.to_numeric(df_tarif["Pourcentage"], errors="coerce")
+    df_tarif = df_tarif.dropna()
+
+    # --- Coefficients par tranche (manuels) ---
+    st.subheader("🎯 Pondération par tranche de poids")
+    tranche_list = df_tarif["Tranche"].unique().tolist()
+    tranche_coeffs = {}
+    for tranche in tranche_list:
+        tranche_coeffs[tranche] = st.slider(f"Coefficient pour {tranche}", 0.5, 5.0, 1.0, 0.1)
+
+    # --- Appliquer pondération ---
+    df_tarif["Coefficient"] = df_tarif["Tranche"].map(tranche_coeffs)
+    df_tarif["Pondéré"] = df_tarif["Pourcentage"] * df_tarif["Coefficient"]
+
+    # --- Calcul des parts et répartition ---
+    total_ponderation = df_tarif["Pondéré"].sum()
+    df_tarif["Part"] = df_tarif["Pondéré"] / total_ponderation
+
+    tarif_total = st.number_input("💰 Tarif global à répartir (€)", 100.0, 10000.0, 1000.0, step=50.0)
+    df_tarif["Tarif (€)"] = (df_tarif["Part"] * tarif_total).round(2)
+
+    # --- Affichage ---
+    st.subheader("📊 Répartition des tarifs par Zone et Tranche")
+    st.dataframe(df_tarif[["Zone", "Tranche", "Pourcentage", "Coefficient", "Tarif (€)"]].round(2))
+
+    # --- Visualisation ---
+    st.subheader("🔺 Graphique des tarifs par zone")
+    fig = px.bar(df_tarif, x="Zone", y="Tarif (€)", color="Tranche", title="Tarif total par zone et tranche", text_auto=True)
+    st.plotly_chart(fig)
+
+    # --- Export ---
+    st.download_button(
+        "📥 Télécharger les tarifs calculés",
+        data=df_tarif.to_csv(index=False).encode("utf-8"),
+        file_name="tarifs_par_zone_et_tranche.csv",
+        mime="text/csv"
+    )
+
 
 
 
