@@ -10,7 +10,7 @@ st.title("🚚 Normatrans - Zones et Tarifs de Livraison")
 
 menu = st.sidebar.radio(
     "Navigation",
-    ["Analyse des Zones", "Calcul des Tarifs",  "Analyse des Tranches de Poids", "Tarif par Zone et Tranche"],
+    ["Analyse des Zones", "Calcul des Tarifs",  "Analyse des Tranches de Poids"],
     index=0
 )
 
