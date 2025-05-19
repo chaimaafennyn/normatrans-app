@@ -576,6 +576,9 @@ elif menu == "Analyse des tournees2":
         file_name=f"tournée_points_{agence_select}.csv",
         mime="text/csv"
     )
+
+
+
 # =======================
 # Partie 9 : Analyse des Tranches de Poids
 # =======================
@@ -644,6 +647,24 @@ elif menu == "Analyse des Tranches de Poids":
         "📅 Télécharger les pourcentages par tranche et zone",
         data=tableau.to_csv().encode("utf-8"),
         file_name="repartition_tranches_par_zone.csv",
+        mime="text/csv"
+    )
+
+    # === Répartition globale des tranches (toutes zones) ===
+    st.subheader("📦 Répartition globale des tranches de poids (toutes zones confondues)")
+    tranche_global = df_filtered["Tranche"].value_counts(normalize=True).sort_index() * 100
+    tranche_global = tranche_global.reset_index()
+    tranche_global.columns = ["Tranche", "Pourcentage"]
+    st.dataframe(tranche_global.round(2))
+
+    fig = px.bar(tranche_global, x="Tranche", y="Pourcentage", text_auto=True,
+                 title="Répartition globale des tranches de poids")
+    st.plotly_chart(fig)
+
+    st.download_button(
+        "📥 Télécharger la répartition globale par tranche",
+        data=tranche_global.to_csv(index=False).encode("utf-8"),
+        file_name="repartition_globale_tranche.csv",
         mime="text/csv"
     )
 
@@ -745,108 +766,6 @@ elif menu == "Analyse des Tranches de Poids":
         um_agence = df_filtered.groupby("Code agence")["UM"].sum().reset_index()
         fig = px.pie(um_agence, names="Code agence", values="UM", title="UM total par Agence")
         st.plotly_chart(fig)
-
-
-# =======================
-# Partie 10 : Tarification fixe par tranche modulée par zone
-# =======================
-elif menu == "Tarif par Zone et Tranche":
-    st.header("💶 Tarification fixe par Tranche, modulée par Zone")
-
-    uploaded_file = st.file_uploader("📤 Uploader le fichier des livraisons (livraison_par_tournee.csv)", type=["csv"])
-    if uploaded_file:
-        df = pd.read_csv(uploaded_file, sep=";", encoding="latin1")
-        st.success("✅ Fichier chargé avec succès")
-    else:
-        default_file = "livraison_par_tournee.csv"
-        try:
-            df = pd.read_csv(default_file, sep=";", encoding="latin1")
-            st.info(f"📂 Fichier par défaut utilisé : {default_file}")
-        except:
-            st.error("❌ Fichier introuvable")
-            st.stop()
-
-    df.columns = df.columns.str.strip()
-    df["Poids"] = df["Poids"].astype(str).str.replace(",", ".").astype(float)
-    df["Zone"] = df["Zone"].str.strip()
-
-    bins = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200, 300, 500, 700, 1000, 1500, 2000, 3000, float('inf')]
-    labels = [
-        "0-10kg", "10-20kg", "20-30kg", "30-40kg", "40-50kg",
-        "50-60kg", "60-70kg", "70-80kg", "80-90kg", "90-100kg",
-        "100-200kg", "200-300kg", "300-500kg", "500-700kg",
-        "700-1000kg", "1000-1500kg", "1500-2000kg", "2000-3000kg", ">3000kg"
-    ]
-    df["Tranche"] = pd.cut(df["Poids"], bins=bins, labels=labels, right=False)
-    df = df[df["Tranche"].notna()]
-
-    # === Définir les tarifs fixes par tranche ===
-    tarif_base = {
-        "0-10kg": 8.58, "10-20kg": 8.95, "20-30kg": 9.43, "30-40kg": 9.79,
-        "40-50kg": 10.52, "50-60kg": 10.88, "60-70kg": 11.73, "70-80kg": 12.09,
-        "80-90kg": 12.82, "90-100kg": 13.06, "100-200kg": 11.90, "200-300kg": 11.61,
-        "300-500kg": 11.36, "500-700kg": 9.07, "700-1000kg": 8.95, "1000-1500kg": 7.13,
-        "1500-2000kg": 6.89, "2000-3000kg": 6.05, ">3000kg": 6.05
-    }
-
-    # === Définir les coefficients de zone ===
-    st.markdown("### 🎯 Coefficients multiplicateurs par zone")
-    coef_zone1 = st.number_input("Coefficient Zone 1", value=1.0, step=0.1)
-    coef_zone2 = st.number_input("Coefficient Zone 2", value=1.5, step=0.1)
-    coef_zone3 = st.number_input("Coefficient Zone 3", value=2.0, step=0.1)
-    coef_dict = {"Zone 1": coef_zone1, "Zone 2": coef_zone2, "Zone 3": coef_zone3}
-
-    df["Tarif de base"] = df["Tranche"].map(tarif_base)
-    df["Coef zone"] = df["Zone"].map(coef_dict)
-    df["Tarif unitaire"] = (df["Tarif de base"] * df["Coef zone"]).round(2)
-    df["Montant"] = (df["Tarif unitaire"]).round(2)
-
-    result = df.groupby(["Zone", "Tranche"]).agg(
-        Nb_exp=("Commune", "count"),
-        Tarif_unitaire=("Tarif unitaire", "first"),
-        Montant_total=("Montant", "sum")
-    ).reset_index()
-
-    st.subheader("📋 Grille tarifaire par Zone et Tranche (Forfait × Coefficient)")
-    st.dataframe(result)
-
-    fig = px.bar(result, x="Tranche", y="Montant_total", color="Zone",
-                 title="Chiffre d'affaires estimé par Zone et Tranche",
-                 barmode="group", text_auto=True)
-    st.plotly_chart(fig)
-
-    st.download_button("📥 Télécharger la grille tarifaire", result.to_csv(index=False).encode("utf-8"), "grille_tarif_zone_tranche.csv", "text/csv")
-
-  pivot = df_filtered.groupby(["Zone", "Tranche"]).size().reset_index(name="Nb_exp")
-  totaux = pivot.groupby("Zone")["Nb_exp"].sum().reset_index(name="Total")
-  result = pd.merge(pivot, totaux, on="Zone")
-  result["Pourcentage"] = (result["Nb_exp"] / result["Total"] * 100).round(2)
-  tableau = result.pivot(index="Zone", columns="Tranche", values="Pourcentage").fillna(0)
- 
-  # === Répartition globale des tranches de poids (toutes zones confondues) ===
-  st.subheader("📦 Répartition globale des tranches de poids (toutes zones)")
-  
-  tranche_global = df_filtered["Tranche"].value_counts(normalize=True).sort_index() * 100
-  tranche_global = tranche_global.reset_index()
-  tranche_global.columns = ["Tranche", "Pourcentage"]
-  
-  st.dataframe(tranche_global.round(2))
-  
-  # Affichage graphique
-  fig = px.bar(tranche_global, x="Tranche", y="Pourcentage", text_auto=True,
-               title="Répartition des tranches de poids - Toutes zones")
-  st.plotly_chart(fig)
-  
-  # Export CSV
-  st.download_button(
-      "📥 Télécharger la répartition globale par tranche",
-      data=tranche_global.to_csv(index=False).encode("utf-8"),
-      file_name="repartition_globale_tranche.csv",
-      mime="text/csv"
-  )
-
-
-
 
 
 
