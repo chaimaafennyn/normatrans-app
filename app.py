@@ -665,10 +665,10 @@ elif menu == "Analyse des Tranches de Poids":
 
     st.dataframe(detail)
 
-    # === Top 100 communes
+    # === Top 20 communes
     if "Commune" in detail.columns:
-        st.subheader("🏆 Top 100 communes avec le plus d'expéditions")
-        top_communes = detail.groupby("Commune")["Nb_expéditions"].sum().nlargest(100).reset_index()
+        st.subheader("🏆 Top 20 communes avec le plus d'expéditions")
+        top_communes = detail.groupby("Commune")["Nb_expéditions"].sum().nlargest(20).reset_index()
         st.bar_chart(top_communes.set_index("Commune")["Nb_expéditions"])
 
     st.download_button(
