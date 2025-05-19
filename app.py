@@ -577,8 +577,6 @@ elif menu == "Analyse des tournees2":
         mime="text/csv"
     )
 
-
-
 # =======================
 # Partie 9 : Analyse des Tranches de Poids
 # =======================
@@ -641,6 +639,11 @@ elif menu == "Analyse des Tranches de Poids":
     result = pd.merge(pivot, totaux, on="Zone")
     result["Pourcentage"] = (result["Nb_exp"] / result["Total"] * 100).round(2)
     tableau = result.pivot(index="Zone", columns="Tranche", values="Pourcentage").fillna(0)
+
+    # Ajouter une ligne globale (toutes zones confondues)
+    total_global = df_filtered.groupby("Tranche").size()
+    total_global_percent = (total_global / total_global.sum() * 100).round(2)
+    tableau.loc["Total"] = total_global_percent
     st.dataframe(tableau)
 
     st.download_button(
@@ -663,7 +666,7 @@ elif menu == "Analyse des Tranches de Poids":
 
     st.download_button(
         "📥 Télécharger la répartition globale par tranche",
-        data=tranche_global.to_csv().encode("utf-8"),
+        data=tranche_global.to_csv(index=False).encode("utf-8"),
         file_name="repartition_globale_tranche.csv",
         mime="text/csv"
     )
@@ -766,6 +769,8 @@ elif menu == "Analyse des Tranches de Poids":
         um_agence = df_filtered.groupby("Code agence")["UM"].sum().reset_index()
         fig = px.pie(um_agence, names="Code agence", values="UM", title="UM total par Agence")
         st.plotly_chart(fig)
+
+
 
 
 
