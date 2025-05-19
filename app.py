@@ -663,7 +663,7 @@ elif menu == "Analyse des Tranches de Poids":
 
     st.download_button(
         "📥 Télécharger la répartition globale par tranche",
-        data=tranche_global.to_csv(index=False).encode("utf-8"),
+        data=tranche_global.to_csv().encode("utf-8"),
         file_name="repartition_globale_tranche.csv",
         mime="text/csv"
     )
