@@ -649,7 +649,7 @@ elif menu == "Analyse des Tranches de Poids":
     )
 
     # === Répartition globale des tranches (toutes zones) ===
-   st.subheader("📦 Répartition globale des tranches de poids (toutes zones confondues)")
+   st.subheader("📦 Répartition globale des tranches de poids toutes zones confondues")
    
    tranche_global = df_filtered["Tranche"].value_counts(normalize=True).sort_index() * 100
    tranche_global = tranche_global.round(2).to_frame(name="Pourcentage").T  # Transposition
