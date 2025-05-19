@@ -649,22 +649,26 @@ elif menu == "Analyse des Tranches de Poids":
     )
 
     # === Répartition globale des tranches (toutes zones) ===
-    st.subheader("📦 Répartition globale des tranches de poids (toutes zones confondues)")
-    tranche_global = df_filtered["Tranche"].value_counts(normalize=True).sort_index() * 100
-    tranche_global = tranche_global.reset_index()
-    tranche_global.columns = ["Tranche", "Pourcentage"]
-    st.dataframe(tranche_global.round(2))
+   st.subheader("📦 Répartition globale des tranches de poids (toutes zones confondues)")
+   
+   tranche_global = df_filtered["Tranche"].value_counts(normalize=True).sort_index() * 100
+   tranche_global = tranche_global.round(2).to_frame(name="Pourcentage").T  # Transposition
+   st.dataframe(tranche_global)
+   
+   fig = px.bar(
+       tranche_global.T.reset_index(),
+       x="Tranche", y="Pourcentage", text_auto=True,
+       title="Répartition globale des tranches de poids"
+   )
+   st.plotly_chart(fig)
+   
+   st.download_button(
+       "📥 Télécharger la répartition globale par tranche (colonnes)",
+       data=tranche_global.to_csv().encode("utf-8"),
+       file_name="repartition_globale_tranche_colonnes.csv",
+       mime="text/csv"
+   )
 
-    fig = px.bar(tranche_global, x="Tranche", y="Pourcentage", text_auto=True,
-                 title="Répartition globale des tranches de poids")
-    st.plotly_chart(fig)
-
-    st.download_button(
-        "📥 Télécharger la répartition globale par tranche",
-        data=tranche_global.to_csv(index=False).encode("utf-8"),
-        file_name="repartition_globale_tranche.csv",
-        mime="text/csv"
-    )
 
     # === Détail global
     st.subheader("📋 Détail global par agence, zone et commune")
