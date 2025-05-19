@@ -655,12 +655,7 @@ elif menu == "Analyse des Tranches de Poids":
     tranche_global = tranche_global.round(2).to_frame(name="Pourcentage").T  # Transposition
     st.dataframe(tranche_global)
     
-    fig = px.bar(
-        tranche_global.T.reset_index(),
-        x="Tranche", y="Pourcentage", text_auto=True,
-        title="Répartition globale des tranches de poids"
-    )
-    st.plotly_chart(fig)
+   
     
     st.download_button(
         "📥 Télécharger la répartition globale par tranche (colonnes)",
