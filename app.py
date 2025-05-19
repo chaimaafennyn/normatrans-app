@@ -655,6 +655,10 @@ elif menu == "Analyse des Tranches de Poids":
     tableau_inverse = result_inv.pivot(index="Tranche", columns="Zone", values="Pourcentage").fillna(0)
     # Transposer pour afficher les tranches en colonnes et zones en lignes
     tableau_inverse = tableau_inverse.T
+
+    total_global = df_filtered.groupby("Zone").size()
+    total_global_percent = (total_global / total_global.sum() * 100).round(2)
+    tableau.loc["Total"] = total_global_percent
     st.dataframe(tableau_inverse)
 
     st.download_button(
