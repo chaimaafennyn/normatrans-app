@@ -639,14 +639,12 @@ elif menu == "Analyse des Tranches de Poids":
     result = pd.merge(pivot, totaux, on="Zone")
     result["Pourcentage"] = (result["Nb_exp"] / result["Total"] * 100).round(2)
     tableau = result.pivot(index="Zone", columns="Tranche", values="Pourcentage").fillna(0)
-    st.dataframe(tableau)
 
-    st.download_button(
-        "📅 Télécharger les pourcentages par tranche et zone",
-        data=tableau.to_csv().encode("utf-8"),
-        file_name="repartition_tranches_par_zone.csv",
-        mime="text/csv"
-    )
+    # Ajouter une ligne globale (toutes zones confondues)
+    total_global = df_filtered.groupby("Tranche").size()
+    total_global_percent = (total_global / total_global.sum() * 100).round(2)
+    tableau.loc["Total"] = total_global_percent
+    st.dataframe(tableau)
 
     # === Zones par tranches ===
     st.subheader("📊 Répartition (%) des zones par tranche de poids")
@@ -664,23 +662,23 @@ elif menu == "Analyse des Tranches de Poids":
         mime="text/csv"
     )
 
-
     # === Répartition globale des tranches (toutes zones) ===
-    st.subheader("📦 Répartition globale des tranches de poids toutes zones confondues")
-    
+    st.subheader("📦 Répartition globale des tranches de poids (toutes zones confondues)")
     tranche_global = df_filtered["Tranche"].value_counts(normalize=True).sort_index() * 100
-    tranche_global = tranche_global.round(2).to_frame(name="Pourcentage").T  # Transposition
-    st.dataframe(tranche_global)
-    
-   
-    
+    tranche_global = tranche_global.reset_index()
+    tranche_global.columns = ["Tranche", "Pourcentage"]
+    st.dataframe(tranche_global.round(2))
+
+    fig = px.bar(tranche_global, x="Tranche", y="Pourcentage", text_auto=True,
+                 title="Répartition globale des tranches de poids")
+    st.plotly_chart(fig)
+
     st.download_button(
-        "📥 Télécharger la répartition globale par tranche (colonnes)",
-        data=tranche_global.to_csv().encode("utf-8"),
-        file_name="repartition_globale_tranche_colonnes.csv",
+        "📥 Télécharger la répartition globale par tranche",
+        data=tranche_global.to_csv(index=False).encode("utf-8"),
+        file_name="repartition_globale_tranche.csv",
         mime="text/csv"
     )
-
 
     # === Détail global
     st.subheader("📋 Détail global par agence, zone et commune")
