@@ -655,8 +655,6 @@ elif menu == "Analyse des Tranches de Poids":
     tableau_inverse = result_inv.pivot(index="Tranche", columns="Zone", values="Pourcentage").fillna(0)
     # Transposer pour afficher les tranches en colonnes et zones en lignes
     tableau_inverse = tableau_inverse.T
-    # Ajouter une ligne Total
-    tableau_inverse.loc["Total"] = tableau_inverse.sum().round(2)
     st.dataframe(tableau_inverse)
 
     st.download_button(
@@ -666,23 +664,7 @@ elif menu == "Analyse des Tranches de Poids":
         mime="text/csv"
     )
 
-    # === Répartition globale des tranches (toutes zones) ===
-    st.subheader("📦 Répartition globale des tranches de poids (toutes zones confondues)")
-    tranche_global = df_filtered["Tranche"].value_counts(normalize=True).sort_index() * 100
-    tranche_global = tranche_global.reset_index()
-    tranche_global.columns = ["Tranche", "Pourcentage"]
-    st.dataframe(tranche_global.round(2))
-
-    fig = px.bar(tranche_global, x="Tranche", y="Pourcentage", text_auto=True,
-                 title="Répartition globale des tranches de poids")
-    st.plotly_chart(fig)
-
-    st.download_button(
-        "📥 Télécharger la répartition globale par tranche",
-        data=tranche_global.to_csv(index=False).encode("utf-8"),
-        file_name="repartition_globale_tranche.csv",
-        mime="text/csv"
-    )
+    
 
     # === Détail global
     st.subheader("📋 Détail global par agence, zone et commune")
@@ -782,6 +764,7 @@ elif menu == "Analyse des Tranches de Poids":
         um_agence = df_filtered.groupby("Code agence")["UM"].sum().reset_index()
         fig = px.pie(um_agence, names="Code agence", values="UM", title="UM total par Agence")
         st.plotly_chart(fig)
+
 
 
 
