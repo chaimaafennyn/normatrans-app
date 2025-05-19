@@ -817,33 +817,33 @@ elif menu == "Tarif par Zone et Tranche":
 
     st.download_button("📥 Télécharger la grille tarifaire", result.to_csv(index=False).encode("utf-8"), "grille_tarif_zone_tranche.csv", "text/csv")
 
- pivot = df_filtered.groupby(["Zone", "Tranche"]).size().reset_index(name="Nb_exp")
- totaux = pivot.groupby("Zone")["Nb_exp"].sum().reset_index(name="Total")
- result = pd.merge(pivot, totaux, on="Zone")
- result["Pourcentage"] = (result["Nb_exp"] / result["Total"] * 100).round(2)
- tableau = result.pivot(index="Zone", columns="Tranche", values="Pourcentage").fillna(0)
-
- # === Répartition globale des tranches de poids (toutes zones confondues) ===
- st.subheader("📦 Répartition globale des tranches de poids (toutes zones)")
+  pivot = df_filtered.groupby(["Zone", "Tranche"]).size().reset_index(name="Nb_exp")
+  totaux = pivot.groupby("Zone")["Nb_exp"].sum().reset_index(name="Total")
+  result = pd.merge(pivot, totaux, on="Zone")
+  result["Pourcentage"] = (result["Nb_exp"] / result["Total"] * 100).round(2)
+  tableau = result.pivot(index="Zone", columns="Tranche", values="Pourcentage").fillna(0)
  
- tranche_global = df_filtered["Tranche"].value_counts(normalize=True).sort_index() * 100
- tranche_global = tranche_global.reset_index()
- tranche_global.columns = ["Tranche", "Pourcentage"]
- 
- st.dataframe(tranche_global.round(2))
- 
- # Affichage graphique
- fig = px.bar(tranche_global, x="Tranche", y="Pourcentage", text_auto=True,
-              title="Répartition des tranches de poids - Toutes zones")
- st.plotly_chart(fig)
- 
- # Export CSV
- st.download_button(
-     "📥 Télécharger la répartition globale par tranche",
-     data=tranche_global.to_csv(index=False).encode("utf-8"),
-     file_name="repartition_globale_tranche.csv",
-     mime="text/csv"
- )
+  # === Répartition globale des tranches de poids (toutes zones confondues) ===
+  st.subheader("📦 Répartition globale des tranches de poids (toutes zones)")
+  
+  tranche_global = df_filtered["Tranche"].value_counts(normalize=True).sort_index() * 100
+  tranche_global = tranche_global.reset_index()
+  tranche_global.columns = ["Tranche", "Pourcentage"]
+  
+  st.dataframe(tranche_global.round(2))
+  
+  # Affichage graphique
+  fig = px.bar(tranche_global, x="Tranche", y="Pourcentage", text_auto=True,
+               title="Répartition des tranches de poids - Toutes zones")
+  st.plotly_chart(fig)
+  
+  # Export CSV
+  st.download_button(
+      "📥 Télécharger la répartition globale par tranche",
+      data=tranche_global.to_csv(index=False).encode("utf-8"),
+      file_name="repartition_globale_tranche.csv",
+      mime="text/csv"
+  )
 
 
 
