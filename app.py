@@ -650,7 +650,7 @@ elif menu == "Analyse des Tranches de Poids":
     st.subheader("📊 Répartition (%) des zones par tranche de poids")
     pivot_inverse = df_filtered.groupby(["Tranche", "Zone"]).size().reset_index(name="Nb_exp")
     totaux_tranche = pivot_inverse.groupby("Tranche")["Nb_exp"].sum().reset_index(name="Total")
-    result_inv = pd.merge(pivot, totaux_tranche, on="Tranche")
+    result_inv = pd.merge(pivot_inverse, totaux_tranche, on="Tranche")
     result_inv["Pourcentage"] = (result_inv["Nb_exp"] / result_inv["Total"] * 100).round(2)
     tableau_inverse = result_inv.pivot(index="Tranche", columns="Zone", values="Pourcentage").fillna(0)
     st.dataframe(tableau_inverse)
