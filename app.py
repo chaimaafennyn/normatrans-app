@@ -657,6 +657,13 @@ elif menu == "Analyse des Tranches de Poids":
     tableau_inverse = tableau_inverse.T
     st.dataframe(tableau_inverse)
 
+ 
+    st.download_button(
+        "📅 Télécharger les pourcentages par tranche et zone",
+        data=tableau.to_csv().encode("utf-8"),
+        file_name="repartition_tranches_par_zone.csv",
+        mime="text/csv"
+    )
 
     
 
