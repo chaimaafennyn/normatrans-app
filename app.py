@@ -646,6 +646,24 @@ elif menu == "Analyse des Tranches de Poids":
     tableau.loc["Total"] = total_global_percent
     st.dataframe(tableau)
 
+    # === Zones par tranches ===
+    st.subheader("📊 Répartition (%) des zones par tranche de poids")
+    pivot_inverse = df_filtered.groupby(["Tranche", "Zone"]).size().reset_index(name="Nb_exp")
+    totaux_tranche = pivot_inverse.groupby("Tranche")["Nb_exp"].sum().reset_index(name="Total")
+    result_inv = pd.merge(pivot_inverse, totaux_tranche, on="Tranche")
+    result_inv["Pourcentage"] = (result_inv["Nb_exp"] / result_inv["Total"] * 100).round(2)
+    tableau_inverse = result_inv.pivot(index="Tranche", columns="Zone", values="Pourcentage").fillna(0)
+    # Transposer pour afficher les tranches en colonnes et zones en lignes
+    tableau_inverse = tableau_inverse.T
+    st.dataframe(tableau_inverse)
+
+    st.download_button(
+        "📅 Télécharger les pourcentages par tranche et zone",
+        data=tableau.to_csv().encode("utf-8"),
+        file_name="repartition_tranches_par_zone.csv",
+        mime="text/csv"
+    )
+
     
 
     
