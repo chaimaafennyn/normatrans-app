@@ -1,16 +1,30 @@
 import streamlit as st
 
-def login():
-    st.title("🔐 Connexion")
 
-    username = st.text_input("Nom d'utilisateur")
-    password = st.text_input("Mot de passe", type="password")
+def check_password():
+    if "authenticated" not in st.session_state:
+        st.session_state["authenticated"] = False
 
-    if st.button("Se connecter"):
-        if username == st.secrets["login"]["username"] and password == st.secrets["login"]["password"]:
-            st.session_state["auth"] = True
-            st.success("Connexion réussie !")
-        else:
-            st.error("Identifiants incorrects")
+    if not st.session_state["authenticated"]:
+        st.title("🔐 Connexion requise")
 
-    return st.session_state.get("auth", False)
+        username = st.text_input("Nom d'utilisateur")
+        password = st.text_input("Mot de passe", type="password")
+        login = st.button("Se connecter")
+
+        if login:
+            if username in CREDENTIALS and CREDENTIALS[username] == password:
+                st.session_state["authenticated"] = True
+                st.session_state["username"] = username
+                st.success("✅ Connexion réussie.")
+                st.rerun()
+            else:
+                st.error("❌ Identifiants incorrects.")
+        st.stop()
+
+# === Déconnexion
+def logout():
+    if st.sidebar.button("🔒 Se déconnecter"):
+        st.session_state["authenticated"] = False
+        st.session_state["username"] = ""
+        st.rerun()
