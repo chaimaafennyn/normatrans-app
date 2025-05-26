@@ -831,46 +831,46 @@ elif menu == "Calcul des Tarifs par Tranche":
     )
 
    # === MÉTHODE 2 : Proportionnelle à la distance ===
-  st.subheader("📐 Méthode 2 : Tarifs proportionnels à la distance")
-  
-  # Distance moyenne par zone (exemple fixe ou à rendre paramétrable)
-  distances = {"Zone 1": 10, "Zone 2": 30, "Zone 3": 50}
-  d1, d2, d3 = distances["Zone 1"], distances["Zone 2"], distances["Zone 3"]
-  total_distance = d1 + d2 + d3
-  
-  res_m2 = []
-  
-  for tranche in df.index:
-      r1, r2, r3 = df.loc[tranche, "Zone 1"]/100, df.loc[tranche, "Zone 2"]/100, df.loc[tranche, "Zone 3"]/100
-      forfait = tarifs_forfaitaires[tranche]
-  
-      # Coefficients basés sur distance
-      coef1, coef2, coef3 = d1 / total_distance, d2 / total_distance, d3 / total_distance
-      x = forfait / (r1 * coef1 + r2 * coef2 + r3 * coef3)
-  
-      z1 = round(x * coef1, 2)
-      z2 = round(x * coef2, 2)
-      z3 = round(x * coef3, 2)
-      total = round(r1 * z1 + r2 * z2 + r3 * z3, 2)
-  
-      res_m2.append({
-          "Tranche": tranche, "Zone 1 (€)": z1, "Zone 2 (€)": z2,
-          "Zone 3 (€)": z3, "Total pondéré (€)": total
-      })
-  
-  df_resultats2 = pd.DataFrame(res_m2)
-  
-  # === Comparaison des deux méthodes côte à côte ===
-  st.subheader("🔍 Comparaison Méthodes 1 et 2")
-  df_comparaison = df_resultats1.merge(df_resultats2, on="Tranche", suffixes=(" - Écart fixe", " - Prop. distance"))
-  st.dataframe(df_comparaison)
-  
-  st.download_button(
-      "📥 Télécharger la comparaison des deux méthodes",
-      data=df_comparaison.to_csv(index=False).encode("utf-8"),
-      file_name="comparaison_tarifs_m1_m2.csv",
-      mime="text/csv"
-  )
+   st.subheader("📐 Méthode 2 : Tarifs proportionnels à la distance")
+   
+   # Distance moyenne par zone (exemple fixe ou à rendre paramétrable)
+   distances = {"Zone 1": 10, "Zone 2": 30, "Zone 3": 50}
+   d1, d2, d3 = distances["Zone 1"], distances["Zone 2"], distances["Zone 3"]
+   total_distance = d1 + d2 + d3
+   
+   res_m2 = []
+   
+   for tranche in df.index:
+       r1, r2, r3 = df.loc[tranche, "Zone 1"]/100, df.loc[tranche, "Zone 2"]/100, df.loc[tranche, "Zone 3"]/100
+       forfait = tarifs_forfaitaires[tranche]
+   
+       # Coefficients basés sur distance
+       coef1, coef2, coef3 = d1 / total_distance, d2 / total_distance, d3 / total_distance
+       x = forfait / (r1 * coef1 + r2 * coef2 + r3 * coef3)
+   
+       z1 = round(x * coef1, 2)
+       z2 = round(x * coef2, 2)
+       z3 = round(x * coef3, 2)
+       total = round(r1 * z1 + r2 * z2 + r3 * z3, 2)
+   
+       res_m2.append({
+           "Tranche": tranche, "Zone 1 (€)": z1, "Zone 2 (€)": z2,
+           "Zone 3 (€)": z3, "Total pondéré (€)": total
+       })
+   
+   df_resultats2 = pd.DataFrame(res_m2)
+   
+   # === Comparaison des deux méthodes côte à côte ===
+   st.subheader("🔍 Comparaison Méthodes 1 et 2")
+   df_comparaison = df_resultats1.merge(df_resultats2, on="Tranche", suffixes=(" - Écart fixe", " - Prop. distance"))
+   st.dataframe(df_comparaison)
+   
+   st.download_button(
+       "📥 Télécharger la comparaison des deux méthodes",
+       data=df_comparaison.to_csv(index=False).encode("utf-8"),
+       file_name="comparaison_tarifs_m1_m2.csv",
+       mime="text/csv"
+   )
 
 
 
