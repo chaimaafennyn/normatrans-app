@@ -11,7 +11,7 @@ st.set_page_config(page_title="Normatrans - Zones et Tarifs", layout="wide")
 # === Configuration des identifiants ===
 CREDENTIALS = {
     "chaimaa": "fennyn2001",
-    "client": "test2025"
+    "normatrans": "normatrans2025"
 }
 
 # === Fonction de vérification ===
