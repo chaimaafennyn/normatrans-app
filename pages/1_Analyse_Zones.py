@@ -39,6 +39,16 @@ with st.expander("➕ Ajouter une nouvelle localité"):
             st.success(f"✅ Localité '{commune}' ajoutée.")
             st.cache_data.clear()
 
+
+uploaded_file = st.file_uploader("📄 Uploader un fichier CSV (optionnel)", type=["csv"])
+
+if uploaded_file:
+    df = pd.read_csv(uploaded_file, sep=";", encoding="latin1")
+    st.success("✅ Fichier CSV chargé")
+else:   
+    df = get_zones()
+    st.success("✅ Données chargées depuis Supabase")
+
 st.subheader("🛠️ Modifier ou Supprimer une Localité")
 
 # Liste déroulante pour choisir une ligne (on utilise l'ID)
@@ -84,15 +94,6 @@ if selected_row:
             st.cache_data.clear()
 
 
-
-uploaded_file = st.file_uploader("📄 Uploader un fichier CSV (optionnel)", type=["csv"])
-
-if uploaded_file:
-    df = pd.read_csv(uploaded_file, sep=";", encoding="latin1")
-    st.success("✅ Fichier CSV chargé")
-else:   
-    df = get_zones()
-    st.success("✅ Données chargées depuis Supabase")
 
 # Renommage des colonnes si nécessaire
     df = df.rename(columns={
