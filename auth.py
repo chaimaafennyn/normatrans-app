@@ -1,44 +1,44 @@
 import streamlit as st
-from datetime import datetime
 import pandas as pd
-from database import log_action  # tu dois avoir une fonction pour insérer dans la table `logs`
+import folium
+from streamlit_folium import st_folium
+import plotly.express as px
 
-USERS = {
-    "admin": {"password": "admin123", "role": "admin"},
-    "user": {"password": "user123", "role": "user"},
+# ✅ Cette ligne DOIT venir immédiatement après les imports
+st.set_page_config(page_title="Normatrans - Zones et Tarifs", layout="wide")
+
+# === Authentification (à mettre après set_page_config) ===
+CREDENTIALS = {
+    "admin": "azerty123",
+    "client": "test2025"
 }
 
 def check_password():
     if "authenticated" not in st.session_state:
         st.session_state["authenticated"] = False
-        st.session_state["username"] = ""
 
-    if st.session_state["authenticated"]:
-        return True
-
-    with st.form("login"):
+    if not st.session_state["authenticated"]:
         st.title("🔐 Connexion requise")
         username = st.text_input("Nom d'utilisateur")
         password = st.text_input("Mot de passe", type="password")
-        submit = st.form_submit_button("Se connecter")
+        login = st.button("Se connecter")
 
-        if submit:
-            if username == st.secrets["login"]["username"] and password == st.secrets["login"]["password"]:
+        if login:
+            if username in CREDENTIALS and CREDENTIALS[username] == password:
                 st.session_state["authenticated"] = True
                 st.session_state["username"] = username
-                log_action(username, "Connexion réussie")  # LOG DANS LA TABLE
-                st.success("✅ Connexion réussie")
-                st.experimental_rerun()
+                st.success("✅ Connexion réussie.")
+                st.rerun()
             else:
-                st.error("❌ Identifiants incorrects")
-                log_action(username or "Inconnu", "Échec de connexion")
-                st.stop()
-
-    st.stop()
-
+                st.error("❌ Identifiants incorrects.")
+        st.stop()
 
 def logout():
-    if st.sidebar.button("🚪 Se déconnecter"):
-        log_action(st.session_state.get("username", "Anonyme"), "Déconnexion")
+    if st.sidebar.button("🔒 Se déconnecter"):
         st.session_state["authenticated"] = False
-        st.experimental_rerun()
+        st.rerun()
+
+check_password()
+logout()
+
+# Le reste de ton code Streamlit vient après…
