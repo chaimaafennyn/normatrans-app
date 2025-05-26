@@ -1,5 +1,5 @@
 import streamlit as st
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 import pandas as pd
 
 db = st.secrets["database"]
@@ -17,3 +17,18 @@ def get_tranches():
     engine = get_engine()
     query = "SELECT * FROM tranche_zone"
     return pd.read_sql(query, engine)
+
+def insert_localite(data: dict):
+    engine = get_engine()
+    with engine.connect() as conn:
+        insert_query = text("""
+            INSERT INTO zones_localites (
+                commune, code_agence, latitude, longitude, zone,
+                distance_km, latitude_agence, longitude_agence
+            ) VALUES (
+                :commune, :code_agence, :latitude, :longitude, :zone,
+                :distance_km, :latitude_agence, :longitude_agence
+            )
+        """)
+        conn.execute(insert_query, data)
+        conn.commit()
