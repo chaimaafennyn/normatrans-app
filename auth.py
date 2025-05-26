@@ -17,7 +17,7 @@ def check_password():
                 ):
                     st.session_state["authenticated"] = True
                     st.success("Connexion réussie")
-                    st.experimental_rerun()
+                    st.rerun()
                 else:
                     st.error("Identifiants incorrects")
 
