@@ -13,9 +13,6 @@ if "authenticated" not in st.session_state or not st.session_state["authenticate
 st.title("🔎 Analyse des Zones de Livraison")
 
 
-
-
-
 uploaded_file = st.file_uploader("📄 Uploader un fichier CSV (optionnel)", type=["csv"])
 
 if uploaded_file:
