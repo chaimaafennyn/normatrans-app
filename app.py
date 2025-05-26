@@ -65,9 +65,23 @@ if menu == "Analyse des Zones":
     st.header("🔎 Analyse des zones de livraison")
 
     # Partie fichier par défaut
-    default_file = "zones_final_localites1.csv"
+    # default_file = "zones_final_localites1.csv"
 
     uploaded_file = st.file_uploader("Uploader un autre fichier Zones (optionnel)", type=["csv"])
+
+    df = get_zones()  # 👈 récupère les données depuis Supabase
+
+    df = df.rename(columns={
+    "commune": "Commune",
+    "code_agence": "Code agence",
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "zone": "Zone",
+    "distance_km": "Distance (km)",
+    "latitude_agence": "Latitude_agence",
+    "longitude_agence": "Longitude_agence"
+    })
+
 
     if uploaded_file is not None:
         df = pd.read_csv(uploaded_file, sep=";", encoding="utf-8")
@@ -78,7 +92,7 @@ if menu == "Analyse des Zones":
 
     df.columns = df.columns.str.strip()
 
-    required_cols = ["Commune", "Code agence", "Latitude", "Longitude", "Zone", "Distance (km)", "Latitude_agence", "Longitude_agence"]
+    # required_cols = ["Commune", "Code agence", "Latitude", "Longitude", "Zone", "Distance (km)", "Latitude_agence", "Longitude_agence"]
     missing_cols = [col for col in required_cols if col not in df.columns]
     if missing_cols:
         st.error(f"❌ Colonnes manquantes : {missing_cols}")
