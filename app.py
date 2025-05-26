@@ -36,8 +36,7 @@ def check_password():
         st.stop()
 
 
-
-     
+check_password()
  
 st.set_page_config(page_title="Normatrans - Zones et Tarifs", layout="wide")
 
