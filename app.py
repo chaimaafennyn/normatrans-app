@@ -829,13 +829,13 @@ elif menu == "Calcul des Tarifs par Tranche":
         mime="text/csv"
     )
 
-    # === Graphiques camembert globaux
+# === Graphiques camembert globaux
     st.subheader("🥧 Graphiques de répartition globaux")
 
     # Tranches
-    pie_tranches = df_filtered["Tranche"].value_counts().reset_index()
+    # (suppression car df_filtered n'est pas défini ici)
     pie_tranches.columns = ["Tranche", "Nb_exp"]
-    fig = px.pie(pie_tranches, names="Tranche", values="Nb_exp", title="Répartition des tranches de poids")
+    # (suppression du graphique pie_tranches car hors contexte ici)
     st.plotly_chart(fig)
 
     # Expéditions par Zone
