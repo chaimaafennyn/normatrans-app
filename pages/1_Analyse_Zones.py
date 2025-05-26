@@ -12,6 +12,33 @@ if "authenticated" not in st.session_state or not st.session_state["authenticate
 
 st.title("🔎 Analyse des Zones de Livraison")
 
+with st.expander("➕ Ajouter une nouvelle localité"):
+    with st.form("ajout_localite"):
+        commune = st.text_input("Commune")
+        code_agence = st.text_input("Code Agence")
+        latitude = st.number_input("Latitude", format="%.6f")
+        longitude = st.number_input("Longitude", format="%.6f")
+        zone = st.selectbox("Zone", ["Zone 1", "Zone 2", "Zone 3"])
+        distance = st.number_input("Distance (km)", format="%.2f")
+        latitude_ag = st.number_input("Latitude Agence", format="%.6f")
+        longitude_ag = st.number_input("Longitude Agence", format="%.6f")
+        submitted = st.form_submit_button("Ajouter")
+
+        if submitted:
+            from database import insert_localite
+            insert_localite({
+                "commune": commune,
+                "code_agence": code_agence,
+                "latitude": latitude,
+                "longitude": longitude,
+                "zone": zone,
+                "distance_km": distance,
+                "latitude_agence": latitude_ag,
+                "longitude_agence": longitude_ag
+            })
+            st.success(f"✅ Localité '{commune}' ajoutée.")
+            st.cache_data.clear()
+
 
 uploaded_file = st.file_uploader("📄 Uploader un fichier CSV (optionnel)", type=["csv"])
 
