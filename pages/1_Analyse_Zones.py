@@ -13,34 +13,28 @@ if "authenticated" not in st.session_state or not st.session_state["authenticate
 
 st.title("🔎 Analyse des Zones de Livraison")
 
+from database import insert_localite, log_action
 
-st.markdown("---")
-st.subheader("➕ Ajouter une nouvelle localité")
+if st.session_state.get("role") == "admin":
+    with st.expander("➕ Ajouter une nouvelle localité"):
+        with st.form("ajout_formulaire"):
+            commune = st.text_input("Commune")
+            code_agence = st.selectbox("Code agence", df["Code agence"].unique())
+            zone = st.selectbox("Zone", ["Zone 1", "Zone 2", "Zone 3"])
+            lat = st.number_input("Latitude", format="%.6f")
+            lon = st.number_input("Longitude", format="%.6f")
+            distance = st.number_input("Distance (km)", format="%.2f")
+            lat_ag = st.number_input("Latitude agence", format="%.6f")
+            lon_ag = st.number_input("Longitude agence", format="%.6f")
+            submit = st.form_submit_button("Ajouter")
 
-with st.form("form_ajout_localite"):
-    col1, col2 = st.columns(2)
-    commune = col1.text_input("Commune")
-    code_agence = col2.selectbox("Code agence", df["Code agence"].unique())
-    
-    zone = st.selectbox("Zone", ["Zone 1", "Zone 2", "Zone 3"])
-    
-    latitude = st.number_input("Latitude", format="%.6f")
-    longitude = st.number_input("Longitude", format="%.6f")
-    
-    distance_km = st.number_input("Distance (km)", step=0.1)
-    
-    latitude_agence = st.number_input("Latitude agence", format="%.6f")
-    longitude_agence = st.number_input("Longitude agence", format="%.6f")
+            if submit:
+                insert_localite(commune, code_agence, zone, lat, lon, distance, lat_ag, lon_ag)
+                log_action(st.session_state["username"], f"Ajout de {commune}")
+                st.success("✅ Localité ajoutée")
+else:
+    st.warning("🔒 Vous êtes en lecture seule (rôle utilisateur)")
 
-    submit = st.form_submit_button("✅ Ajouter")
-
-    if submit:
-        if commune and code_agence and zone:
-            insert_localite(commune, code_agence, zone, latitude, longitude, distance_km, latitude_agence, longitude_agence)
-            st.success(f"🎉 Localité `{commune}` ajoutée avec succès.")
-            st.experimental_rerun()
-        else:
-            st.warning("Veuillez remplir tous les champs obligatoires.")
 
 
 uploaded_file = st.file_uploader("📄 Uploader un fichier CSV (optionnel)", type=["csv"])
