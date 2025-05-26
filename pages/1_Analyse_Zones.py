@@ -5,6 +5,10 @@ from streamlit_folium import st_folium
 import plotly.express as px
 from database import get_zones
 
+if "authenticated" not in st.session_state or not st.session_state["authenticated"]:
+    st.warning("🚫 Accès non autorisé. Veuillez vous connecter depuis la page principale.")
+    st.stop()
+
 st.title("🔎 Analyse des Zones de Livraison")
 
 uploaded_file = st.file_uploader("📄 Uploader un fichier CSV (optionnel)", type=["csv"])
