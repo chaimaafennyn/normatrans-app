@@ -829,51 +829,6 @@ elif menu == "Calcul des Tarifs par Tranche":
         mime="text/csv"
     )
 
-# === Graphiques camembert globaux
-    st.subheader("🥧 Graphiques de répartition globaux")
-
-    # Tranches
-    # (suppression car df_filtered n'est pas défini ici)
-    pie_tranches.columns = ["Tranche", "Nb_exp"]
-    # (suppression du graphique pie_tranches car hors contexte ici)
-    st.plotly_chart(fig)
-
-    # Expéditions par Zone
-    zone_exp = df_filtered["Zone"].value_counts().reset_index()
-    zone_exp.columns = ["Zone", "Nb_exp"]
-    fig = px.pie(zone_exp, names="Zone", values="Nb_exp", title="Expéditions par Zone")
-    st.plotly_chart(fig)
-
-    # Expéditions par Agence
-    if "Code agence" in df_filtered.columns:
-        agence_exp = df_filtered["Code agence"].value_counts().reset_index()
-        agence_exp.columns = ["Code agence", "Nb_exp"]
-        fig = px.pie(agence_exp, names="Code agence", values="Nb_exp", title="Expéditions par Agence")
-        st.plotly_chart(fig)
-
-    # Poids total par Zone
-    zone_poids = df_filtered.groupby("Zone")["Poids"].sum().reset_index()
-    fig = px.pie(zone_poids, names="Zone", values="Poids", title="Poids total (kg) par Zone")
-    st.plotly_chart(fig)
-
-    # Poids total par Agence
-    if "Code agence" in df_filtered.columns:
-        poids_agence = df_filtered.groupby("Code agence")["Poids"].sum().reset_index()
-        fig = px.pie(poids_agence, names="Code agence", values="Poids", title="Poids total (kg) par Agence")
-        st.plotly_chart(fig)
-
-    # UM total par Zone
-    if "UM" in df_filtered.columns:
-        zone_um = df_filtered.groupby("Zone")["UM"].sum().reset_index()
-        fig = px.pie(zone_um, names="Zone", values="UM", title="UM total par Zone")
-        st.plotly_chart(fig)
-
-    # UM total par Agence
-    if "UM" in df_filtered.columns and "Code agence" in df_filtered.columns:
-        um_agence = df_filtered.groupby("Code agence")["UM"].sum().reset_index()
-        fig = px.pie(um_agence, names="Code agence", values="UM", title="UM total par Agence")
-        st.plotly_chart(fig)
-
 
 
 
