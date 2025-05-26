@@ -12,8 +12,8 @@ def check_password():
 
     # 🔒 Liste des utilisateurs autorisés (à adapter)
     users = {
-        "admin": hash_password("motdepasse123"),
-        "client": hash_password("client2024")
+        "chaimaa": hash_password("fennyn27072001"),
+        "normatrans": hash_password("normatrans2025")
     }
 
     if "authenticated" not in st.session_state:
