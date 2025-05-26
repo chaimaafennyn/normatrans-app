@@ -5,6 +5,7 @@ import pandas as pd
 import folium
 from streamlit_folium import st_folium
 import plotly.express as px
+from database import get_zones
 
 st.set_page_config(page_title="Normatrans - Zones et Tarifs", layout="wide")
 
@@ -58,14 +59,29 @@ menu = st.sidebar.radio(
 )
 
 
+
 # =======================
 # Partie 1 : Analyse des Zones
 # =======================
 if menu == "Analyse des Zones":
     st.header("🔎 Analyse des zones de livraison")
 
+    df = get_zones() 
+
+    df = df.rename(columns={
+    "commune": "Commune",
+    "code_agence": "Code agence",
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "zone": "Zone",
+    "distance_km": "Distance (km)",
+    "latitude_agence": "Latitude_agence",
+    "longitude_agence": "Longitude_agence"
+    })
+
+
     # Partie fichier par défaut
-    default_file = "zones_final_localites1.csv"
+    # default_file = "zones_final_localites1.csv"
 
     uploaded_file = st.file_uploader("Uploader un autre fichier Zones (optionnel)", type=["csv"])
 
