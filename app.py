@@ -8,7 +8,7 @@ import plotly.express as px
 from database import get_zones
 from database import get_tranches
 
-st.set_page_config(page_title="Normatrans - Zones et Tarifs", layout="wide")
+st.set_page_config(page_title="Normatrans - Zones et Tarifs", layout="wide") 
 
 # === Configuration des identifiants ===
 CREDENTIALS = {
