@@ -12,7 +12,6 @@ if "authenticated" not in st.session_state or not st.session_state["authenticate
 
 st.title("🔎 Analyse des Zones de Livraison")
 
-from database import insert_localite, log_action
 
 if st.session_state.get("role") == "admin":
     with st.expander("➕ Ajouter une nouvelle localité"):
