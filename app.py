@@ -10,7 +10,7 @@ st.title("🚚 Normatrans - Zones et Tarifs de Livraison")
 
 menu = st.sidebar.radio(
     "Navigation",
-    ["Analyse des Zones", "Calcul des Tarifs",  "Analyse des Tranches de Poids"],
+    ["Analyse des Zones", "Calcul des Tarifs",  "Analyse des Tranches de Poids", "Calcul des Tarifs par Tranche"],
     index=0
 )
 
@@ -768,6 +768,111 @@ elif menu == "Analyse des Tranches de Poids":
         fig = px.pie(um_agence, names="Code agence", values="UM", title="UM total par Agence")
         st.plotly_chart(fig)
 
+# =======================
+# Partie 10 : Calcul des Tarifs par Tranche (Méthode Écart Fixe)
+# =======================
+elif menu == "Calcul des Tarifs par Tranche":
+    st.header("💶 Calcul des Tarifs par Tranche (Méthode Écart Fixe)")
+
+    # Répartition (pourcentage) par tranche
+    repartition = {
+        "Tranche de poids": [
+            "0-10kg", "10-20kg", "20-30kg", "30-40kg", "40-50kg", "50-60kg", "60-70kg",
+            "70-80kg", "80-90kg", "90-100kg", "100-200kg", "200-300kg", "300-500kg",
+            "500-700kg", "700-1000kg", "1000-1500kg", "1500-2000kg", "2000-3000kg", ">3000kg"
+        ],
+        "Zone 1": [
+            51.54, 50.69, 51.2, 50.46, 49.68, 49.28, 49.22, 49.52, 49.39, 49.64,
+            49.92, 49.19, 49.26, 49.26, 49.91, 48.65, 47.55, 51.67, 44.64
+        ],
+        "Zone 2": [
+            34.25, 36.46, 36.46, 36.97, 37.61, 38.47, 37.62, 37.73, 37.63, 37.05,
+            36.7, 36.86, 36.25, 35.24, 36.65, 37.41, 32.59, 36.65, 36.9
+        ],
+        "Zone 3": [
+            14.21, 12.85, 12.33, 12.57, 12.71, 12.24, 13.16, 12.74, 12.98, 13.31,
+            13.39, 13.95, 14.49, 14.85, 14.7, 15.04, 15.74, 20.86, 18.45
+        ]
+    }
+
+    tarifs_forfaitaires = {
+        "0-10kg": 8.58, "10-20kg": 8.95, "20-30kg": 9.43, "30-40kg": 9.79,
+        "40-50kg": 10.52, "50-60kg": 10.88, "60-70kg": 11.73, "70-80kg": 12.09,
+        "80-90kg": 12.82, "90-100kg": 13.06, "100-200kg": 11.90, "200-300kg": 11.61,
+        "300-500kg": 11.36, "500-700kg": 9.07, "700-1000kg": 8.95, "1000-1500kg": 7.13,
+        "1500-2000kg": 6.89, "2000-3000kg": 6.05, ">3000kg": 6.36
+    }
+
+    a = st.number_input("🔧 Valeur de l'écart fixe (en €)", min_value=0.1, max_value=5.0, value=0.38, step=0.01)
+
+    df = pd.DataFrame(repartition).set_index("Tranche de poids")
+
+    res_m1 = []
+    for tranche in df.index:
+        r1, r2, r3 = df.loc[tranche, "Zone 1"]/100, df.loc[tranche, "Zone 2"]/100, df.loc[tranche, "Zone 3"]/100
+        forfait = tarifs_forfaitaires[tranche]
+        x = forfait - a * (r2 + 2 * r3)
+        z1, z2, z3 = round(x, 2), round(x + a, 2), round(x + 2 * a, 2)
+        total = round(r1 * z1 + r2 * z2 + r3 * z3, 2)
+        res_m1.append({
+            "Tranche": tranche, "Zone 1 (€)": z1, "Zone 2 (€)": z2,
+            "Zone 3 (€)": z3, "Total pondéré (€)": total
+        })
+
+    df_resultats1 = pd.DataFrame(res_m1)
+    st.dataframe(df_resultats1)
+
+    st.download_button(
+        "📥 Télécharger les tarifs par tranche",
+        data=df_resultats1.to_csv(index=False).encode("utf-8"),
+        file_name="tarifs_par_tranche_methode1.csv",
+        mime="text/csv"
+    )
+
+    # === Graphiques camembert globaux
+    st.subheader("🥧 Graphiques de répartition globaux")
+
+    # Tranches
+    pie_tranches = df_filtered["Tranche"].value_counts().reset_index()
+    pie_tranches.columns = ["Tranche", "Nb_exp"]
+    fig = px.pie(pie_tranches, names="Tranche", values="Nb_exp", title="Répartition des tranches de poids")
+    st.plotly_chart(fig)
+
+    # Expéditions par Zone
+    zone_exp = df_filtered["Zone"].value_counts().reset_index()
+    zone_exp.columns = ["Zone", "Nb_exp"]
+    fig = px.pie(zone_exp, names="Zone", values="Nb_exp", title="Expéditions par Zone")
+    st.plotly_chart(fig)
+
+    # Expéditions par Agence
+    if "Code agence" in df_filtered.columns:
+        agence_exp = df_filtered["Code agence"].value_counts().reset_index()
+        agence_exp.columns = ["Code agence", "Nb_exp"]
+        fig = px.pie(agence_exp, names="Code agence", values="Nb_exp", title="Expéditions par Agence")
+        st.plotly_chart(fig)
+
+    # Poids total par Zone
+    zone_poids = df_filtered.groupby("Zone")["Poids"].sum().reset_index()
+    fig = px.pie(zone_poids, names="Zone", values="Poids", title="Poids total (kg) par Zone")
+    st.plotly_chart(fig)
+
+    # Poids total par Agence
+    if "Code agence" in df_filtered.columns:
+        poids_agence = df_filtered.groupby("Code agence")["Poids"].sum().reset_index()
+        fig = px.pie(poids_agence, names="Code agence", values="Poids", title="Poids total (kg) par Agence")
+        st.plotly_chart(fig)
+
+    # UM total par Zone
+    if "UM" in df_filtered.columns:
+        zone_um = df_filtered.groupby("Zone")["UM"].sum().reset_index()
+        fig = px.pie(zone_um, names="Zone", values="UM", title="UM total par Zone")
+        st.plotly_chart(fig)
+
+    # UM total par Agence
+    if "UM" in df_filtered.columns and "Code agence" in df_filtered.columns:
+        um_agence = df_filtered.groupby("Code agence")["UM"].sum().reset_index()
+        fig = px.pie(um_agence, names="Code agence", values="UM", title="UM total par Agence")
+        st.plotly_chart(fig)
 
 
 
