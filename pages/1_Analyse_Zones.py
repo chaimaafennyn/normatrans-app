@@ -49,7 +49,21 @@ else:
     df = get_zones()
     st.success("✅ Données chargées depuis Supabase")
 
-st.subheader("🛠️ Modifier ou Supprimer une Localité")
+
+
+# Renommage des colonnes si nécessaire
+    df = df.rename(columns={
+        "commune": "Commune",
+        "code_agence": "Code agence",
+        "latitude": "Latitude",
+        "longitude": "Longitude",
+        "zone": "Zone",
+        "distance_km": "Distance (km)",
+        "latitude_agence": "Latitude_agence",
+        "longitude_agence": "Longitude_agence"
+    })
+
+    st.subheader("🛠️ Modifier ou Supprimer une Localité")
 
 # Liste déroulante pour choisir une ligne (on utilise l'ID)
 df_display = df[["id", "Commune", "Zone", "Code agence"]].astype(str)
@@ -93,19 +107,6 @@ if selected_row:
             st.success("🗑️ Localité supprimée.")
             st.cache_data.clear()
 
-
-
-# Renommage des colonnes si nécessaire
-    df = df.rename(columns={
-        "commune": "Commune",
-        "code_agence": "Code agence",
-        "latitude": "Latitude",
-        "longitude": "Longitude",
-        "zone": "Zone",
-        "distance_km": "Distance (km)",
-        "latitude_agence": "Latitude_agence",
-        "longitude_agence": "Longitude_agence"
-    })
 
     df.columns = df.columns.str.strip()
 
