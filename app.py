@@ -803,29 +803,40 @@ elif menu == "Calcul des Tarifs par Tranche":
         "1500-2000kg": 6.89, "2000-3000kg": 6.05, ">3000kg": 6.36
     }
 
-    a = st.number_input("Valeur de l'écart fixe (en €)", min_value=0.1, max_value=5.0, value=0.38, step=0.01)
+    # Entrées utilisateurs
+    st.markdown("### 🔧 Paramètres ajustables")
+    a = st.number_input("Écart fixe (en €)", min_value=0.1, max_value=5.0, value=0.38, step=0.01)
+    coef_zone2 = st.number_input("Coefficient Zone 2", min_value=0.1, max_value=5.0, value=1.5, step=0.1)
+    coef_zone3 = st.number_input("Coefficient Zone 3", min_value=0.1, max_value=5.0, value=3.0, step=0.1)
 
     df = pd.DataFrame(repartition).set_index("Tranche de poids")
 
     res_m1 = []
     for tranche in df.index:
-        r1, r2, r3 = df.loc[tranche, "Zone 1"]/100, df.loc[tranche, "Zone 2"]/100, df.loc[tranche, "Zone 3"]/100
+        r1, r2, r3 = df.loc[tranche, "Zone 1"] / 100, df.loc[tranche, "Zone 2"] / 100, df.loc[tranche, "Zone 3"] / 100
         forfait = tarifs_forfaitaires[tranche]
-        x = forfait - a * (1.5 * r2 + 3 * r3)
-        z1, z2, z3 = round(x, 2), round(x + 1.5 * a, 2), round(x + 3 * a, 2)
+        x = forfait - a * (coef_zone2 * r2 + coef_zone3 * r3)
+        z1 = round(x, 2)
+        z2 = round(x + coef_zone2 * a, 2)
+        z3 = round(x + coef_zone3 * a, 2)
         total = round(r1 * z1 + r2 * z2 + r3 * z3, 2)
+
         res_m1.append({
-            "Tranche": tranche, "Zone 1 (€)": z1, "Zone 2 (€)": z2,
-            "Zone 3 (€)": z3, "Total pondéré (€)": total
+            "Tranche": tranche,
+            "Zone 1 (€)": z1,
+            "Zone 2 (€)": z2,
+            "Zone 3 (€)": z3,
+            "Total pondéré (€)": total
         })
 
     df_resultats1 = pd.DataFrame(res_m1)
+    st.subheader("📋 Résultat du calcul des tarifs")
     st.dataframe(df_resultats1)
 
     st.download_button(
         "📥 Télécharger les tarifs par tranche",
         data=df_resultats1.to_csv(index=False).encode("utf-8"),
-        file_name="tarifs_par_tranche_methode1.csv",
+        file_name="tarifs_par_tranche_methode_ecart_fixe.csv",
         mime="text/csv"
     )
 
