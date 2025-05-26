@@ -769,32 +769,30 @@ elif menu == "Analyse des Tranches de Poids":
         st.plotly_chart(fig)
 
 # =======================
-# Partie 10 : Calcul des Tarifs par Tranche
+# Partie 10 : Calcul des Tarifs par Tranche (Méthode Écart Fixe)
 # =======================
 elif menu == "Calcul des Tarifs par Tranche":
-    st.header("💶 Calcul des Tarifs par Tranche")
+    st.header("💶 Calcul des Tarifs par Tranche (Méthode Écart Fixe)")
 
-    # === Paramètres utilisateurs ===
-    st.subheader("⚙️ Paramètres des méthodes de calcul")
-
-    col1, col2, col3, col4 = st.columns(4)
-    a = col1.number_input("📐 Écart fixe (Méthode 1)", 0.1, 5.0, 0.38, 0.01)
-    d1 = col2.number_input("📏 Distance Zone 1 (km)", 5, 100, 10)
-    d2 = col3.number_input("📏 Distance Zone 2 (km)", 5, 100, 30)
-    d3 = col4.number_input("📏 Distance Zone 3 (km)", 5, 100, 50)
-
-    total_dist = d1 + d2 + d3
-
-    # === Données de base ===
+    # Répartition (pourcentage) par tranche
     repartition = {
         "Tranche de poids": [
             "0-10kg", "10-20kg", "20-30kg", "30-40kg", "40-50kg", "50-60kg", "60-70kg",
             "70-80kg", "80-90kg", "90-100kg", "100-200kg", "200-300kg", "300-500kg",
             "500-700kg", "700-1000kg", "1000-1500kg", "1500-2000kg", "2000-3000kg", ">3000kg"
         ],
-        "Zone 1": [51.54, 50.69, 51.2, 50.46, 49.68, 49.28, 49.22, 49.52, 49.39, 49.64, 49.92, 49.19, 49.26, 49.26, 49.91, 48.65, 47.55, 51.67, 44.64],
-        "Zone 2": [34.25, 36.46, 36.46, 36.97, 37.61, 38.47, 37.62, 37.73, 37.63, 37.05, 36.7, 36.86, 36.25, 35.24, 36.65, 37.41, 32.59, 36.65, 36.9],
-        "Zone 3": [14.21, 12.85, 12.33, 12.57, 12.71, 12.24, 13.16, 12.74, 12.98, 13.31, 13.39, 13.95, 14.49, 14.85, 14.7, 15.04, 15.74, 20.86, 18.45]
+        "Zone 1": [
+            51.54, 50.69, 51.2, 50.46, 49.68, 49.28, 49.22, 49.52, 49.39, 49.64,
+            49.92, 49.19, 49.26, 49.26, 49.91, 48.65, 47.55, 51.67, 44.64
+        ],
+        "Zone 2": [
+            34.25, 36.46, 36.46, 36.97, 37.61, 38.47, 37.62, 37.73, 37.63, 37.05,
+            36.7, 36.86, 36.25, 35.24, 36.65, 37.41, 32.59, 36.65, 36.9
+        ],
+        "Zone 3": [
+            14.21, 12.85, 12.33, 12.57, 12.71, 12.24, 13.16, 12.74, 12.98, 13.31,
+            13.39, 13.95, 14.49, 14.85, 14.7, 15.04, 15.74, 20.86, 18.45
+        ]
     }
 
     tarifs_forfaitaires = {
@@ -805,10 +803,9 @@ elif menu == "Calcul des Tarifs par Tranche":
         "1500-2000kg": 6.89, "2000-3000kg": 6.05, ">3000kg": 6.36
     }
 
-    df = pd.DataFrame(repartition).set_index("Tranche de poids")
+    a = st.number_input("🔧 Valeur de l'écart fixe (en €)", min_value=0.1, max_value=5.0, value=0.38, step=0.01)
 
-    # === Méthode 1 : Écart fixe ===
-    st.subheader("📊 Méthode 1 : Écart fixe")
+    df = pd.DataFrame(repartition).set_index("Tranche de poids")
 
     res_m1 = []
     for tranche in df.index:
@@ -821,61 +818,17 @@ elif menu == "Calcul des Tarifs par Tranche":
             "Tranche": tranche, "Zone 1 (€)": z1, "Zone 2 (€)": z2,
             "Zone 3 (€)": z3, "Total pondéré (€)": total
         })
+
     df_resultats1 = pd.DataFrame(res_m1)
     st.dataframe(df_resultats1)
 
-    # === Méthode 2 : Proportionnelle à la distance ===
-    st.subheader("📊 Méthode 2 : Proportionnelle à la distance")
-
-    coef1, coef2, coef3 = d1 / total_dist, d2 / total_dist, d3 / total_dist
-    res_m2 = []
-    for tranche in df.index:
-        r1, r2, r3 = df.loc[tranche, "Zone 1"]/100, df.loc[tranche, "Zone 2"]/100, df.loc[tranche, "Zone 3"]/100
-        forfait = tarifs_forfaitaires[tranche]
-        denom = r1 * coef1 + r2 * coef2 + r3 * coef3
-        base = forfait / denom
-        z1 = round(base * coef1, 2)
-        z2 = round(base * coef2, 2)
-        z3 = round(base * coef3, 2)
-        total = round(r1 * z1 + r2 * z2 + r3 * z3, 2)
-        res_m2.append({
-            "Tranche": tranche, "Zone 1 (€)": z1, "Zone 2 (€)": z2,
-            "Zone 3 (€)": z3, "Total pondéré (€)": total
-        })
-    df_resultats2 = pd.DataFrame(res_m2)
-    st.dataframe(df_resultats2)
-
-    # === Comparaison des deux méthodes ===
-    st.subheader("📊 Comparaison des deux méthodes")
-
-    df_comparaison = df_resultats1.merge(df_resultats2, on="Tranche", suffixes=[" - Écart fixe", " - Proportionnelle"])
-    st.dataframe(df_comparaison)
-
-    # === Téléchargement ===
-    st.download_button("📥 Télécharger les tarifs Méthode 1",
+    st.download_button(
+        "📥 Télécharger les tarifs par tranche",
         data=df_resultats1.to_csv(index=False).encode("utf-8"),
-        file_name="tarifs_methode1.csv",
-        mime="text/csv")
+        file_name="tarifs_par_tranche_methode1.csv",
+        mime="text/csv"
+    )
 
-    st.download_button("📥 Télécharger les tarifs Méthode 2",
-        data=df_resultats2.to_csv(index=False).encode("utf-8"),
-        file_name="tarifs_methode2.csv",
-        mime="text/csv")
-
-    st.download_button("📥 Télécharger la comparaison",
-        data=df_comparaison.to_csv(index=False).encode("utf-8"),
-        file_name="comparaison_m1_m2.csv",
-        mime="text/csv")
-
-    # === Visualisation des écarts ===
-    st.subheader("📈 Visualisation des totaux pondérés")
-
-    import plotly.express as px
-    df_plot = df_comparaison[["Tranche", "Total pondéré (€) - Écart fixe", "Total pondéré (€) - Proportionnelle"]]
-    df_plot = df_plot.melt(id_vars="Tranche", var_name="Méthode", value_name="Tarif (€)")
-
-    fig = px.bar(df_plot, x="Tranche", y="Tarif (€)", color="Méthode", barmode="group", text_auto=True)
-    st.plotly_chart(fig)
 
 
 
