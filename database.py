@@ -1,6 +1,8 @@
 import streamlit as st
 from sqlalchemy import create_engine
 import pandas as pd
+from sqlalchemy import text
+
 
 db = st.secrets["database"]
 
@@ -24,8 +26,7 @@ def insert_localite(commune, code_agence, zone, lat, lon, distance, lat_ag, lon_
     with engine.begin() as conn:
         conn.execute(
             text("""
-                INSERT INTO zones_localites 
-                (commune, code_agence, zone, latitude, longitude, distance_km, latitude_agence, longitude_agence)
+                INSERT INTO zones_localites (commune, code_agence, zone, latitude, longitude, distance_km, latitude_agence, longitude_agence)
                 VALUES (:commune, :code_agence, :zone, :lat, :lon, :distance, :lat_ag, :lon_ag)
             """),
             {
@@ -36,7 +37,14 @@ def insert_localite(commune, code_agence, zone, lat, lon, distance, lat_ag, lon_
                 "lon": lon,
                 "distance": distance,
                 "lat_ag": lat_ag,
-                "lon_ag": lon_ag
+                "lon_ag": lon_ag,
             }
         )
 
+def log_action(username, action):
+    engine = get_engine()
+    with engine.begin() as conn:
+        conn.execute(
+            text("INSERT INTO logs (username, action) VALUES (:username, :action)"),
+            {"username": username, "action": action}
+        )
