@@ -811,8 +811,8 @@ elif menu == "Calcul des Tarifs par Tranche":
     for tranche in df.index:
         r1, r2, r3 = df.loc[tranche, "Zone 1"]/100, df.loc[tranche, "Zone 2"]/100, df.loc[tranche, "Zone 3"]/100
         forfait = tarifs_forfaitaires[tranche]
-        x = forfait - a * (r2 + 2 * r3)
-        z1, z2, z3 = round(x, 2), round(x + a, 2), round(x + 2 * a, 2)
+        x = forfait - a * (1.5 * r2 + 3 * r3)
+        z1, z2, z3 = round(x, 2), round(x + 1.5 * a, 2), round(x + 3 * a, 2)
         total = round(r1 * z1 + r2 * z2 + r3 * z3, 2)
         res_m1.append({
             "Tranche": tranche, "Zone 1 (€)": z1, "Zone 2 (€)": z2,
