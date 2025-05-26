@@ -43,8 +43,8 @@ def insert_localite(commune, code_agence, zone, lat, lon, distance, lat_ag, lon_
 
 def log_action(username, action):
     engine = get_engine()
-    with engine.begin() as conn:
+    with engine.connect() as conn:
         conn.execute(
-            text("INSERT INTO logs (username, action) VALUES (:username, :action)"),
-            {"username": username, "action": action}
+            f"INSERT INTO logs (username, action, timestamp) VALUES (%s, %s, %s);",
+            (username, action, datetime.now())
         )
