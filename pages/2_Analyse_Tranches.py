@@ -29,12 +29,12 @@ else:
         df["UM"] = df["UM"].astype(str).str.replace(",", ".").astype(float)
 
     # Tranches de poids
-    bins = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200, 300, 500, 700, 1000, 1500, 2000, 3000, float('inf')]
+    bins = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200, 300, 500, 700, 1000, 1500, 2000, 3000]
     labels = [
         "0-10kg", "10-20kg", "20-30kg", "30-40kg", "40-50kg",
         "50-60kg", "60-70kg", "70-80kg", "80-90kg", "90-100kg",
         "100-200kg", "200-300kg", "300-500kg", "500-700kg",
-        "700-1000kg", "1000-1500kg", "1500-2000kg", "2000-3000kg", ">3000kg"
+        "700-1000kg", "1000-1500kg", "1500-2000kg", "2000-3000kg"
     ]
     df["Tranche"] = pd.cut(df["Poids"], bins=bins, labels=labels, right=False)
     df = df[df["Tranche"].notna()]
