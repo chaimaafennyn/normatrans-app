@@ -69,21 +69,31 @@ if menu == "Analyse des Zones":
 
     uploaded_file = st.file_uploader("Uploader un autre fichier Zones (optionnel)", type=["csv"])
 
-    df = get_zones()  # 👈 récupère les données depuis Supabase
-
+    # Connexion base de données
+    db = st.secrets["database"]
+    engine = create_engine(
+        f"postgresql://{db.user}:{db.password}@{db.host}:{db.port}/{db.dbname}"
+    )
+    
+    @st.cache_data
+    def charger_donnees():
+        return pd.read_sql("SELECT * FROM zones_localites", engine)
+    
+    df = charger_donnees()
+    
     df = df.rename(columns={
-    "commune": "Commune",
-    "code_agence": "Code agence",
-    "latitude": "Latitude",
-    "longitude": "Longitude",
-    "zone": "Zone",
-    "distance_km": "Distance (km)",
-    "latitude_agence": "Latitude_agence",
-    "longitude_agence": "Longitude_agence"
+        "commune": "Commune",
+        "code_agence": "Code agence",
+        "latitude": "Latitude",
+        "longitude": "Longitude",
+        "zone": "Zone",
+        "distance_km": "Distance (km)",
+        "latitude_agence": "Latitude_agence",
+        "longitude_agence": "Longitude_agence"
     })
-
-
-    if uploaded_file is not None:
+    
+    
+        if uploaded_file is not None:
         df = pd.read_csv(uploaded_file, sep=";", encoding="utf-8")
         st.success("✅ Nouveau fichier zones chargé !")
     else:
@@ -92,7 +102,7 @@ if menu == "Analyse des Zones":
 
     df.columns = df.columns.str.strip()
 
-    # required_cols = ["Commune", "Code agence", "Latitude", "Longitude", "Zone", "Distance (km)", "Latitude_agence", "Longitude_agence"]
+    required_cols = ["Commune", "Code agence", "Latitude", "Longitude", "Zone", "Distance (km)", "Latitude_agence", "Longitude_agence"]
     missing_cols = [col for col in required_cols if col not in df.columns]
     if missing_cols:
         st.error(f"❌ Colonnes manquantes : {missing_cols}")
