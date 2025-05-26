@@ -6,6 +6,7 @@ import folium
 from streamlit_folium import st_folium
 import plotly.express as px
 from database import get_zones
+from database import get_tranches
 
 st.set_page_config(page_title="Normatrans - Zones et Tarifs", layout="wide")
 
@@ -155,22 +156,15 @@ if menu == "Analyse des Zones":
 elif menu == "Analyse des Tranches de Poids":
     st.header("📦 Analyse des Tranches de Poids par Zone")
 
-    uploaded_file = st.file_uploader("📄 Uploader le fichier des livraisons (livraison_par_tournee.csv)", type=["csv"])
-    if uploaded_file:
-        df = pd.read_csv(uploaded_file, sep=";", encoding="latin1")
-        st.success("✅ Fichier chargé")
-    else:
-        default_file = "livraison_par_tournee.csv"
-        try:
-            df = pd.read_csv(default_file, sep=";", encoding="latin1")
-            st.info(f"📂 Fichier par défaut utilisé : {default_file}")
-        except:
-            st.error("❌ Fichier introuvable")
-            st.stop()
+    from database import get_tranches  # ✅ Import ici
 
+    df = get_tranches()
     df.columns = df.columns.str.strip()
+    st.success("✅ Données chargées depuis Supabase")
+
+    # Nettoyage
     df["Poids"] = df["Poids"].astype(str).str.replace(",", ".").astype(float)
-    df["Zone"] = df["Zone"].str.strip()
+    df["Zone"] = df["Zone"].astype(str).str.strip()
     if "UM" in df.columns:
         df["UM"] = df["UM"].astype(str).str.replace(",", ".").astype(float)
 
@@ -212,7 +206,6 @@ elif menu == "Analyse des Tranches de Poids":
     result["Pourcentage"] = (result["Nb_exp"] / result["Total"] * 100).round(2)
     tableau = result.pivot(index="Zone", columns="Tranche", values="Pourcentage").fillna(0)
 
-    # Ajouter une ligne globale (toutes zones confondues)
     total_global = df_filtered.groupby("Tranche").size()
     total_global_percent = (total_global / total_global.sum() * 100).round(2)
     tableau.loc["Total"] = total_global_percent
@@ -224,22 +217,15 @@ elif menu == "Analyse des Tranches de Poids":
     totaux_tranche = pivot_inverse.groupby("Tranche")["Nb_exp"].sum().reset_index(name="Total")
     result_inv = pd.merge(pivot_inverse, totaux_tranche, on="Tranche")
     result_inv["Pourcentage"] = (result_inv["Nb_exp"] / result_inv["Total"] * 100).round(2)
-    tableau_inverse = result_inv.pivot(index="Tranche", columns="Zone", values="Pourcentage").fillna(0)
-    # Transposer pour afficher les tranches en colonnes et zones en lignes
-    tableau_inverse = tableau_inverse.T
+    tableau_inverse = result_inv.pivot(index="Tranche", columns="Zone", values="Pourcentage").fillna(0).T
     st.dataframe(tableau_inverse)
 
- 
     st.download_button(
         "📅 Télécharger les pourcentages par tranche et zone",
         data=tableau.to_csv().encode("utf-8"),
         file_name="repartition_tranches_par_zone.csv",
         mime="text/csv"
     )
-
-    
-
-    
 
     # === Détail global
     st.subheader("📋 Détail global par agence, zone et commune")
@@ -259,7 +245,6 @@ elif menu == "Analyse des Tranches de Poids":
 
     st.dataframe(detail)
 
-    # === Top 20 communes
     if "Commune" in detail.columns:
         st.subheader("🏆 Top 20 communes avec le plus d'expéditions")
         top_communes = detail.groupby("Commune")["Nb_expéditions"].sum().nlargest(20).reset_index()
@@ -272,7 +257,7 @@ elif menu == "Analyse des Tranches de Poids":
         mime="text/csv"
     )
 
-    # === Statistiques globales Zone / Agence
+    # === Statistiques globales
     if "UM" in df_filtered.columns:
         st.subheader("⚖️ Statistiques Poids / UM / Exp par Zone")
         stats_zone = df_filtered.groupby("Zone").agg(
@@ -295,50 +280,44 @@ elif menu == "Analyse des Tranches de Poids":
             ).round(2)
             st.dataframe(stats_agence)
 
-    # === Graphiques camembert globaux
+    # === Graphiques
     st.subheader("🥧 Graphiques de répartition globaux")
 
-    # Tranches
     pie_tranches = df_filtered["Tranche"].value_counts().reset_index()
     pie_tranches.columns = ["Tranche", "Nb_exp"]
     fig = px.pie(pie_tranches, names="Tranche", values="Nb_exp", title="Répartition des tranches de poids")
     st.plotly_chart(fig)
 
-    # Expéditions par Zone
     zone_exp = df_filtered["Zone"].value_counts().reset_index()
     zone_exp.columns = ["Zone", "Nb_exp"]
     fig = px.pie(zone_exp, names="Zone", values="Nb_exp", title="Expéditions par Zone")
     st.plotly_chart(fig)
 
-    # Expéditions par Agence
     if "Code agence" in df_filtered.columns:
         agence_exp = df_filtered["Code agence"].value_counts().reset_index()
         agence_exp.columns = ["Code agence", "Nb_exp"]
         fig = px.pie(agence_exp, names="Code agence", values="Nb_exp", title="Expéditions par Agence")
         st.plotly_chart(fig)
 
-    # Poids total par Zone
     zone_poids = df_filtered.groupby("Zone")["Poids"].sum().reset_index()
     fig = px.pie(zone_poids, names="Zone", values="Poids", title="Poids total (kg) par Zone")
     st.plotly_chart(fig)
 
-    # Poids total par Agence
     if "Code agence" in df_filtered.columns:
         poids_agence = df_filtered.groupby("Code agence")["Poids"].sum().reset_index()
         fig = px.pie(poids_agence, names="Code agence", values="Poids", title="Poids total (kg) par Agence")
         st.plotly_chart(fig)
 
-    # UM total par Zone
     if "UM" in df_filtered.columns:
         zone_um = df_filtered.groupby("Zone")["UM"].sum().reset_index()
         fig = px.pie(zone_um, names="Zone", values="UM", title="UM total par Zone")
         st.plotly_chart(fig)
 
-    # UM total par Agence
-    if "UM" in df_filtered.columns and "Code agence" in df_filtered.columns:
-        um_agence = df_filtered.groupby("Code agence")["UM"].sum().reset_index()
-        fig = px.pie(um_agence, names="Code agence", values="UM", title="UM total par Agence")
-        st.plotly_chart(fig)
+        if "Code agence" in df_filtered.columns:
+            um_agence = df_filtered.groupby("Code agence")["UM"].sum().reset_index()
+            fig = px.pie(um_agence, names="Code agence", values="UM", title="UM total par Agence")
+            st.plotly_chart(fig)
+
 
 # =======================
 # Partie 3 : Calcul des Tarifs par Tranche (Méthode Écart Fixe)
