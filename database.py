@@ -16,3 +16,27 @@ def get_tranches():
     engine = get_engine()
     query = "SELECT * FROM tranche_zone"
     return pd.read_sql(query, engine)
+
+from sqlalchemy import text
+
+def insert_localite(commune, code_agence, zone, lat, lon, distance, lat_ag, lon_ag):
+    engine = get_engine()
+    with engine.begin() as conn:
+        conn.execute(
+            text("""
+                INSERT INTO zones_localites 
+                (commune, code_agence, zone, latitude, longitude, distance_km, latitude_agence, longitude_agence)
+                VALUES (:commune, :code_agence, :zone, :lat, :lon, :distance, :lat_ag, :lon_ag)
+            """),
+            {
+                "commune": commune,
+                "code_agence": code_agence,
+                "zone": zone,
+                "lat": lat,
+                "lon": lon,
+                "distance": distance,
+                "lat_ag": lat_ag,
+                "lon_ag": lon_ag
+            }
+        )
+
