@@ -90,7 +90,7 @@ if menu == "Analyse des Zones":
         st.success("✅ Nouveau fichier zones chargé !")
     else:
         # df = pd.read_csv(default_file, sep=";", encoding="utf-8")
-        st.info(f"📂 Fichier par défaut chargé : {default_file}")
+        # st.info(f"📂 Fichier par défaut chargé : {default_file}")
 
     df.columns = df.columns.str.strip()
 
