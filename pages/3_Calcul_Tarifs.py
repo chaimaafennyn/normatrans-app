@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-st.title("💶 Calcul des Tarifs par Tranche (Méthode Écart Fixe)")
+st.title("💶 Calcul des Tarifs par Tranche")
 
 # === Répartition (en %) des zones par tranche
 repartition = {
@@ -34,7 +34,7 @@ tarifs_forfaitaires = {
 }
 
 # === Paramètres ajustables
-st.markdown("### 🔧 Paramètres du modèle de calcul")
+st.markdown("### Paramètres du modèle de calcul")
 a = st.number_input("Écart fixe (en €)", min_value=0.1, max_value=5.0, value=0.38, step=0.01)
 coef_zone2 = st.number_input("Coefficient Zone 2", min_value=0.1, max_value=5.0, value=1.5, step=0.1)
 coef_zone3 = st.number_input("Coefficient Zone 3", min_value=0.1, max_value=5.0, value=3.0, step=0.1)
