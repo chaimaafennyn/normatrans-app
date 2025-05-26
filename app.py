@@ -15,13 +15,6 @@ from auth import logout
 
 st.set_page_config(page_title="Normatrans - Zones et Tarifs", layout="wide") 
 
-# === Configuration des identifiants ===
-CREDENTIALS = {
-    "chaimaa": "fennyn2001",
-    "normatrans": "normatrans2025"
-}
-
-# === Fonction de vérification ===
 
 
 # === Appel de sécurité au début
