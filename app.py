@@ -166,7 +166,6 @@ elif menu == "Analyse des Tranches de Poids":
         df = pd.read_csv(uploaded_file, sep=";", encoding="latin1")
         st.success("✅ Fichier CSV chargé")
     else:
-        df.columns = df.columns.str.strip()
         df = get_tranches()
         st.info("📂 Données chargées depuis Supabase par défaut")
         st.success("✅ Données chargées depuis Supabase")
