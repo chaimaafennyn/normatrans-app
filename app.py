@@ -67,10 +67,15 @@ menu = st.sidebar.radio(
 if menu == "Analyse des Zones":
     st.header("🔎 Analyse des zones de livraison")
 
-    # Chargement des données depuis Supabase
-    from database import get_zones
-    df = get_zones()
-    st.success("✅ Données chargées depuis Supabase")
+    uploaded_file = st.file_uploader("📄 Uploader un fichier CSV (optionnel)", type=["csv"])
+    
+    if uploaded_file:
+        df = pd.read_csv(uploaded_file, sep=";", encoding="latin1")
+        st.success("✅ Fichier CSV chargé")
+    else:
+        df = get_zones()
+        st.info("📂 Données chargées depuis Supabase par défaut")
+        st.success("✅ Données chargées depuis Supabase")
 
 
 
@@ -159,7 +164,6 @@ if menu == "Analyse des Zones":
 elif menu == "Analyse des Tranches de Poids":
     st.header("📦 Analyse des Tranches de Poids par Zone")
 
-   
     uploaded_file = st.file_uploader("📄 Uploader un fichier CSV (optionnel)", type=["csv"])
     
     if uploaded_file:
