@@ -1,8 +1,42 @@
 import streamlit as st
+import hashlib
+
 import pandas as pd
 import folium
 from streamlit_folium import st_folium
 import plotly.express as px
+
+def check_password():
+    def hash_password(password):
+        return hashlib.sha256(password.encode()).hexdigest()
+
+    # 🔒 Liste des utilisateurs autorisés (à adapter)
+    users = {
+        "admin": hash_password("motdepasse123"),
+        "client": hash_password("client2024")
+    }
+
+    if "authenticated" not in st.session_state:
+        st.session_state["authenticated"] = False
+        st.session_state["username"] = ""
+
+    if not st.session_state["authenticated"]:
+        st.title("🔐 Connexion requise")
+        username = st.text_input("Nom d'utilisateur")
+        password = st.text_input("Mot de passe", type="password")
+
+        if st.button("Se connecter"):
+            if username in users and hash_password(password) == users[username]:
+                st.session_state["authenticated"] = True
+                st.session_state["username"] = username
+                st.success("✅ Connexion réussie")
+                st.experimental_rerun()
+            else:
+                st.error("❌ Identifiants incorrects")
+        st.stop()
+     
+check_password()
+
  
 st.set_page_config(page_title="Normatrans - Zones et Tarifs", layout="wide")
 
