@@ -1,30 +1,29 @@
-import pandas as pd
-from sqlalchemy import create_engine, text
 import streamlit as st
+from sqlalchemy import create_engine
+import pandas as pd
 
-# Connexion Supabase
 def get_engine():
     db = st.secrets["database"]
-    return create_engine(
-        f"postgresql://{db.user}:{db.password}@{db.host}:{db.port}/{db.dbname}"
-    )
+    url = f"postgresql://{db.user}:{db.password}@{db.host}:{db.port}/{db.dbname}"
+    return create_engine(url)
 
-# Chargement des données zones_localites
 def get_zones():
     engine = get_engine()
     return pd.read_sql("SELECT * FROM zones_localites", engine)
 
-# Chargement des données tranche_zone
 def get_tranches():
     engine = get_engine()
     return pd.read_sql("SELECT * FROM tranche_zone", engine)
 
-# Insérer une action dans la table logs
 def log_action(username, action):
     engine = get_engine()
+    query = f"""
+        INSERT INTO logs (username, action)
+        VALUES (%s, %s);
+    """
     with engine.connect() as conn:
-        stmt = text("INSERT INTO logs (username, action) VALUES (:username, :action)")
-        conn.execute(stmt, {"username": username, "action": action})
+        conn.execute(query, (username, action))
+
 
 def insert_localite(commune, code_agence, zone, lat, lon, distance, lat_ag, lon_ag):
     engine = get_engine()
