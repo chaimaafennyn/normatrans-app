@@ -12,3 +12,8 @@ def get_zones():
     engine = get_engine()
     query = "SELECT * FROM zones_localites"
     return pd.read_sql(query, engine)
+
+def get_tranches():
+    engine = get_engine()
+    query = "SELECT * FROM tranche_zone"
+    return pd.read_sql(query, engine)
