@@ -14,7 +14,7 @@ if uploaded_file:
     df = pd.read_csv(uploaded_file, sep=";", encoding="latin1")
     st.success("✅ Fichier CSV chargé")
 else:
-    df = get_tranche_zone()
+    df = get_tranches()
     st.success("✅ Données chargées depuis Supabase")
 
 
