@@ -1,25 +1,30 @@
-import streamlit as st
-from sqlalchemy import create_engine
 import pandas as pd
-from sqlalchemy import text
+from sqlalchemy import create_engine, text
+import streamlit as st
 
-
-db = st.secrets["database"]
-
+# Connexion Supabase
 def get_engine():
-    url = f"postgresql://{db.user}:{db.password}@{db.host}:{db.port}/{db.dbname}"
-    return create_engine(url)
+    db = st.secrets["database"]
+    return create_engine(
+        f"postgresql://{db.user}:{db.password}@{db.host}:{db.port}/{db.dbname}"
+    )
 
+# Chargement des données zones_localites
 def get_zones():
     engine = get_engine()
     return pd.read_sql("SELECT * FROM zones_localites", engine)
 
+# Chargement des données tranche_zone
 def get_tranches():
     engine = get_engine()
-    query = "SELECT * FROM tranche_zone"
-    return pd.read_sql(query, engine)
+    return pd.read_sql("SELECT * FROM tranche_zone", engine)
 
-from sqlalchemy import text
+# Insérer une action dans la table logs
+def log_action(username, action):
+    engine = get_engine()
+    with engine.connect() as conn:
+        stmt = text("INSERT INTO logs (username, action) VALUES (:username, :action)")
+        conn.execute(stmt, {"username": username, "action": action})
 
 def insert_localite(commune, code_agence, zone, lat, lon, distance, lat_ag, lon_ag):
     engine = get_engine()
@@ -39,12 +44,4 @@ def insert_localite(commune, code_agence, zone, lat, lon, distance, lat_ag, lon_
                 "lat_ag": lat_ag,
                 "lon_ag": lon_ag,
             }
-        )
-
-def log_action(username, action):
-    engine = get_engine()
-    with engine.connect() as conn:
-        conn.execute(
-            f"INSERT INTO logs (username, action, timestamp) VALUES (%s, %s, %s);",
-            (username, action, datetime.now())
         )
