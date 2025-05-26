@@ -21,17 +21,6 @@ CREDENTIALS = {
 
 # === Fonction de vérification ===
 
-if not login():
-    st.stop()
-
-
-
-# === Déconnexion
-def logout():
-    if st.sidebar.button("🔒 Se déconnecter"):
-        st.session_state["authenticated"] = False
-        st.session_state["username"] = ""
-        st.rerun()
 
 # === Appel de sécurité au début
 check_password()
