@@ -70,6 +70,9 @@ if menu == "Analyse des Zones":
     # Chargement des données depuis Supabase
     from database import get_zones
     df = get_zones()
+    st.success("✅ Données chargées depuis Supabase")
+
+
 
     # Renommage des colonnes si nécessaire
     df = df.rename(columns={
@@ -156,11 +159,18 @@ if menu == "Analyse des Zones":
 elif menu == "Analyse des Tranches de Poids":
     st.header("📦 Analyse des Tranches de Poids par Zone")
 
-    from database import get_tranches  # ✅ Import ici
+   
+    uploaded_file = st.file_uploader("📄 Uploader un fichier CSV (optionnel)", type=["csv"])
+    
+    if uploaded_file:
+        df = pd.read_csv(uploaded_file, sep=";", encoding="latin1")
+        st.success("✅ Fichier CSV chargé")
+    else:
+        df.columns = df.columns.str.strip()
+        df = get_tranches()
+        st.info("📂 Données chargées depuis Supabase par défaut")
 
-    df = get_tranches()
-    df.columns = df.columns.str.strip()
-    st.success("✅ Données chargées depuis Supabase")
+     st.success("✅ Données chargées depuis Supabase")
 
     # Nettoyage
     df["Poids"] = df["Poids"].astype(str).str.replace(",", ".").astype(float)
