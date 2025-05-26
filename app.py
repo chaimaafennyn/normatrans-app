@@ -12,7 +12,3 @@ logout()
 st.title("🚚 Normatrans - Zones et Tarifs")
 st.info("👈 Utilisez le menu à gauche pour naviguer entre les pages.")
 
-menu = st.sidebar.radio(
-    "Navigation",
-    ["Analyse des Zones", "Analyse des Tranches de Poids", "Calcul des Tarifs par Tranche"]
-)
