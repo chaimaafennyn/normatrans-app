@@ -12,8 +12,8 @@ def check_password():
 
     # 🔒 Liste des utilisateurs autorisés (à adapter)
     users = {
-        "admin": hash_password("normatrans"),
-        "client": hash_password("normatrans2025")
+        "admin": hash_password("motdepasse123"),
+        "client": hash_password("client2024")
     }
 
     if "authenticated" not in st.session_state:
@@ -22,8 +22,8 @@ def check_password():
 
     if not st.session_state["authenticated"]:
         st.title("🔐 Connexion requise")
-        username = st.text_input("Nom d'utilisateur")
-        password = st.text_input("Mot de passe", type="password")
+        username = st.text_input("Normatrans")
+        password = st.text_input("Normatrans2025", type="password")
 
         if st.button("Se connecter"):
             if username in users and hash_password(password) == users[username]:
@@ -34,6 +34,8 @@ def check_password():
             else:
                 st.error("❌ Identifiants incorrects")
         st.stop()
+
+
      
 check_password()
 
