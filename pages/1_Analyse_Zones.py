@@ -12,32 +12,59 @@ if "authenticated" not in st.session_state or not st.session_state["authenticate
 
 st.title("🔎 Analyse des Zones de Livraison")
 
-with st.expander("➕ Ajouter une nouvelle localité"):
-    with st.form("ajout_localite"):
-        commune = st.text_input("Commune")
-        code_agence = st.text_input("Code Agence")
-        latitude = st.number_input("Latitude", format="%.6f")
-        longitude = st.number_input("Longitude", format="%.6f")
-        zone = st.selectbox("Zone", ["Zone 1", "Zone 2", "Zone 3"])
-        distance = st.number_input("Distance (km)", format="%.2f")
-        latitude_ag = st.number_input("Latitude Agence", format="%.6f")
-        longitude_ag = st.number_input("Longitude Agence", format="%.6f")
-        submitted = st.form_submit_button("Ajouter")
+from database import insert_zone, update_zone, delete_zone
 
-        if submitted:
-            from database import insert_localite
-            insert_localite({
-                "commune": commune,
-                "code_agence": code_agence,
-                "latitude": latitude,
-                "longitude": longitude,
-                "zone": zone,
-                "distance_km": distance,
-                "latitude_agence": latitude_ag,
-                "longitude_agence": longitude_ag
-            })
-            st.success(f"✅ Localité '{commune}' ajoutée.")
-            st.cache_data.clear()
+st.markdown("---")
+st.subheader("➕ Ajouter une nouvelle localité")
+
+with st.form("add_form"):
+    new_commune = st.text_input("Commune")
+    new_zone = st.selectbox("Zone", ["Zone 1", "Zone 2", "Zone 3"])
+    new_agence = st.selectbox("Code agence", sorted(df["Code agence"].unique()))
+    new_lat = st.number_input("Latitude", format="%.6f")
+    new_lon = st.number_input("Longitude", format="%.6f")
+    new_lat_agence = st.number_input("Latitude agence", format="%.6f")
+    new_lon_agence = st.number_input("Longitude agence", format="%.6f")
+    new_dist = st.number_input("Distance (km)", format="%.2f")
+
+    submitted = st.form_submit_button("Ajouter")
+    if submitted:
+        insert_zone(new_commune, new_zone, new_agence, new_lat, new_lon, new_lat_agence, new_lon_agence, new_dist)
+        st.success("✅ Localité ajoutée avec succès.")
+        st.experimental_rerun()
+
+# === Modifier ou Supprimer ===
+st.markdown("---")
+st.subheader("🛠️ Modifier ou Supprimer une Localité")
+
+df_display = df[["id", "Commune", "Zone", "Code agence"]].astype(str)
+df_display["label"] = df_display["Commune"] + " | " + df_display["Zone"] + " | " + df_display["Code agence"]
+
+selected = st.selectbox("📍 Sélectionner une localité", df_display["label"])
+row_id = int(df_display[df_display["label"] == selected]["id"].values[0])
+row_data = df[df["id"] == row_id].iloc[0]
+
+with st.expander("✏️ Modifier cette localité"):
+    col1, col2 = st.columns(2)
+    commune_edit = col1.text_input("Commune", value=row_data["Commune"])
+    zone_edit = col2.selectbox("Zone", ["Zone 1", "Zone 2", "Zone 3"], index=["Zone 1", "Zone 2", "Zone 3"].index(row_data["Zone"]))
+    code_agence_edit = col1.text_input("Code agence", value=row_data["Code agence"])
+    lat_edit = col2.number_input("Latitude", value=float(row_data["Latitude"]), format="%.6f")
+    lon_edit = col1.number_input("Longitude", value=float(row_data["Longitude"]), format="%.6f")
+    lat_agence_edit = col2.number_input("Latitude agence", value=float(row_data["Latitude_agence"]), format="%.6f")
+    lon_agence_edit = col1.number_input("Longitude agence", value=float(row_data["Longitude_agence"]), format="%.6f")
+    dist_edit = col2.number_input("Distance (km)", value=float(row_data["Distance (km)"]), format="%.2f")
+
+    if st.button("✅ Enregistrer les modifications"):
+        update_zone(row_id, commune_edit, zone_edit, code_agence_edit, lat_edit, lon_edit, lat_agence_edit, lon_agence_edit, dist_edit)
+        st.success("✅ Localité mise à jour.")
+        st.experimental_rerun()
+
+    if st.button("🗑️ Supprimer cette localité"):
+        delete_zone(row_id)
+        st.warning("⚠️ Localité supprimée.")
+        st.experimental_rerun()
+
 
 
 uploaded_file = st.file_uploader("📄 Uploader un fichier CSV (optionnel)", type=["csv"])
@@ -63,49 +90,7 @@ else:
         "longitude_agence": "Longitude_agence"
     })
 
-    st.subheader("🛠️ Modifier ou Supprimer une Localité")
 
-# Liste déroulante pour choisir une ligne (on utilise l'ID)
-df_display = df[["id", "Commune", "Zone", "Code agence"]].astype(str)
-df_display["label"] = df_display["Commune"] + " | " + df_display["Zone"] + " | " + df_display["Code agence"]
-selected_row = st.selectbox("📍 Choisir une localité à modifier ou supprimer", df_display["label"])
-
-if selected_row:
-    # Obtenir la ligne sélectionnée
-    selected_id = int(df_display[df_display["label"] == selected_row]["id"].values[0])
-    selected_data = df[df["id"] == selected_id].iloc[0]
-
-    with st.form("modifier_supprimer"):
-        commune = st.text_input("Commune", value=selected_data["Commune"])
-        code_agence = st.text_input("Code Agence", value=selected_data["Code agence"])
-        latitude = st.number_input("Latitude", value=selected_data["Latitude"], format="%.6f")
-        longitude = st.number_input("Longitude", value=selected_data["Longitude"], format="%.6f")
-        zone = st.selectbox("Zone", ["Zone 1", "Zone 2", "Zone 3"], index=["Zone 1", "Zone 2", "Zone 3"].index(selected_data["Zone"]))
-        distance = st.number_input("Distance (km)", value=selected_data["Distance (km)"], format="%.2f")
-        latitude_ag = st.number_input("Latitude Agence", value=selected_data["Latitude_agence"], format="%.6f")
-        longitude_ag = st.number_input("Longitude Agence", value=selected_data["Longitude_agence"], format="%.6f")
-
-        col1, col2 = st.columns(2)
-        if col1.form_submit_button("💾 Modifier"):
-            from database import update_localite
-            update_localite(selected_id, {
-                "commune": commune,
-                "code_agence": code_agence,
-                "latitude": latitude,
-                "longitude": longitude,
-                "zone": zone,
-                "distance_km": distance,
-                "latitude_agence": latitude_ag,
-                "longitude_agence": longitude_ag
-            })
-            st.success("✅ Localité mise à jour.")
-            st.cache_data.clear()
-
-        if col2.form_submit_button("🗑️ Supprimer"):
-            from database import delete_localite
-            delete_localite(selected_id)
-            st.success("🗑️ Localité supprimée.")
-            st.cache_data.clear()
 
 
     df.columns = df.columns.str.strip()
