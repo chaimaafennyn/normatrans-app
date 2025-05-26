@@ -19,6 +19,9 @@ if uploaded_file:
     df = pd.read_csv(uploaded_file, sep=";", encoding="latin1")
     st.success("✅ Fichier CSV chargé")
 else:
+    # Rafraîchissement manuel avec un bouton
+    if st.button("🔄 Rafraîchir la carte et les données"):
+    st.cache_data.clear()  # Force la fonction @st.cache_data à se relancer
     df = get_zones()
     st.success("✅ Données chargées depuis Supabase")
 
