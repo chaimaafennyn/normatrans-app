@@ -32,3 +32,30 @@ def insert_localite(data: dict):
         """)
         conn.execute(insert_query, data)
         conn.commit()
+
+def update_localite(id, data: dict):
+    engine = get_engine()
+    with engine.connect() as conn:
+        update_query = text("""
+            UPDATE zones_localites SET
+                commune = :commune,
+                code_agence = :code_agence,
+                latitude = :latitude,
+                longitude = :longitude,
+                zone = :zone,
+                distance_km = :distance_km,
+                latitude_agence = :latitude_agence,
+                longitude_agence = :longitude_agence
+            WHERE id = :id
+        """)
+        data["id"] = id
+        conn.execute(update_query, data)
+        conn.commit()
+
+def delete_localite(id):
+    engine = get_engine()
+    with engine.connect() as conn:
+        delete_query = text("DELETE FROM zones_localites WHERE id = :id")
+        conn.execute(delete_query, {"id": id})
+        conn.commit()
+
