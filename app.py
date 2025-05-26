@@ -61,36 +61,26 @@ menu = st.sidebar.radio(
 
 
 # =======================
-# Partie 1 : Analyse des Zones
+# Partie 1 : Analyse des Zones (via Supabase)
 # =======================
 if menu == "Analyse des Zones":
     st.header("🔎 Analyse des zones de livraison")
 
-    df = get_zones() 
+    # Chargement des données depuis Supabase
+    from database import get_zones
+    df = get_zones()
 
+    # Renommage des colonnes si nécessaire
     df = df.rename(columns={
-    "commune": "Commune",
-    "code_agence": "Code agence",
-    "latitude": "Latitude",
-    "longitude": "Longitude",
-    "zone": "Zone",
-    "distance_km": "Distance (km)",
-    "latitude_agence": "Latitude_agence",
-    "longitude_agence": "Longitude_agence"
+        "commune": "Commune",
+        "code_agence": "Code agence",
+        "latitude": "Latitude",
+        "longitude": "Longitude",
+        "zone": "Zone",
+        "distance_km": "Distance (km)",
+        "latitude_agence": "Latitude_agence",
+        "longitude_agence": "Longitude_agence"
     })
-
-
-    # Partie fichier par défaut
-    # default_file = "zones_final_localites1.csv"
-
-    uploaded_file = st.file_uploader("Uploader un autre fichier Zones (optionnel)", type=["csv"])
-
-    if uploaded_file is not None:
-        df = pd.read_csv(uploaded_file, sep=";", encoding="utf-8")
-        st.success("✅ Nouveau fichier zones chargé !")
-    else:
-        # df = pd.read_csv(default_file, sep=";", encoding="utf-8")
-        # st.info(f"📂 Fichier par défaut chargé : {default_file}")
 
     df.columns = df.columns.str.strip()
 
