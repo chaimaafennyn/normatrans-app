@@ -8,7 +8,9 @@ from streamlit_folium import st_folium
 import plotly.express as px
 from database import get_zones
 from database import get_tranches
-from auth import login
+from auth import check_password
+from auth import logout
+
 
 
 st.set_page_config(page_title="Normatrans - Zones et Tarifs", layout="wide") 
