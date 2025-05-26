@@ -10,7 +10,7 @@ st.set_page_config(page_title="Normatrans - Zones et Tarifs", layout="wide")
 
 # === Configuration des identifiants ===
 CREDENTIALS = {
-    "admin": "azerty123",
+    "chaimaa": "fennyn2001",
     "client": "test2025"
 }
 
