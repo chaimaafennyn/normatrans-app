@@ -4,8 +4,6 @@ import folium
 from streamlit_folium import st_folium
 import plotly.express as px
 
-# ✅ Cette ligne DOIT venir immédiatement après les imports
-st.set_page_config(page_title="Normatrans - Zones et Tarifs", layout="wide")
 
 # === Authentification (à mettre après set_page_config) ===
 CREDENTIALS = {
