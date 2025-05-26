@@ -1,12 +1,15 @@
 import streamlit as st
 import hashlib
 
+
 import pandas as pd
 import folium
 from streamlit_folium import st_folium
 import plotly.express as px
 from database import get_zones
 from database import get_tranches
+from auth import login
+
 
 st.set_page_config(page_title="Normatrans - Zones et Tarifs", layout="wide") 
 
