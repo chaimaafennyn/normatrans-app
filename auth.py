@@ -1,5 +1,10 @@
 import streamlit as st
 
+# === Configuration des identifiants ===
+CREDENTIALS = {
+    "chaimaa": "fennyn2001",
+    "normatrans": "normatrans2025"
+}
 
 def check_password():
     if "authenticated" not in st.session_state:
