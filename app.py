@@ -6,43 +6,47 @@ import folium
 from streamlit_folium import st_folium
 import plotly.express as px
 
+import streamlit as st
+
+# === Configuration des identifiants ===
+CREDENTIALS = {
+    "admin": "azerty123",
+    "client": "test2025"
+}
+
+# === Fonction de vérification ===
 def check_password():
-    def hash_password(password):
-        return hashlib.sha256(password.encode()).hexdigest()
-
-    # 🔒 Liste des utilisateurs autorisés (à adapter)
-    users = {
-        "chaimaa": hash_password("fennyn27072001"),
-        "normatrans": hash_password("normatrans2025")
-    }
-
     if "authenticated" not in st.session_state:
         st.session_state["authenticated"] = False
-        st.session_state["username"] = ""
 
     if not st.session_state["authenticated"]:
         st.title("🔐 Connexion requise")
+
         username = st.text_input("Nom d'utilisateur")
         password = st.text_input("Mot de passe", type="password")
+        login = st.button("Se connecter")
 
-        if st.button("Se connecter"):
-            if username in users and hash_password(password) == users[username]:
+        if login:
+            if username in CREDENTIALS and CREDENTIALS[username] == password:
                 st.session_state["authenticated"] = True
                 st.session_state["username"] = username
-                st.success("✅ Connexion réussie")
+                st.success("✅ Connexion réussie.")
                 st.rerun()
             else:
-                st.error("❌ Identifiants incorrects")
+                st.error("❌ Identifiants incorrects.")
         st.stop()
 
+# === Déconnexion
 def logout():
     if st.sidebar.button("🔒 Se déconnecter"):
         st.session_state["authenticated"] = False
         st.session_state["username"] = ""
         st.rerun()
 
+# === Appel de sécurité au début
 check_password()
 logout()
+
  
 st.set_page_config(page_title="Normatrans - Zones et Tarifs", layout="wide")
 
