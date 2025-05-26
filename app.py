@@ -772,7 +772,7 @@ elif menu == "Analyse des Tranches de Poids":
 # Partie 10 : Calcul des Tarifs par Tranche (Méthode Écart Fixe)
 # =======================
 elif menu == "Calcul des Tarifs par Tranche":
-    st.header("💶 Calcul des Tarifs par Tranche (Méthode Écart Fixe)")
+    st.header("💶 Calcul des Tarifs par Tranche")
 
     # Répartition (pourcentage) par tranche
     repartition = {
