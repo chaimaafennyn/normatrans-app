@@ -1,40 +1,28 @@
-import streamlit as st
-
-# === Configuration des identifiants ===
-CREDENTIALS = {
-    "fennyn": "chaimaa2001",
-    "normatrans": "normatrans2025"
+USERS = {
+    "admin": {"password": "admin123", "role": "admin"},
+    "user": {"password": "user123", "role": "user"},
 }
 
-# === Fonction de vérification ===
 def check_password():
     if "authenticated" not in st.session_state:
         st.session_state["authenticated"] = False
 
     if not st.session_state["authenticated"]:
-        st.title("🔐 Connexion requise")
-
+        st.title("🔐 Connexion")
         username = st.text_input("Nom d'utilisateur")
         password = st.text_input("Mot de passe", type="password")
-        login = st.button("Se connecter")
 
-        if login:
-            if username in CREDENTIALS and CREDENTIALS[username] == password:
+        if st.button("Se connecter"):
+            user = USERS.get(username)
+            if user and password == user["password"]:
                 st.session_state["authenticated"] = True
                 st.session_state["username"] = username
-                st.success("✅ Connexion réussie.")
+                st.session_state["role"] = user["role"]
                 st.rerun()
             else:
-                st.error("❌ Identifiants incorrects.")
-        st.stop()
+                st.error("❌ Identifiants incorrects")
 
-# === Déconnexion
 def logout():
-    if st.sidebar.button("🔒 Se déconnecter"):
-        st.session_state["authenticated"] = False
-        st.session_state["username"] = ""
+    if st.button("🔓 Se déconnecter"):
+        st.session_state.clear()
         st.rerun()
-
-# === Appel de sécurité au début
-check_password()
-logout()
