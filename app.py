@@ -169,8 +169,7 @@ elif menu == "Analyse des Tranches de Poids":
         df.columns = df.columns.str.strip()
         df = get_tranches()
         st.info("📂 Données chargées depuis Supabase par défaut")
-
-     st.success("✅ Données chargées depuis Supabase")
+        st.success("✅ Données chargées depuis Supabase")
 
     # Nettoyage
     df["Poids"] = df["Poids"].astype(str).str.replace(",", ".").astype(float)
