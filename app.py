@@ -35,8 +35,14 @@ def check_password():
                 st.error("❌ Identifiants incorrects")
         st.stop()
 
+def logout():
+    if st.sidebar.button("🔒 Se déconnecter"):
+        st.session_state["authenticated"] = False
+        st.session_state["username"] = ""
+        st.rerun()
 
 check_password()
+logout()
  
 st.set_page_config(page_title="Normatrans - Zones et Tarifs", layout="wide")
 
