@@ -803,7 +803,7 @@ elif menu == "Calcul des Tarifs par Tranche":
         "1500-2000kg": 6.89, "2000-3000kg": 6.05, ">3000kg": 6.36
     }
 
-    a = st.number_input("🔧 Valeur de l'écart fixe (en €)", min_value=0.1, max_value=5.0, value=0.38, step=0.01)
+    a = st.number_input("Valeur de l'écart fixe (en €)", min_value=0.1, max_value=5.0, value=0.38, step=0.01)
 
     df = pd.DataFrame(repartition).set_index("Tranche de poids")
 
