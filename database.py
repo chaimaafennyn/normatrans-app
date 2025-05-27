@@ -20,7 +20,7 @@ def get_tranches():
 
 
 
-def insert_zone(commune, zone, code_agence, lat, lon, lat_ag, lon_ag, distance):
+def insert_localite(commune, zone, code_agence, lat, lon, lat_ag, lon_ag, distance):
     engine = get_engine()
     query = text("""
         INSERT INTO zones_localites (commune, zone, code_agence, latitude, longitude, latitude_agence, longitude_agence, distance_km)
@@ -38,7 +38,7 @@ def insert_zone(commune, zone, code_agence, lat, lon, lat_ag, lon_ag, distance):
             "distance": distance
         })
 
-def update_zone(id, commune, zone, code_agence, lat, lon, lat_ag, lon_ag, distance):
+def update_localite(id, commune, zone, code_agence, lat, lon, lat_ag, lon_ag, distance):
     engine = get_engine()
     query = text("""
         UPDATE zones_localites
@@ -65,7 +65,7 @@ def update_zone(id, commune, zone, code_agence, lat, lon, lat_ag, lon_ag, distan
             "distance": distance
         })
 
-def delete_zone(id):
+def delete_localite(id):
     engine = get_engine()
     query = text("DELETE FROM zones_localites WHERE id = :id")
     with engine.begin() as conn:
