@@ -4,6 +4,8 @@ import folium
 from streamlit_folium import st_folium
 import plotly.express as px
 from database import get_zones
+from database import insert_zone, update_zone, delete_zone
+
 
 
 if "authenticated" not in st.session_state or not st.session_state["authenticated"]:
@@ -49,7 +51,6 @@ with st.expander("➕ Ajouter une nouvelle localité"):
         submitted = st.form_submit_button("Ajouter")
 
         if submitted:
-            from database import insert_localite
             insert_localite({
                 "commune": commune,
                 "code_agence": code_agence,
@@ -88,7 +89,6 @@ if selected_row:
 
         col1, col2 = st.columns(2)
         if col1.form_submit_button("💾 Modifier"):
-            from database import update_localite
             update_localite(selected_id, {
                 "commune": commune,
                 "code_agence": code_agence,
@@ -103,7 +103,6 @@ if selected_row:
             st.cache_data.clear()
 
         if col2.form_submit_button("🗑️ Supprimer"):
-            from database import delete_localite
             delete_localite(selected_id)
             st.success("🗑️ Localité supprimée.")
             st.cache_data.clear()
