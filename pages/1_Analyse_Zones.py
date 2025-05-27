@@ -41,7 +41,8 @@ else:
 with st.expander("➕ Ajouter une nouvelle localité"):
     with st.form("ajout_localite"):
         commune = st.text_input("Commune")
-        code_agence = st.text_input("Code Agence")
+        agences_existantes = df["Code agence"].dropna().unique()
+        code_agence = st.selectbox("Code Agence", agences_existantes)
         latitude = st.number_input("Latitude", format="%.6f")
         longitude = st.number_input("Longitude", format="%.6f")
         zone = st.selectbox("Zone", ["Zone 1", "Zone 2", "Zone 3"])
