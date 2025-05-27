@@ -4,7 +4,7 @@ import folium
 from streamlit_folium import st_folium
 import plotly.express as px
 from database import get_zones
-from database import insert_zone, update_zone, delete_zone
+from database import insert_localite, update_localite, delete_localite
 
 
 
