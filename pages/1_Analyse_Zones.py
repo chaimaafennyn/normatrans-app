@@ -89,16 +89,7 @@ if selected_row:
 
         col1, col2 = st.columns(2)
         if col1.form_submit_button("💾 Modifier"):
-            update_localite(selected_id, {
-                "commune": commune,
-                "code_agence": code_agence,
-                "latitude": latitude,
-                "longitude": longitude,
-                "zone": zone,
-                "distance_km": distance,
-                "latitude_agence": latitude_ag,
-                "longitude_agence": longitude_ag
-            })
+            update_localite(selected_id, commune, code_agence, latitude, longitude, zone, distance, latitude_ag, longitude_ag )
             st.success("✅ Localité mise à jour.")
             st.cache_data.clear()
 
