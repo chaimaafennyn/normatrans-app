@@ -5,7 +5,7 @@ import plotly.express as px
 st.header("📦 Analyse des Tranches de Palette (UM) par Zone")
 
 # Fichier à charger (depuis Supabase ou CSV)
-uploaded_file = st.file_uploader("📄 Uploader le fichier des livraisons", type=["csv"])
+uploaded_file = st.file_uploader("📄 Uploader le fichier des livraisons (pal_tranche.csv)", type=["csv"])
 if uploaded_file:
     df = pd.read_csv(uploaded_file, sep=";", encoding="latin1")
     st.success("✅ Fichier chargé")
