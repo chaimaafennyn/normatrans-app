@@ -48,7 +48,7 @@ distance_zone = {
 }
 
 # === Calcul des coefficients racine carrée
-base_distance = math.sqrt(distance_zone["Zone 1"])
+base_distance = math.sqrt(distance_zone["Zone 1"]) / base_distance
 auto_coef_zone2 = math.sqrt(distance_zone["Zone 2"]) / base_distance
 auto_coef_zone3 = math.sqrt(distance_zone["Zone 3"]) / base_distance
 
