@@ -46,9 +46,13 @@ result = pd.merge(pivot, total, on="Zone")
 result["Pourcentage"] = (result["Nb_exp"] / result["Total"] * 100).round(2)
 tableau = result.pivot(index="Zone", columns="Tranche UM", values="Pourcentage").fillna(0)
 
-# Ligne globale
-global_count = df_filtered["Tranche UM"].value_counts(normalize=True).sort_index() * 100
-tableau.loc["Total"] = global_count.round(2)
-st.dataframe(tableau)
+st.subheader("📊 Répartition (%) des Zones par Tranche UM")
+pivot_inv = df_filtered.groupby(["Tranche UM", "Zone"]).size().reset_index(name="Nb_exp")
+total_inv = pivot_inv.groupby("Tranche UM")["Nb_exp"].sum().reset_index(name="Total")
+result_inv = pd.merge(pivot_inv, total_inv, on="Tranche UM")
+result_inv["Pourcentage"] = (result_inv["Nb_exp"] / result_inv["Total"] * 100).round(2)
+tableau_inv = result_inv.pivot(index="Tranche UM", columns="Zone", values="Pourcentage").fillna(0)
+st.dataframe(tableau_inv.T)
+
 
 
