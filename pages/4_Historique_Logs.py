@@ -36,7 +36,7 @@ tarifs_forfaitaires = {
 
 # === Paramètres ajustables
 st.markdown("### Paramètres du modèle de calcul")
-a = st.number_input("Écart fixe (en €)", min_value=0.1, max_value=5.0, value=1.44, step=0.01)
+a = st.number_input("Écart fixe (en €)", min_value=0.1, max_value=5.0, value=2.77, step=0.01)
 
 # === Distances moyennes par zone
 distance_zone = {
