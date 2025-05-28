@@ -74,8 +74,8 @@ resultats = []
 for tranche in df.index:
     r1, r2, r3 = df.loc[tranche, "Zone 1"] / 100, df.loc[tranche, "Zone 2"] / 100, df.loc[tranche, "Zone 3"] / 100
     forfait = tarifs_forfaitaires[tranche]
-    x = forfait - a * (coef_zone2 * r2 + coef_zone3 * r3)
-    z1 = round(x, 2)
+    x = forfait - a * (coef_zone1 * r1 + coef_zone2 * r2 + coef_zone3 * r3)
+    z1 = round(x + coef_zone1 * a, 2)
     z2 = round(x + coef_zone2 * a, 2)
     z3 = round(x + coef_zone3 * a, 2)
     total = round(r1 * z1 + r2 * z2 + r3 * z3, 2)
