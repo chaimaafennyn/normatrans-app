@@ -27,9 +27,14 @@ if uploaded_file:
     zones = df["Zone"].unique().tolist()
     agences = df["Code agence"].unique().tolist() if "Code agence" in df.columns else []
 
+    
+
     col1, col2 = st.columns(2)
-    selected_zone = col1.selectbox("🌍 Filtrer par zone", ["Toutes"] + zones)
-    selected_agence = col2.selectbox("🏢 Filtrer par agence", ["Toutes"] + agences if agences else ["Aucune"])
+    selected_zone = col1.selectbox("🌟 Filtrer par zone", ["Toutes"] + list(zones))
+    selected_agence = col2.selectbox(
+        "🏢 Filtrer par agence",
+        ["Toutes"] + list(agences) if len(agences) > 0 else ["Aucune"]
+    )
 
     df_filtered = df.copy()
     if selected_zone != "Toutes":
