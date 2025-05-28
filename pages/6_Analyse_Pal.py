@@ -20,6 +20,7 @@ if uploaded_file:
     bins = [0, 1, 2, 3, 4, 5, 6, float("inf")]
     labels = ["1 palette", "2 palettes", "3 palettes", "4 palettes", "5 palettes", "6 palettes", "+6 palettes"]
     df["Tranche_UM"] = pd.cut(df["UM"], bins=bins, labels=labels, right=True)
+    df["Tranche_UM"] = pd.Categorical(df["Tranche_UM"], categories=labels, ordered=True)
     df = df[df["Tranche_UM"].notna()]
 
     # === Filtres
@@ -45,7 +46,15 @@ if uploaded_file:
     result = pd.merge(pivot, totaux, on="Zone")
     result["Pourcentage"] = (result["Nb_exp"] / result["Total"] * 100).round(2)
     tableau = result.pivot(index="Zone", columns="Tranche_UM", values="Pourcentage").fillna(0)
+    tableau = tableau[tableau.index.notna()]  # ✅ corriger ligne NaN
     st.dataframe(tableau)
+
+    st.download_button(
+        "📥 Télécharger la répartition par zone",
+        data=tableau.to_csv().encode("utf-8"),
+        file_name="repartition_tranches_palette_par_zone.csv",
+        mime="text/csv"
+    )
 
     # === Répartition des zones par tranche
     st.subheader("🔁 Répartition (%) des zones par tranche de palette (UM)")
@@ -54,6 +63,7 @@ if uploaded_file:
     result_inv = pd.merge(pivot_inv, totaux_tranche, on="Tranche_UM")
     result_inv["Pourcentage"] = (result_inv["Nb_exp"] / result_inv["Total"] * 100).round(2)
     tableau_inverse = result_inv.pivot(index="Tranche_UM", columns="Zone", values="Pourcentage").fillna(0)
+    tableau_inverse = tableau_inverse[tableau_inverse.index.notna()]  # ✅ corriger ligne NaN
     st.dataframe(tableau_inverse)
 
     # === Détail global
@@ -67,7 +77,9 @@ if uploaded_file:
         UM_total=("UM", "sum"),
         UM_moyenne=("UM", "mean")
     ).reset_index().round(2)
-    st.dataframe(detail)
+
+    if st.checkbox("📄 Afficher le détail des données"):
+        st.dataframe(detail)
 
     # === Top communes
     if "Commune" in detail.columns:
@@ -95,7 +107,7 @@ if uploaded_file:
 
     # === Graphiques camembert
     st.subheader("🥧 Répartition globale des tranches de palette")
-    pie_tranches = df_filtered["Tranche_UM"].value_counts().reset_index()
+    pie_tranches = df_filtered["Tranche_UM"].value_counts().sort_index().reset_index()
     pie_tranches.columns = ["Tranche_UM", "Nb_exp"]
     fig = px.pie(pie_tranches, names="Tranche_UM", values="Nb_exp", title="Répartition des tranches UM")
     st.plotly_chart(fig)
