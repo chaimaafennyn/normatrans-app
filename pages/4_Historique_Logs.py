@@ -16,15 +16,18 @@ if "authenticated" not in st.session_state or not st.session_state["authenticate
     st.warning("🚫 Accès non autorisé. Veuillez vous connecter depuis la page principale.")
     st.stop()
     
+import streamlit as st
+import pandas as pd
+import math
+
 st.title("💶 Calcul des Tarifs par Tranche")
 
 # === Répartition (en %) des zones par tranche
 repartition = {
-    "Tranche de poids": [
-        "1 P", "2 P", "3 P", "4 P", "5 P", "6 P", "P sup"],
-    "Zone 1": [ 47.58, 47.96, 48.94, 51.02, 52.20, 56.41, 84.40 ],
-    "Zone 2": [ 35.91, 34.86, 34.54, 33.15, 27.80, 29.91, 11.35 ],
-    "Zone 3": [ 16.51, 17.18, 16.52, 15.83, 20.00, 13.68, 04.26 ]
+    "Tranche de poids": ["1 P", "2 P", "3 P", "4 P", "5 P", "6 P", "P sup"],
+    "Zone 1": [47.58, 47.96, 48.94, 51.02, 52.20, 56.41, 84.40],
+    "Zone 2": [35.91, 34.86, 34.54, 33.15, 27.80, 29.91, 11.35],
+    "Zone 3": [16.51, 17.18, 16.52, 15.83, 20.00, 13.68, 4.26]
 }
 
 # === Tarifs forfaitaires de base (pondérés)
@@ -36,8 +39,30 @@ tarifs_forfaitaires = {
 # === Paramètres ajustables
 st.markdown("### Paramètres du modèle de calcul")
 a = st.number_input("Écart fixe (en €)", min_value=0.1, max_value=5.0, value=1.44, step=0.01)
-coef_zone2 = st.number_input("Coefficient Zone 2", min_value=0.1, max_value=5.0, value=1.5, step=0.1)
-coef_zone3 = st.number_input("Coefficient Zone 3", min_value=0.1, max_value=5.0, value=3.0, step=0.1)
+
+# === Distances moyennes par zone
+distance_zone = {
+    "Zone 1": 10,  # 0-20 km
+    "Zone 2": 30,  # 20-40 km
+    "Zone 3": 50   # 40-60 km
+}
+
+# === Calcul des coefficients racine carrée
+base_distance = math.sqrt(distance_zone["Zone 1"])
+auto_coef_zone2 = math.sqrt(distance_zone["Zone 2"]) / base_distance
+auto_coef_zone3 = math.sqrt(distance_zone["Zone 3"]) / base_distance
+
+# === Choix utilisateur : coefficients auto ou manuels
+use_auto_coefs = st.checkbox("🎯 Utiliser des coefficients basés sur les distances (modèle racine)", value=True)
+
+if use_auto_coefs:
+    coef_zone2 = round(auto_coef_zone2, 3)
+    coef_zone3 = round(auto_coef_zone3, 3)
+    st.write(f"✅ Coefficient Zone 2 (auto) : {coef_zone2}")
+    st.write(f"✅ Coefficient Zone 3 (auto) : {coef_zone3}")
+else:
+    coef_zone2 = st.number_input("Coefficient Zone 2", min_value=0.1, max_value=5.0, value=1.5, step=0.1)
+    coef_zone3 = st.number_input("Coefficient Zone 3", min_value=0.1, max_value=5.0, value=3.0, step=0.1)
 
 # === Calcul des tarifs
 df = pd.DataFrame(repartition).set_index("Tranche de poids")
@@ -67,9 +92,11 @@ df_resultats = pd.DataFrame(resultats)
 st.subheader("📊 Résultats du calcul des tarifs")
 st.dataframe(df_resultats)
 
+# === Export CSV
 st.download_button(
     label="📥 Télécharger les résultats",
     data=df_resultats.to_csv(index=False).encode("utf-8"),
     file_name="tarifs_par_tranche.csv",
     mime="text/csv"
 )
+
