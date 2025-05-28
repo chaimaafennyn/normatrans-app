@@ -43,6 +43,7 @@ if uploaded_file:
     pivot = df_filtered.groupby(["Zone", "Tranche_UM"]).size().reset_index(name="Nb_exp")
     totaux = pivot.groupby("Zone")["Nb_exp"].sum().reset_index(name="Total")
     result = pd.merge(pivot, totaux, on="Zone")
+    result["Pourcentage"] = (result["Nb_exp"] / result["Total"] * 100).round(2)
     tableau = result.pivot(index="Zone", columns="Tranche_UM", values="Pourcentage").fillna(0)
     st.dataframe(tableau)
 
@@ -63,7 +64,6 @@ if uploaded_file:
 
     detail = df_filtered.groupby(group_cols).agg(
         Nb_expéditions=("UM", "count"),
-        UM_total=("UM", "sum"),
         UM_moyenne=("UM", "mean")
     ).reset_index().round(2)
     st.dataframe(detail)
@@ -78,7 +78,6 @@ if uploaded_file:
     st.subheader("⚖️ Statistiques globales")
     stats_zone = df_filtered.groupby("Zone").agg(
         Nb_expéditions=("UM", "count"),
-        UM_total=("UM", "sum"),
         UM_moyenne=("UM", "mean")
     ).round(2)
     st.dataframe(stats_zone)
@@ -87,7 +86,6 @@ if uploaded_file:
         st.subheader("🏢 Statistiques par Agence")
         stats_agence = df_filtered.groupby("Code agence").agg(
             Nb_expéditions=("UM", "count"),
-            UM_total=("UM", "sum"),
             UM_moyenne=("UM", "mean")
         ).round(2)
         st.dataframe(stats_agence)
