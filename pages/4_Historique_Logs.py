@@ -55,6 +55,7 @@ auto_coef_zone3 = math.sqrt(distance_zone["Zone 3"]) / base_distance
 use_auto_coefs = st.checkbox("🎯 Utiliser des coefficients basés sur les distances (modèle racine)", value=True)
 
 if use_auto_coefs:
+    coef_zone1 = round(auto_coef_zone1, 3)
     coef_zone2 = round(auto_coef_zone2, 3)
     coef_zone3 = round(auto_coef_zone3, 3)
     st.write(f"✅ Coefficient Zone 2 (auto) : {coef_zone2}")
