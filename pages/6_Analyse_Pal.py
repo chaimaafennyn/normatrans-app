@@ -32,11 +32,6 @@ result["Pourcentage"] = (result["Nb_exp"] / result["Total"] * 100).round(2)
 tableau = result.pivot(index="Zone", columns="Tranche_UM", values="Pourcentage").fillna(0)
 st.dataframe(tableau)
 
-# Ajouter une ligne "Total"
-total_global = df.groupby("Tranche_UM").size()
-total_percent = (total_global / total_global.sum() * 100).round(2)
-tableau.loc["Total"] = total_percent
-st.dataframe(tableau)
 
 # Graphique global
 st.subheader("📈 Répartition globale des tranches de palette")
