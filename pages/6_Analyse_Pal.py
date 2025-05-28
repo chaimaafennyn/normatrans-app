@@ -129,9 +129,7 @@ if uploaded_file:
 else:
     st.warning("⚠️ Veuillez uploader un fichier `pal_tranche.csv` pour démarrer l'analyse.")
 
-#********************************************************************************************************#
 
-st.title("💶 Calcul des Tarifs par Tranche")
 
 # === Répartition (en %) des zones par tranche
 repartition = {
