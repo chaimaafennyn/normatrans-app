@@ -58,7 +58,7 @@ if uploaded_file:
 
     # === Détail global
     st.subheader("📋 Détail global par agence, zone et commune")
-    group_cols = ["Zone", "Commune"]
+    group_cols = ["Zone", "Ville"]
     if "Code agence" in df_filtered.columns:
         group_cols.insert(0, "Code agence")
 
@@ -70,7 +70,7 @@ if uploaded_file:
     st.dataframe(detail)
 
     # === Top communes
-    if "Commune" in detail.columns:
+    if "Ville" in detail.columns:
         st.subheader("🏆 Top 20 communes avec le plus d'expéditions")
         top_communes = detail.groupby("Commune")["Nb_expéditions"].sum().nlargest(20).reset_index()
         st.bar_chart(top_communes.set_index("Commune")["Nb_expéditions"])
