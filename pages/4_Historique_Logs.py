@@ -1,4 +1,4 @@
-c'est bon comment ajouter ces coef dans ce calcul import streamlit as st
+import streamlit as st
 import pandas as pd
 
 if "authenticated" not in st.session_state or not st.session_state["authenticated"]:
