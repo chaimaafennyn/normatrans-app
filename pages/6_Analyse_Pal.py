@@ -64,6 +64,7 @@ if uploaded_file:
 
     detail = df_filtered.groupby(group_cols).agg(
         Nb_expéditions=("UM", "count"),
+        UM_total=("UM", "sum"),
         UM_moyenne=("UM", "mean")
     ).reset_index().round(2)
     st.dataframe(detail)
@@ -78,6 +79,7 @@ if uploaded_file:
     st.subheader("⚖️ Statistiques globales")
     stats_zone = df_filtered.groupby("Zone").agg(
         Nb_expéditions=("UM", "count"),
+        UM_total=("UM", "sum"),
         UM_moyenne=("UM", "mean")
     ).round(2)
     st.dataframe(stats_zone)
@@ -86,6 +88,7 @@ if uploaded_file:
         st.subheader("🏢 Statistiques par Agence")
         stats_agence = df_filtered.groupby("Code agence").agg(
             Nb_expéditions=("UM", "count"),
+            UM_total=("UM", "sum"),
             UM_moyenne=("UM", "mean")
         ).round(2)
         st.dataframe(stats_agence)
