@@ -31,10 +31,9 @@ if uploaded_file:
 
     col1, col2 = st.columns(2)
     selected_zone = col1.selectbox("🌟 Filtrer par zone", ["Toutes"] + list(zones))
-    selected_agence = col2.selectbox(
-        "🏢 Filtrer par agence",
-        ["Toutes"] + list(agences) if len(agences) > 0 else ["Aucune"]
-    )
+    agences = df["Code agence"].unique().tolist()
+    selected_agence = st.selectbox("🏢 Filtrer par agence", ["Toutes"] + agences)
+
 
     df_filtered = df.copy()
     if selected_zone != "Toutes":
