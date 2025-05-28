@@ -44,7 +44,7 @@ if uploaded_file:
     totaux = pivot.groupby("Zone")["Nb_exp"].sum().reset_index(name="Total")
     result = pd.merge(pivot, totaux, on="Zone")
     result["Pourcentage"] = (result["Nb_exp"] / result["Total"] * 100).round(2)
-    tableau = result.pivot(index="Zone", columns="Tranche_UM", values="Pourcentage").fillna(0)
+    tableau = result.pivot(index="Zone", columns="Tranche_UM").fillna(0)
     st.dataframe(tableau)
 
     # === Répartition des zones par tranche
