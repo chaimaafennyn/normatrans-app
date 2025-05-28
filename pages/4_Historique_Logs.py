@@ -51,20 +51,17 @@ auto_coef_zone1 = math.sqrt(distance_zone["Zone 1"]) / base_distance
 auto_coef_zone2 = math.sqrt(distance_zone["Zone 2"]) / base_distance
 auto_coef_zone3 = math.sqrt(distance_zone["Zone 3"]) / base_distance
 
-# === Choix utilisateur : coefficients auto ou manuels
-use_auto_coefs = st.checkbox("🎯 Utiliser des coefficients basés sur les distances (modèle racine)", value=True)
+st.markdown("### Coefficients par zone (modifiables)")
 
-if use_auto_coefs:
-    coef_zone1 = round(auto_coef_zone1, 3)
-    coef_zone2 = round(auto_coef_zone2, 3)
-    coef_zone3 = round(auto_coef_zone3, 3)
-    st.write(f"✅ Coefficient Zone 1 (auto) : {coef_zone1}")
-    st.write(f"✅ Coefficient Zone 2 (auto) : {coef_zone2}")
-    st.write(f"✅ Coefficient Zone 3 (auto) : {coef_zone3}")
-else:
-    coef_zone1 = st.number_input("Coefficient Zone 1", min_value=0.1, max_value=5.0, value=1.5, step=0.1)
-    coef_zone2 = st.number_input("Coefficient Zone 2", min_value=0.1, max_value=5.0, value=1.5, step=0.1)
-    coef_zone3 = st.number_input("Coefficient Zone 3", min_value=0.1, max_value=5.0, value=3.0, step=0.1)
+coef_zone1 = st.number_input("Coefficient Zone 1", min_value=0.1, max_value=5.0,
+                             value=round(auto_coef_zone1, 3), step=0.01)
+
+coef_zone2 = st.number_input("Coefficient Zone 2", min_value=0.1, max_value=5.0,
+                             value=round(auto_coef_zone2, 3), step=0.01)
+
+coef_zone3 = st.number_input("Coefficient Zone 3", min_value=0.1, max_value=5.0,
+                             value=round(auto_coef_zone3, 3), step=0.01)
+
 
 # === Calcul des tarifs
 df = pd.DataFrame(repartition).set_index("Tranche de poids")
