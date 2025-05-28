@@ -23,21 +23,21 @@ if uploaded_file:
     df["Tranche_UM"] = pd.Categorical(df["Tranche_UM"], categories=labels, ordered=True)
     df = df[df["Tranche_UM"].notna()]
 
-    # === Filtres
-    zones = df["Zone"].unique().tolist()
-    agences = df["Code agence"].unique().tolist() if "Code agence" in df.columns else []
-
-    
+    # === Filtres optionnels ===
+    zones = df["Zone"].dropna().unique()
+    agences = df["Code agence"].dropna().unique() if "Code agence" in df.columns else []
 
     col1, col2 = st.columns(2)
     selected_zone = col1.selectbox("🌟 Filtrer par zone", ["Toutes"] + list(zones))
-    selected_agence = st.selectbox("🏢 Filtrer par agence", ["Toutes"] + agences)
-
+    selected_agence = col2.selectbox(
+        "🏢 Filtrer par agence",
+        ["Toutes"] + list(agences) if len(agences) > 0 else ["Aucune"]
+    )
 
     df_filtered = df.copy()
     if selected_zone != "Toutes":
         df_filtered = df_filtered[df_filtered["Zone"] == selected_zone]
-    if selected_agence != "Toutes" and "Code agence" in df.columns:
+    if selected_agence != "Toutes" and "Code agence" in df_filtered.columns:
         df_filtered = df_filtered[df_filtered["Code agence"] == selected_agence]
 
     st.markdown(f"🔎 **Filtres actifs :** Zone = `{selected_zone}` | Agence = `{selected_agence}`")
