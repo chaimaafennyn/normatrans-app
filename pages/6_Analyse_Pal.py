@@ -45,3 +45,24 @@ fig = px.bar(global_counts, x=global_counts.index, y=global_counts.values,
              labels={'x': "Tranche de palette", 'y': "Pourcentage"},
              title="Distribution globale des tranches de palettes")
 st.plotly_chart(fig)
+
+# === Zones par tranches UM
+st.subheader("🔁 Répartition (%) des zones par tranche de palette (UM)")
+
+pivot_inverse = df.groupby(["Tranche_UM", "Zone"]).size().reset_index(name="Nb_exp")
+totaux_par_tranche = pivot_inverse.groupby("Tranche_UM")["Nb_exp"].sum().reset_index(name="Total")
+result_inv = pd.merge(pivot_inverse, totaux_par_tranche, on="Tranche_UM")
+result_inv["Pourcentage"] = (result_inv["Nb_exp"] / result_inv["Total"] * 100).round(2)
+
+# Tableau final : zones en colonnes
+tableau_inverse = result_inv.pivot(index="Tranche_UM", columns="Zone", values="Pourcentage").fillna(0)
+st.dataframe(tableau_inverse)
+
+# Télécharger
+st.download_button(
+    "📥 Télécharger la répartition des zones par tranche UM",
+    data=tableau_inverse.to_csv().encode("utf-8"),
+    file_name="zones_par_tranche_um.csv",
+    mime="text/csv"
+)
+
