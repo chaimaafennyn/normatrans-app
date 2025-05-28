@@ -39,3 +39,16 @@ if selected_agence != "Toutes":
 
 st.markdown(f"🔎 **Filtres actifs :** Zone = `{selected_zone}` | Agence = `{selected_agence}`")
 
+st.subheader("📊 Répartition (%) des tranches UM par Zone")
+pivot = df_filtered.groupby(["Zone", "Tranche UM"]).size().reset_index(name="Nb_exp")
+total = pivot.groupby("Zone")["Nb_exp"].sum().reset_index(name="Total")
+result = pd.merge(pivot, total, on="Zone")
+result["Pourcentage"] = (result["Nb_exp"] / result["Total"] * 100).round(2)
+tableau = result.pivot(index="Zone", columns="Tranche UM", values="Pourcentage").fillna(0)
+
+# Ligne globale
+global_count = df_filtered["Tranche UM"].value_counts(normalize=True).sort_index() * 100
+tableau.loc["Total"] = global_count.round(2)
+st.dataframe(tableau)
+
+
