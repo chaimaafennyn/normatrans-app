@@ -19,8 +19,6 @@ if "authenticated" not in st.session_state or not st.session_state["authenticate
 
 import streamlit as st
 import pandas as pd
-import math
-
 
 
 st.title("💶 Calcul des Tarifs par Tranche")
@@ -43,32 +41,24 @@ tarifs_forfaitaires = {
 st.markdown("### Paramètres du modèle de calcul")
 a = st.number_input("Écart fixe (en €)", min_value=0.1, max_value=5.0, value=1.44, step=0.01)
 
-# === Distances moyennes par zone
+# === Distances moyennes par zone (linéaires)
 distance_zone = {
-    "Zone 1": 10,  # 0-20 km
-    "Zone 2": 30,  # 20-40 km
-    "Zone 3": 50   # 40-60 km
+    "Zone 1": 10,  # 0–20 km
+    "Zone 2": 30,  # 20–40 km
+    "Zone 3": 50   # 40–60 km
 }
 
-# === Coefficients racine carrée
-auto_coef_zone1 = round(math.sqrt(distance_zone["Zone 1"]), 3)
-auto_coef_zone2 = round(math.sqrt(distance_zone["Zone 2"]), 3)
-auto_coef_zone3 = round(math.sqrt(distance_zone["Zone 3"]), 3)
+# === Coefficients proportionnels à la distance
+base_distance = distance_zone["Zone 1"]
+coef_zone1 = round(distance_zone["Zone 1"] / base_distance, 2)
+coef_zone2 = round(distance_zone["Zone 2"] / base_distance, 2)
+coef_zone3 = round(distance_zone["Zone 3"] / base_distance, 2)
 
-# === Choix utilisateur
-use_auto_coefs = st.checkbox("🎯 Utiliser des coefficients basés sur les distances (modèle racine)", value=True)
-
-if use_auto_coefs:
-    coef_zone1 = auto_coef_zone1 / coef_zone1
-    coef_zone2 = auto_coef_zone2 / coef_zone2
-    coef_zone3 = auto_coef_zone3 / coef_zone3
-    st.write(f"✅ Coefficient Zone 1 : {coef_zone1}")
-    st.write(f"✅ Coefficient Zone 2 : {coef_zone2}")
-    st.write(f"✅ Coefficient Zone 3 : {coef_zone3}")
-else:
-    coef_zone1 = st.number_input("Coefficient Zone 1", min_value=0.1, max_value=5.0, value=1.0, step=0.1)
-    coef_zone2 = st.number_input("Coefficient Zone 2", min_value=0.1, max_value=5.0, value=1.5, step=0.1)
-    coef_zone3 = st.number_input("Coefficient Zone 3", min_value=0.1, max_value=5.0, value=3.0, step=0.1)
+# === Afficher les coefficients utilisés
+st.markdown("### Coefficients proportionnels à la distance")
+st.write(f"✅ Coefficient Zone 1 : {coef_zone1}")
+st.write(f"✅ Coefficient Zone 2 : {coef_zone2}")
+st.write(f"✅ Coefficient Zone 3 : {coef_zone3}")
 
 # === Calcul des tarifs
 df = pd.DataFrame(repartition).set_index("Tranche de poids")
@@ -77,14 +67,14 @@ resultats = []
 for tranche in df.index:
     r1, r2, r3 = df.loc[tranche, "Zone 1"] / 100, df.loc[tranche, "Zone 2"] / 100, df.loc[tranche, "Zone 3"] / 100
     forfait = tarifs_forfaitaires[tranche]
-    
-    # Nouveau calcul avec coef pour chaque zone
+
+    # Calcul du tarif de base (x) en équilibrant le total pondéré
     x = forfait - a * (r1 * coef_zone1 + r2 * coef_zone2 + r3 * coef_zone3)
-    
+
     z1 = round(x + a * coef_zone1, 2)
     z2 = round(x + a * coef_zone2, 2)
     z3 = round(x + a * coef_zone3, 2)
-    
+
     total = round(r1 * z1 + r2 * z2 + r3 * z3, 2)
 
     resultats.append({
@@ -108,4 +98,3 @@ st.download_button(
     file_name="tarifs_par_tranche.csv",
     mime="text/csv"
 )
-
