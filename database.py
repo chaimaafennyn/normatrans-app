@@ -76,3 +76,19 @@ def delete_localite(id):
     with engine.begin() as conn:
         conn.execute(query, {"id": id})
 
+from datetime import datetime
+from sqlalchemy import text
+
+def log_action(username, action, details):
+    engine = get_engine()
+    query = text("""
+        INSERT INTO logs (username, action, details, timestamp)
+        VALUES (:username, :action, :details, :timestamp)
+    """)
+    with engine.begin() as conn:
+        conn.execute(query, {
+            "username": username,
+            "action": action,
+            "details": details,
+            "timestamp": datetime.now()
+        })
