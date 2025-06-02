@@ -3,6 +3,9 @@ import pandas as pd
 import plotly.express as px
 from database import get_palette
 
+if "authenticated" not in st.session_state or not st.session_state["authenticated"]:
+    st.warning("🚫 Accès non autorisé. Veuillez vous connecter depuis la page principale.")
+    st.stop()
 
 st.title("💶 Calcul des Tarifs par Tranche")
 
