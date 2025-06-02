@@ -52,20 +52,22 @@ with st.expander("➕ Ajouter une nouvelle localité"):
         submitted = st.form_submit_button("Ajouter")
 
         if submitted:
-            insert_localite({
-                "commune": commune,
-                "code_agence": code_agence,
-                "latitude": latitude,
-                "longitude": longitude,
-                "zone": zone,
-                "distance_km": distance,
-                "latitude_agence": latitude_ag,
-                "longitude_agence": longitude_ag
-            })
+            insert_localite(
+                commune,
+                code_agence,
+                latitude,
+                longitude,
+                zone,
+                distance,
+                latitude_ag,
+                longitude_ag
+            )
             log_action(
                 username=st.session_state.get("username", "inconnu"),
                 action="Ajout localité",
                 details=f"{commune} - {zone} - {code_agence}"
+            )
+
             )
             st.success(f"✅ Localité '{commune}' ajoutée.")
             st.cache_data.clear()
