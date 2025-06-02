@@ -138,8 +138,4 @@ else:
    
 
 
-else:
-    st.warning("⚠️ Veuillez uploader un fichier `pal_tranche.csv` pour démarrer l'analyse.")
-
-
 
