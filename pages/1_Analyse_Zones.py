@@ -95,7 +95,7 @@ if selected_row:
 
         col1, col2 = st.columns(2)
         if col1.form_submit_button("💾 Modifier"):
-            update_localite(selected_id, commune, code_agence, latitude, longitude, zone, distance, latitude_ag, longitude_ag )
+            update_localite(selected_id, commune, code_agence, latitude, longitude, zone, distance, latitude_ag, longitude_ag)
             log_action(
                 username=st.session_state.get("username", "inconnu"),
                 action="Modification localité",
@@ -104,15 +104,17 @@ if selected_row:
             st.success("✅ Localité mise à jour.")
             st.cache_data.clear()
 
+
         if col2.form_submit_button("🗑️ Supprimer"):
             delete_localite(selected_id)
-             log_action(
+            log_action(
                 username=st.session_state.get("username", "inconnu"),
                 action="Suppression localité",
                 details=f"ID {selected_id} supprimée"
             )
             st.success("🗑️ Localité supprimée.")
             st.cache_data.clear()
+
 
 
 
