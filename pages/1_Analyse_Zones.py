@@ -4,7 +4,7 @@ import folium
 from streamlit_folium import st_folium
 import plotly.express as px
 from database import get_zones
-from database import insert_localite, update_localite, delete_localite
+from database import insert_localite, update_localite, delete_localite, log_action
 
 
 
@@ -62,6 +62,11 @@ with st.expander("➕ Ajouter une nouvelle localité"):
                 "latitude_agence": latitude_ag,
                 "longitude_agence": longitude_ag
             })
+            log_action(
+                username=st.session_state.get("username", "inconnu"),
+                action="Ajout localité",
+                details=f"{commune} - {zone} - {code_agence}"
+            )
             st.success(f"✅ Localité '{commune}' ajoutée.")
             st.cache_data.clear()
 
