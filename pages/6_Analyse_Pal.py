@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+from database import get_palette
+
 
 st.title("💶 Calcul des Tarifs par Tranche")
 
@@ -11,6 +13,10 @@ uploaded_file = st.file_uploader("📄 Uploader le fichier des livraisons (pal_t
 
 if uploaded_file:
     df = pd.read_csv(uploaded_file, sep=";", encoding="latin1")
+
+else:
+    df = get_palette()
+    st.success("✅ Données chargées depuis Supabase")
 
     # Nettoyage
     df.columns = df.columns.str.strip()
