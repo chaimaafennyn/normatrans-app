@@ -18,6 +18,11 @@ def get_tranches():
     query = "SELECT * FROM tranche_zone"
     return pd.read_sql(query, engine)
 
+def get_palette():
+    engine = get_engine()
+    query = "SELECT * FROM pal_tranche"
+    return pd.read_sql(query, engine)
+
 
 
 def insert_localite(commune, zone, code_agence, lat, lon, lat_ag, lon_ag, distance):
