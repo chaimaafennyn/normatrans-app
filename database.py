@@ -79,6 +79,11 @@ def delete_localite(id):
         conn.execute(query, {"id": id})
 
 
+def get_local_time():
+    # Utilise "Europe/Paris" ou "Africa/Casablanca" selon ta localisation
+    tz = pytz.timezone("Europe/Paris")
+    return datetime.now(tz)
+
 def log_action(username, action, details):
     engine = get_engine()
     query = text("""
@@ -90,5 +95,5 @@ def log_action(username, action, details):
             "username": username,
             "action": action,
             "details": details,
-            "timestamp_local": datetime.now()
+            "timestamp": get_local_time()  
         })
