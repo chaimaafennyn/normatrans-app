@@ -63,18 +63,18 @@ def update_localite(id, commune, zone, code_agence, lat, lon, lat_ag, lon_ag, di
             distance_km = :distance
         WHERE id = :id
     """)
-        with engine.begin() as conn:
-            conn.execute(query, {
-                "id": id,
-                "commune": commune,
-                "zone": zone,
-                "code_agence": code_agence,
-                "lat": lat,
-                "lon": lon,
-                "lat_ag": lat_ag,
-                "lon_ag": lon_ag,
-                "distance": distance
-            })
+    with engine.begin() as conn:
+        conn.execute(query, {
+            "id": id,
+            "commune": commune,
+            "zone": zone,
+            "code_agence": code_agence,
+            "lat": lat,
+            "lon": lon,
+            "lat_ag": lat_ag,
+            "lon_ag": lon_ag,
+            "distance": distance
+        })
 
 def delete_localite(id):
     engine = get_engine()
