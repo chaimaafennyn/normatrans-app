@@ -10,5 +10,5 @@ if "authenticated" not in st.session_state or not st.session_state["authenticate
 st.title("🕵️ Historique des actions")
 
 engine = get_engine()
-df_logs = pd.read_sql("SELECT * FROM logs ORDER BY timestamp DESC", engine)
+df_logs = pd.read_sql("SELECT * FROM logs ORDER BY timestamp DESC", get_engine())
 st.dataframe(df_logs)
