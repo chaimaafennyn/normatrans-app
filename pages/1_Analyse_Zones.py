@@ -5,6 +5,8 @@ import folium
 from streamlit_folium import st_folium
 from math import radians, cos, sin, asin, sqrt
 from folium.plugins import Search
+from folium import FeatureGroup
+
 from database import (
     get_zones,
     insert_localite,
@@ -161,7 +163,6 @@ st.dataframe(
     .round(2)
 )
 
-from folium.plugins import FeatureGroup
 
 st.subheader("🗺️ Carte interactive des localités")
 
