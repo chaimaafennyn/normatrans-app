@@ -1,7 +1,7 @@
 import streamlit as st
 from sqlalchemy import create_engine, text
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import pytz
 
 
@@ -82,9 +82,8 @@ def delete_localite(id):
 
 
 def get_local_time():
-    # Utilise "Europe/Paris" ou "Africa/Casablanca" selon ta localisation
-    tz = pytz.timezone("Europe/Paris")
-    return datetime.now(tz)
+    paris_offset = timedelta(hours=2)  # Heure d’été (CEST) = UTC+2
+    return datetime.now(timezone.utc).astimezone(timezone(paris_offset))
 
 def log_action(username, action, details):
     engine = get_engine()
