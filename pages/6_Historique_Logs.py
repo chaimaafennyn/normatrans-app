@@ -15,6 +15,6 @@ if st.session_state.get("role") != "admin":
 st.title("🕵️ Historique des actions")
 
 engine = get_engine()
-df_logs = pd.read_sql("SELECT * FROM logs ORDER BY timestamp DESC", engine)
+df_logs = pd.read_sql("SELECT * FROM logs ORDER BY timestamp DESC", engine())
 
 st.dataframe(df_logs)
