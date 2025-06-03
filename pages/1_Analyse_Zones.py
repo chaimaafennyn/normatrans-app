@@ -161,6 +161,7 @@ st.dataframe(
     .round(2)
 )
 
+from folium.plugins import Search, FeatureGroup
 
 st.subheader("🗺️ Carte interactive des localités")
 
