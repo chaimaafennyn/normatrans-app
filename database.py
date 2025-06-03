@@ -83,7 +83,8 @@ def delete_localite(id):
 
 
 def get_local_time():
-    return datetime.now(ZoneInfo("Europe/Paris"))
+    # return datetime.now(ZoneInfo("Europe/Paris"))
+    return datetime.utcnow() + timedelta(hours=2)
 
 def log_action(username, action, details):
     engine = get_engine()
