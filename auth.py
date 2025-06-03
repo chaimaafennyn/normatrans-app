@@ -3,6 +3,7 @@ import pandas as pd
 import folium
 from streamlit_folium import st_folium
 import plotly.express as px
+from database import log_action  # 🆕 Pour journaliser
 
 # === Identifiants avec rôles ===
 CREDENTIALS = {
@@ -25,30 +26,25 @@ def check_password():
             if user_data and user_data["password"] == password:
                 st.session_state["authenticated"] = True
                 st.session_state["username"] = username
-                st.session_state["role"] = user_data["role"]  # 🆕 Stockage du rôle
+                st.session_state["role"] = user_data["role"]
+
+                # ✅ Log de connexion
+                log_action(username, "Connexion", "Connexion réussie à l'application")
+
                 st.success("✅ Connexion réussie.")
                 st.rerun()
             else:
                 st.error("❌ Identifiants incorrects.")
-
-        if username in CREDENTIALS and CREDENTIALS[username] == password:
-            st.session_state["authenticated"] = True
-            st.session_state["username"] = username
-            
-            log_action(username, "Connexion", "Utilisateur connecté à l'application")  
-            
-            st.success("✅ Connexion réussie.")
-            st.rerun()
         st.stop()
 
 def logout():
     if st.sidebar.button("🔒 Se déconnecter"):
+        username = st.session_state.get("username", "inconnu")
+
+        # ✅ Log de déconnexion
+        log_action(username, "Déconnexion", "Utilisateur déconnecté de l'application")
+
         st.session_state["authenticated"] = False
         st.session_state["username"] = ""
         st.session_state["role"] = ""
         st.rerun()
-
-
-
-
-
