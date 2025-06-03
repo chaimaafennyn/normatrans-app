@@ -90,5 +90,5 @@ def log_action(username, action, details):
             "username": username,
             "action": action,
             "details": details,
-            "timestamp": datetime.now()
+            "timestamp_local": datetime.now()
         })
