@@ -6,8 +6,8 @@ import plotly.express as px
 
 # === Identifiants avec rôles ===
 CREDENTIALS = {
-    "admin": {"password": "fennyn", "role": "chaimaa"},
-    "client": {"password": "azerty123", "role": "admin"}
+    "admin": {"password": "azerty123", "role": "admin"},
+    "client": {"password": "fennyn", "role": "chaimaa"}
 }
 
 def check_password():
