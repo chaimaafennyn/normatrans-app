@@ -44,7 +44,7 @@ df = df.rename(columns={
 df.columns = df.columns.str.strip()
 
 # === Ajouter une localité (admin uniquement) ===
-if role == "admin":
+if role == "chaimaa":
     with st.expander("➕ Ajouter une nouvelle localité"):
         with st.form("ajout_localite"):
             commune = st.text_input("Commune")
@@ -67,7 +67,7 @@ else:
     st.info("🔒 Lecture seule : vous n'avez pas les droits pour modifier les données.")
 
 # === Modifier ou Supprimer une localité (admin uniquement) ===
-if role == "admin":
+if role == "chaimaa":
     st.subheader("🛠️ Modifier ou Supprimer une Localité")
     df_display = df[["id", "Commune", "Zone", "Code agence"]].astype(str)
     df_display["label"] = df_display["Commune"] + " | " + df_display["Zone"] + " | " + df_display["Code agence"]
