@@ -40,3 +40,8 @@ if uploaded_file:
             st.error(f"❌ Erreur : {e}")
 else:
     st.info("📂 Merci d’uploader un fichier CSV.")
+
+if "HUGGINGFACEHUB_API_TOKEN" not in st.secrets:
+    st.error("❌ Clé API Hugging Face manquante dans secrets.")
+    st.stop()
+
