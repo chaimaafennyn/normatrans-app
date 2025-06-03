@@ -4,8 +4,6 @@ import folium
 from streamlit_folium import st_folium
 import plotly.express as px
 
-st.set_page_config(page_title="Normatrans - Zones et Tarifs", layout="wide")
-
 # === Identifiants avec rôles ===
 CREDENTIALS = {
     "admin": {"password": "azerty123", "role": "admin"},
