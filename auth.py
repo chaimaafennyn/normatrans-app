@@ -31,14 +31,14 @@ def check_password():
             else:
                 st.error("❌ Identifiants incorrects.")
 
-            if username in CREDENTIALS and CREDENTIALS[username] == password:
-                st.session_state["authenticated"] = True
-                st.session_state["username"] = username
+        if username in CREDENTIALS and CREDENTIALS[username] == password:
+            st.session_state["authenticated"] = True
+            st.session_state["username"] = username
             
-                log_action(username, "Connexion", "Utilisateur connecté à l'application")  
+            log_action(username, "Connexion", "Utilisateur connecté à l'application")  
             
-                st.success("✅ Connexion réussie.")
-                st.rerun()
+            st.success("✅ Connexion réussie.")
+            st.rerun()
         st.stop()
 
 def logout():
