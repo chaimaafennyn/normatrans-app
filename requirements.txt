@@ -10,11 +10,7 @@ psycopg2-binary
 matplotlib
 shapely
 pytz
-pandasai
-openai
-langchain
-langchain-community
-huggingface_hub
-transformers
-langchain-experimental
-pandasai
+
+
+
+
