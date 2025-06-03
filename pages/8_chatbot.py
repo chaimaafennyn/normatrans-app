@@ -4,6 +4,7 @@ import os
 from pandasai import SmartDataframe
 from pandasai.llm import HuggingFaceLLM
 
+
 # Titre de la page
 st.title("🤖 Chatbot IA sur votre fichier CSV (gratuit via Hugging Face)")
 
