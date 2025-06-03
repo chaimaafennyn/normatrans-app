@@ -1,5 +1,5 @@
 import streamlit as st
-from database import get_engine
+from database import get_engine, log_action
 import pandas as pd
 
 # === Authentification
