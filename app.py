@@ -24,3 +24,10 @@ pages_user = {
     "📊 Analyse Tranches Poids": "2_Analyse_Tranches_Poids",
     "📦 Analyse Tranches Palette": "3_Analyse_Tranches_Palette"
 }
+
+selected_page = st.sidebar.radio("Choisissez une page :", list(pages_admin.keys() if role == "admin" else pages_user.keys()))
+
+# Redirige vers la bonne page via query params (nécessite pages en multi-fichiers dans /pages/)
+st.experimental_set_query_params(page=pages_admin[selected_page] if role == "admin" else pages_user[selected_page])
+
+st.success(f"👋 Bienvenue **{username}** — rôle : `{role}`")
