@@ -36,17 +36,18 @@ def insert_localite(commune, zone, code_agence, lat, lon, lat_ag, lon_ag, distan
         INSERT INTO zones_localites (commune, zone, code_agence, latitude, longitude, latitude_agence, longitude_agence, distance_km)
         VALUES (:commune, :zone, :code_agence, :lat, :lon, :lat_ag, :lon_ag, :distance)
     """)
-    with engine.begin() as conn:
+  with engine.begin() as conn:
         conn.execute(query, {
             "commune": commune,
             "zone": zone,
             "code_agence": code_agence,
-            "lat": lat,
-            "lon": lon,
-            "lat_ag": lat_ag,
-            "lon_ag": lon_ag,
-            "distance": distance
+            "lat": float(lat),
+            "lon": float(lon),
+            "lat_ag": float(lat_ag),
+            "lon_ag": float(lon_ag),
+            "distance": float(distance)
         })
+        
 
 def update_localite(id, commune, zone, code_agence, lat, lon, lat_ag, lon_ag, distance):
     engine = get_engine()
