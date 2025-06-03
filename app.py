@@ -7,7 +7,15 @@ from auth import check_password, logout  # après la config
 check_password()
 logout()
 
-st.title("🚚 Normatrans - Zones et Tarifs")
-st.info("👈 Utilisez le menu à gauche pour naviguer entre les pages.")
 
+# Message de bienvenue
+username = st.session_state.get("username")
+role = st.session_state.get("role")
+
+st.success(f"👋 Bonjour **{username}** — Rôle : `{role}`")
+
+if role == "admin":
+    st.info("👈 Accès complet (modification, historique...)")
+else:
+    st.info("👈 Accès limité : consultation uniquement")
 
