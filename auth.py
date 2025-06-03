@@ -4,11 +4,12 @@ import folium
 from streamlit_folium import st_folium
 import plotly.express as px
 
+st.set_page_config(page_title="Normatrans - Zones et Tarifs", layout="wide")
 
-# === Authentification (à mettre après set_page_config) ===
+# === Identifiants avec rôles ===
 CREDENTIALS = {
-    "admin": "azerty123",
-    "client": "test2025"
+    "admin": {"password": "azerty123", "role": "admin"},
+    "client": {"password": "test2025", "role": "utilisateur"}
 }
 
 def check_password():
@@ -22,9 +23,11 @@ def check_password():
         login = st.button("Se connecter")
 
         if login:
-            if username in CREDENTIALS and CREDENTIALS[username] == password:
+            user_data = CREDENTIALS.get(username)
+            if user_data and user_data["password"] == password:
                 st.session_state["authenticated"] = True
                 st.session_state["username"] = username
+                st.session_state["role"] = user_data["role"]  # 🆕 Stockage du rôle
                 st.success("✅ Connexion réussie.")
                 st.rerun()
             else:
@@ -34,6 +37,11 @@ def check_password():
 def logout():
     if st.sidebar.button("🔒 Se déconnecter"):
         st.session_state["authenticated"] = False
+        st.session_state["username"] = ""
+        st.session_state["role"] = ""
         st.rerun()
+
+
+
 
 
