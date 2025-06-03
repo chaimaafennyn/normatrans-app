@@ -130,7 +130,7 @@ if role == "admin":
 
             if col2.form_submit_button("🗑️ Supprimer"):
                 delete_localite(selected_id)
-                log_action(st.session_state["username"], "Suppression localité", f"{selected_data['Commune']}")
+                log_action(st.session_state["username"], "Suppression localité", f"{commune} | {zone} | {code_agence}")
                 st.success("🗑️ Localité supprimée.")
                 st.cache_data.clear()
 
