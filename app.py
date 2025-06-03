@@ -1,11 +1,13 @@
 import streamlit as st
+
+st.set_page_config(page_title="Normatrans", layout="wide")
+
 from auth import check_password, logout
 
 # Authentification
 check_password()
 logout()
 
-st.set_page_config(page_title="Normatrans", layout="wide")
 username = st.session_state.get("username", "")
 role = "admin" if username == "admin" else "utilisateur"
 
