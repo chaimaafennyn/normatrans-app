@@ -7,7 +7,7 @@ from langchain_experimental.agents.agent_toolkits import create_pandas_dataframe
 
 st.title("🤖 Chatbot IA sur fichier CSV (via Hugging Face)")
 
-# === Configuration du token (stocké dans secrets.toml)
+# === Configuration du token (stocké dans secrets.toml) 
 HUGGINGFACEHUB_API_TOKEN = st.secrets["HUGGINGFACEHUB_API_TOKEN"]
 os.environ["HUGGINGFACEHUB_API_TOKEN"] = HUGGINGFACEHUB_API_TOKEN
 
