@@ -17,4 +17,4 @@ langchain-community
 huggingface_hub
 transformers
 langchain-experimental
-pandasai==1.5.4
+pandasai
