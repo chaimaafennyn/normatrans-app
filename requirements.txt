@@ -12,3 +12,6 @@ shapely
 pytz
 pandasai
 openai
+langchain
+huggingface_hub
+transformers
