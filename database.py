@@ -33,10 +33,11 @@ def get_palette():
 def insert_localite(commune, zone, code_agence, lat, lon, lat_ag, lon_ag, distance):
     engine = get_engine()
     query = text("""
-        INSERT INTO zones_localites (commune, zone, code_agence, latitude, longitude, latitude_agence, longitude_agence, distance_km)
+        INSERT INTO zones_localites 
+        (commune, zone, code_agence, latitude, longitude, latitude_agence, longitude_agence, distance_km)
         VALUES (:commune, :zone, :code_agence, :lat, :lon, :lat_ag, :lon_ag, :distance)
     """)
-  with engine.begin() as conn:
+    with engine.begin() as conn:
         conn.execute(query, {
             "commune": commune,
             "zone": zone,
@@ -47,6 +48,7 @@ def insert_localite(commune, zone, code_agence, lat, lon, lat_ag, lon_ag, distan
             "lon_ag": float(lon_ag),
             "distance": float(distance)
         })
+
         
 
 def update_localite(id, commune, zone, code_agence, lat, lon, lat_ag, lon_ag, distance):
