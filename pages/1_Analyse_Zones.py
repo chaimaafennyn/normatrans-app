@@ -4,7 +4,7 @@ import plotly.express as px
 import folium
 from streamlit_folium import st_folium
 from math import radians, cos, sin, asin, sqrt
-from folium.plugins import Search
+from folium.plugins import Search, FeatureGroup
 from database import (
     get_zones,
     insert_localite,
@@ -161,45 +161,49 @@ st.dataframe(
     .round(2)
 )
 
+
 st.subheader("🗺️ Carte interactive des localités")
 
-
+# Créer la carte centrée sur l'agence
 m = folium.Map(location=[coord_agence["Latitude_agence"], coord_agence["Longitude_agence"]], zoom_start=9)
 
-# Ajouter le marker de l'agence
+# Marker pour l’agence
 folium.CircleMarker(
     location=[coord_agence["Latitude_agence"], coord_agence["Longitude_agence"]],
     radius=8, color="black", fill=True, fill_opacity=1.0,
     popup=f"Agence : {agence_selectionnee}"
 ).add_to(m)
 
-# Groupe pour les localités
-localites_group = folium.FeatureGroup(name="Localités")
+# === Groupe de localités pour la recherche
+localites_group = FeatureGroup(name="Localités")
 
-# Ajouter les localités dans le groupe
 colors = {"Zone 1": "green", "Zone 2": "orange", "Zone 3": "red"}
+
 for _, row in df_agence.iterrows():
-    marker = folium.CircleMarker(
+    folium.CircleMarker(
         location=[row["Latitude"], row["Longitude"]],
         radius=5,
         color=colors.get(row["Zone"], "gray"),
         fill=True,
         fill_opacity=0.7,
-        popup=row["Commune"]  # Important : la recherche s'appuie là-dessus
-    )
-    marker.add_to(localites_group)
+        popup=row["Commune"],
+        tooltip=row["Commune"]
+    ).add_to(localites_group)
 
+# Ajouter le groupe à la carte
 localites_group.add_to(m)
 
-# Ajout du contrôle de recherche
+# === Ajout de la barre de recherche
 Search(
     layer=localites_group,
-    search_label="popup",
-    placeholder="🔍 Rechercher une commune...",
+    search_label='Commune',
+    placeholder="🔍 Chercher une localité...",
     collapsed=False
 ).add_to(m)
 
+# Afficher la carte dans Streamlit
 st_folium(m, width=1100, height=600)
+
 
 
 st.download_button(
