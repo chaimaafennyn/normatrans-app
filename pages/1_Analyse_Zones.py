@@ -166,21 +166,27 @@ st.dataframe(
 
 st.subheader("🗺️ Carte interactive des localités")
 
-# Créer la carte centrée sur l'agence
+import folium
+from folium.plugins import Search
+from streamlit_folium import st_folium
+
+# Créer la carte centrée sur l'agence sélectionnée
 m = folium.Map(location=[coord_agence["Latitude_agence"], coord_agence["Longitude_agence"]], zoom_start=9)
 
-# Marker pour l’agence
+# Afficher l'agence
 folium.CircleMarker(
     location=[coord_agence["Latitude_agence"], coord_agence["Longitude_agence"]],
     radius=8, color="black", fill=True, fill_opacity=1.0,
-    popup=f"Agence : {agence_selectionnee}"
+    popup=f"Agence : {agence_selectionnee}", tooltip="Agence"
 ).add_to(m)
 
-# === Groupe de localités pour la recherche
-localites_group = FeatureGroup(name="Localités")
+# Créer un groupe de features pour les localités
+fg = folium.FeatureGroup(name="Localités")
 
+# Définir les couleurs de zones
 colors = {"Zone 1": "green", "Zone 2": "orange", "Zone 3": "red"}
 
+# Ajouter les localités avec tooltip = Commune
 for _, row in df_agence.iterrows():
     folium.CircleMarker(
         location=[row["Latitude"], row["Longitude"]],
@@ -188,23 +194,25 @@ for _, row in df_agence.iterrows():
         color=colors.get(row["Zone"], "gray"),
         fill=True,
         fill_opacity=0.7,
-        popup=row["Commune"],
-        tooltip=row["Commune"]
-    ).add_to(localites_group)
+        popup=f'{row["Commune"]} - {row["Zone"]} ({row["Distance (km)"]} km)',
+        tooltip=row["Commune"]  # <- clé pour la recherche
+    ).add_to(fg)
 
 # Ajouter le groupe à la carte
-localites_group.add_to(m)
+fg.add_to(m)
 
-# === Ajout de la barre de recherche
+# Ajouter la recherche sur les tooltips (noms des communes)
 Search(
-    layer=localites_group,
-    search_label='Commune',
-    placeholder="🔍 Chercher une localité...",
-    collapsed=False
+    layer=fg,
+    search_label="tooltip",
+    placeholder="🔍 Rechercher une localité...",
+    collapsed=False,
 ).add_to(m)
 
 # Afficher la carte dans Streamlit
+st.subheader("🗺️ Carte interactive des localités avec recherche")
 st_folium(m, width=1100, height=600)
+
 
 
 
