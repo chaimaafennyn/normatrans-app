@@ -4,7 +4,7 @@ import plotly.express as px
 import folium
 from streamlit_folium import st_folium
 from math import radians, cos, sin, asin, sqrt
-from folium.plugins import Search, FeatureGroup
+from folium.plugins import Search
 from database import (
     get_zones,
     insert_localite,
