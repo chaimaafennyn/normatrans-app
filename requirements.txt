@@ -15,3 +15,5 @@ openai
 langchain
 huggingface_hub
 transformers
+langchain-community
+
