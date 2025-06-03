@@ -164,23 +164,43 @@ st.dataframe(
 st.subheader("🗺️ Carte interactive des localités")
 
 
-
 m = folium.Map(location=[coord_agence["Latitude_agence"], coord_agence["Longitude_agence"]], zoom_start=9)
+
+# Ajouter le marker de l'agence
 folium.CircleMarker(
     location=[coord_agence["Latitude_agence"], coord_agence["Longitude_agence"]],
     radius=8, color="black", fill=True, fill_opacity=1.0,
     popup=f"Agence : {agence_selectionnee}"
 ).add_to(m)
 
-colors = {"Zone 1": "green", "Zone 2": "orange", "Zone 3": "red"}
+# Groupe pour les localités
+localites_group = folium.FeatureGroup(name="Localités")
+
+# Ajouter les localités dans le groupe
 for _, row in df_agence.iterrows():
-    folium.CircleMarker(
+    marker = folium.CircleMarker(
         location=[row["Latitude"], row["Longitude"]],
-        radius=5, color=colors.get(row["Zone"], "gray"), fill=True, fill_opacity=0.7,
-        popup=f'{row["Commune"]} - {row["Zone"]} ({row["Distance (km)"]} km)'
-    ).add_to(m)
+        radius=5,
+        color=colors.get(row["Zone"], "gray"),
+        fill=True,
+        fill_opacity=0.7,
+        popup=row["Commune"]  # Important : la recherche s'appuie là-dessus
+    )
+    marker.add_to(localites_group)
+
+localites_group.add_to(m)
+
+# Ajout du contrôle de recherche
+Search(
+    layer=localites_group,
+    search_label="popup",
+    placeholder="🔍 Rechercher une commune...",
+    collapsed=False
+).add_to(m)
 
 st_folium(m, width=1100, height=600)
+
+
 st.download_button(
     label="📥 Télécharger les données de cette agence",
     data=df_agence.to_csv(index=False),
