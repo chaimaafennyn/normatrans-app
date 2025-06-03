@@ -177,6 +177,7 @@ folium.CircleMarker(
 localites_group = folium.FeatureGroup(name="Localités")
 
 # Ajouter les localités dans le groupe
+colors = {"Zone 1": "green", "Zone 2": "orange", "Zone 3": "red"}
 for _, row in df_agence.iterrows():
     marker = folium.CircleMarker(
         location=[row["Latitude"], row["Longitude"]],
