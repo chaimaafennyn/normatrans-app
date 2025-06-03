@@ -7,14 +7,16 @@ from langchain_experimental.agents.agent_toolkits import create_pandas_dataframe
 
 st.title("🤖 Chatbot IA sur fichier CSV (via Hugging Face)")
 
-if "HUGGINGFACEHUB_API_TOKEN" not in st.secrets:
-    st.error("❌ Clé API Hugging Face manquante dans secrets.")
-    st.stop()
 
 
 # === Configuration du token (stocké dans secrets.toml) 
 HUGGINGFACEHUB_API_TOKEN = st.secrets["HUGGINGFACEHUB_API_TOKEN"]
 os.environ["HUGGINGFACEHUB_API_TOKEN"] = HUGGINGFACEHUB_API_TOKEN
+
+if "HUGGINGFACEHUB_API_TOKEN" not in st.secrets:
+    st.error("❌ Clé API Hugging Face manquante dans secrets.")
+    st.stop()
+
 
 # === Upload du fichier CSV
 uploaded_file = st.file_uploader("📄 Uploader un fichier CSV", type=["csv"])
