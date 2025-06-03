@@ -90,6 +90,7 @@ if role == "admin":
         submitted = st.form_submit_button("Ajouter")
     
         if submitted:
+            st.write("🔍 Données à insérer :", commune, zone, code_agence, latitude, longitude, latitude_ag, longitude_ag, distance)
             insert_localite(commune, zone, code_agence, latitude, longitude, latitude_ag, longitude_ag, distance)
             log_action(st.session_state["username"], "Ajout localité", f"{commune} | {zone} | {code_agence}")
             st.success(f"✅ Localité '{commune}' ajoutée avec distance {distance} km.")
