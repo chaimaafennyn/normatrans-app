@@ -66,9 +66,16 @@ if role == "admin":
     
         # Obtenir coordonnées agence sélectionnée
         try:
-            coord_ag = df[df["Code agence"] == code_agence][["Latitude_agence", "Longitude_agence"]].iloc[0]
+            coord_ag = (
+                df[df["Code agence"] == code_agence]
+                .groupby("Code agence")[["Latitude_agence", "Longitude_agence"]]
+                .mean()
+                .reset_index()
+                .iloc[0]
+            )
             latitude_ag = coord_ag["Latitude_agence"]
             longitude_ag = coord_ag["Longitude_agence"]
+
     
             # IA : calculer la distance
             distance_calculee = round(haversine(latitude, longitude, latitude_ag, longitude_ag), 2)
