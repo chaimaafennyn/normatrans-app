@@ -100,6 +100,28 @@ if len(df_eloignees) > 0:
         mime="text/csv"
     )
 
+# === Analyse intelligente : suggérer nouvelle agence
+st.subheader("🏗️ Suggestion intelligente d’ouverture d’agence")
+
+seuil_distance = 40
+seuil_nb_exp = 10  # à ajuster si nécessaire
+
+clusters_concernes = df_unique[
+    (df_unique["Distance (km)"] > seuil_distance) & (df_unique["Nb_expéditions"] > seuil_nb_exp)
+]["Cluster"].unique()
+
+if len(clusters_concernes) > 0:
+    st.error("🚨 Des zones à fort volume et éloignées sont détectées.")
+    for c in clusters_concernes:
+        zone = df_unique[df_unique["Cluster"] == c]
+        st.markdown(f"### 🔹 Cluster {c}")
+        st.markdown(f"- 📍 Moyenne distance : {round(zone['Distance (km)'].mean(), 1)} km")
+        st.markdown(f"- 📦 Total expéditions : {int(zone['Nb_expéditions'].sum())}")
+        st.markdown("✅ **Suggestion : Étudier l’ouverture d’une agence dans cette zone.**")
+else:
+    st.success("✅ Aucun besoin critique détecté pour une nouvelle agence.")
+
+
 # === Export complet
 with st.expander("📄 Voir toutes les données de clustering"):
     st.dataframe(df_unique.sort_values("Cluster"))
