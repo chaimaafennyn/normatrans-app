@@ -10,7 +10,7 @@ import pytz
 db = st.secrets["database"]
 
 def get_agences_coordonnees():
-    response = supabase.table("agences_coordonnees").select("*").execute()
+    response = supabase.table("cordonnee_agence").select("*").execute()
     return pd.DataFrame(response.data)
 
 
