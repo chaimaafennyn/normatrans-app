@@ -84,50 +84,6 @@ if "Latitude" in df_unique.columns and "Longitude" in df_unique.columns:
     st.plotly_chart(fig_map)
 
 
-
-# === Carte géographique des communes (si coordonnées disponibles)
-if "latitude" in df_unique.columns and "longitude" in df_unique.columns:
-    st.subheader("🗺️ Clustering géographique des communes")
-
-    # Ajout d'un point de suggestion d’agence par cluster concerné
-    marker_suggestion = []
-    for cluster in clusters_concernes:
-        cluster_data = df_unique[df_unique["Cluster"] == cluster]
-        if not cluster_data.empty:
-            lat_moy = cluster_data["latitude"].mean()
-            lon_moy = cluster_data["longitude"].mean()
-            marker_suggestion.append({
-                "latitude": lat_moy,
-                "longitude": lon_moy,
-                "texte": f"🔧 Suggestion nouvelle agence (Cluster {cluster})"
-            })
-
-    fig_map = px.scatter_mapbox(
-        df_unique,
-        lat="latitude",
-        lon="longitude",
-        color=df_unique["Cluster"].astype(str),
-        hover_name="Commune",
-        zoom=5,
-        mapbox_style="carto-positron",
-        title="📍 Carte des clusters des communes"
-    )
-
-    # Ajouter les points de suggestion
-    for m in marker_suggestion:
-        fig_map.add_scattermapbox(
-            lat=[m["latitude"]],
-            lon=[m["longitude"]],
-            mode="markers+text",
-            marker=dict(size=14, color="black", symbol="circle"),
-            text=[m["texte"]],
-            textposition="top right",
-            name="Suggestion agence"
-        )
-
-    st.plotly_chart(fig_map)
-
-
 # === Localités éloignées
 st.subheader("🚨 Localités à plus de 40 km de leur agence")
 df_eloignees = df[df["Distance (km)"] > 40].sort_values(by="Distance (km)", ascending=False)
