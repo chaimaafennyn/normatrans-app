@@ -4,6 +4,11 @@ from sklearn.cluster import KMeans
 import plotly.express as px
 from database import get_zones  # ta fonction Supabase
 
+if "authenticated" not in st.session_state or not st.session_state["authenticated"]:
+    st.warning("🚫 Accès non autorisé. Veuillez vous connecter depuis la page principale.")
+    st.stop()
+
+
 st.title("🧠 Clustering des Communes (Distance vs Nombre d’expéditions)")
 
 # === Chargement des données
