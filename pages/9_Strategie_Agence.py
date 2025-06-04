@@ -153,8 +153,8 @@ if "latitude" in df_unique.columns and "longitude" in df_unique.columns:
 
     fig_map = px.scatter_mapbox(
         df_unique,
-        lat="latitude",
-        lon="longitude",
+        lat="Latitude",
+        lon="Longitude",
         color=df_unique["Cluster"].astype(str),
         hover_name="Commune",
         zoom=5,
