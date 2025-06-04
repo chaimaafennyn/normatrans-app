@@ -9,6 +9,11 @@ import pytz
 
 db = st.secrets["database"]
 
+def get_agences_coordonnees():
+    response = supabase.table("agences_coordonnees").select("*").execute()
+    return pd.DataFrame(response.data)
+
+
 def get_engine():
     url = f"postgresql://{db.user}:{db.password}@{db.host}:{db.port}/{db.dbname}"
     return create_engine(url)
