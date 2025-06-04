@@ -6,7 +6,7 @@ from database import get_zones  # Assure-toi que ta fonction existe
 
 st.set_page_config(page_title="Stratégie Agence", layout="wide")
 
-st.title("🧠 Analyse Stratégique des Localités et Agences")
+st.title("🧠 Analyse Stratégique des Localités et Agences") 
 
 # === Chargement
 uploaded_file = st.file_uploader("📄 Upload un fichier CSV (optionnel)", type=["csv"])
