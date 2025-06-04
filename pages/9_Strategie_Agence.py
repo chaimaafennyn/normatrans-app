@@ -69,19 +69,7 @@ fig.add_scatter(
 )
 st.plotly_chart(fig)
 
-# === Carte (si données GPS)
-if "Latitude" in df_unique.columns and "Longitude" in df_unique.columns:
-    st.subheader("🗺️ Carte géographique des clusters")
-    fig_map = px.scatter_mapbox(
-        df_unique,
-        lat="Latitude",
-        lon="Longitude",
-        color=df_unique["Cluster"].astype(str),
-        hover_name="Commune",
-        zoom=5,
-        mapbox_style="carto-positron"
-    )
-    st.plotly_chart(fig_map)
+
 
 
 # === Localités éloignées
