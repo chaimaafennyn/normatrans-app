@@ -126,6 +126,59 @@ else:
 with st.expander("📄 Voir toutes les données de clustering"):
     st.dataframe(df_unique.sort_values("Cluster"))
 
+from math import radians, cos, sin, asin, sqrt
+
+# Fonction de calcul de distance (haversine)
+def haversine(lat1, lon1, lat2, lon2):
+    R = 6371  # rayon de la Terre en km
+    dlat = radians(lat2 - lat1)
+    dlon = radians(lon2 - lon1)
+    a = sin(dlat / 2)**2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2)**2
+    c = 2 * asin(sqrt(a))
+    return R * c
+
+st.subheader("🔁 Réaffectation des localités à une agence plus proche")
+
+# Toutes les agences avec leurs coordonnées
+agences_df = df.drop_duplicates(subset=["Code agence"])[["Code agence", "Latitude", "Longitude"]].dropna()
+
+localites_reaffectables = []
+
+for _, row in df_eloignees.iterrows():
+    lat_loc, lon_loc = row["Latitude"], row["Longitude"]
+    current_agence = row["Code agence"]
+
+    # Calculer les distances à toutes les autres agences
+    agences_df["distance"] = agences_df.apply(
+        lambda x: haversine(lat_loc, lon_loc, x["Latitude"], x["Longitude"]), axis=1
+    )
+    agences_proches = agences_df.sort_values(by="distance")
+
+    agence_plus_proche = agences_proches.iloc[0]
+    if agence_plus_proche["Code agence"] != current_agence and agence_plus_proche["distance"] < row["Distance (km)"]:
+        localites_reaffectables.append({
+            "Commune": row["Commune"],
+            "Agence actuelle": current_agence,
+            "Distance actuelle (km)": round(row["Distance (km)"], 2),
+            "Agence suggérée": agence_plus_proche["Code agence"],
+            "Distance suggérée (km)": round(agence_plus_proche["distance"], 2)
+        })
+
+# Affichage
+if localites_reaffectables:
+    df_sugg = pd.DataFrame(localites_reaffectables)
+    st.success("✅ Des agences plus proches sont disponibles pour certaines localités.")
+    st.dataframe(df_sugg)
+    st.download_button(
+        "📥 Télécharger les suggestions de réaffectation",
+        data=df_sugg.to_csv(index=False),
+        file_name="suggestions_reaffectation.csv",
+        mime="text/csv"
+    )
+else:
+    st.info("Aucune réaffectation plus optimale détectée.")
+
+
 st.download_button(
     "💾 Télécharger toutes les données (CSV)",
     data=df_unique.to_csv(index=False).encode("utf-8"),
