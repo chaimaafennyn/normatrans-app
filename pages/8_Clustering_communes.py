@@ -45,17 +45,7 @@ fig = px.scatter(
 )
 st.plotly_chart(fig)
 
-st.subheader("clustering geographique des communes")
-fig_map = px.scatter_mapbox(
-    df_unique, 
-    lat="latitude",
-    lon="longitude",
-    color=df_unique["cluster"].astype(str)
-    hover_name="Commune",
-    zoom=5,
-    mapbox_style="carto_positron"
-)
-st.plotly_chart(fig_map)
+
 
 
 # === Aperçu des données
