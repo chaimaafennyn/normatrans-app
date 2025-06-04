@@ -137,9 +137,13 @@ def haversine(lat1, lon1, lat2, lon2):
 st.subheader("🔁 Suggestions de réaffectation à une agence plus proche")
 
 suggestions = []
-agences_data = df.drop_duplicates(subset=["Code agence"])[
-    ["Code agence", "Latitude_agence", "Longitude_agence"]
-].dropna()
+agences_data = (
+    df.dropna(subset=["Latitude_agence", "Longitude_agence"])
+      .groupby("Code agence")[["Latitude_agence", "Longitude_agence"]]
+      .mean()
+      .reset_index()
+)
+
 
 for _, row in df_eloignees.iterrows():
     min_dist = row["Distance (km)"]
