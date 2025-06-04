@@ -12,6 +12,16 @@ if uploaded_file:
     df = pd.read_csv(uploaded_file, sep=";", encoding="latin1")
 else:
     df = get_zones()
+    
+# === Filtrage par agence
+if "code_agence" in df.columns:
+    df = df.rename(columns={"code_agence": "Code agence"})
+agences = df["Code agence"].dropna().unique()
+agence_selectionnee = st.selectbox("🏢 Choisissez une agence :", ["Toutes"] + sorted(agences))
+
+if agence_selectionnee != "Toutes":
+    df = df[df["Code agence"] == agence_selectionnee]
+
 
 # === Nettoyage & préparation
 df = df.rename(columns={
