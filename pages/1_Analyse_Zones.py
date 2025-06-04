@@ -13,12 +13,11 @@ from database import (
     update_localite,
     delete_localite,
     log_action,
-    get_agences_coordonnees  # Ajout de la fonction
 )
 
 # === Authentification requise ===
 if "authenticated" not in st.session_state or not st.session_state["authenticated"]:
-    st.warning("\U0001F6AB Accès non autorisé. Veuillez vous connecter depuis la page principale.")
+    st.warning("🚫 Accès non autorisé. Veuillez vous connecter depuis la page principale.")
     st.stop()
 
 role = st.session_state.get("role", "utilisateur")
@@ -33,8 +32,6 @@ if uploaded_file:
 else:
     df = get_zones()
     st.success("✅ Données chargées depuis Supabase")
-
-agences_df = get_agences_coordonnees()
 
 # Renommer les colonnes pour correspondre à l'affichage
 df = df.rename(columns={
@@ -59,48 +56,52 @@ if role == "admin":
         a = sin(dlat / 2) ** 2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2) ** 2
         c = 2 * asin(sqrt(a))
         return R * c
-
+    
     with st.form("ajout_localite"):
         commune = st.text_input("Commune")
-        agences_existantes = agences_df["code_agence"].dropna().unique()
+        agences_existantes = df["Code agence"].dropna().unique()
         code_agence = st.selectbox("Code Agence", agences_existantes)
         latitude = st.number_input("Latitude", format="%.6f")
         longitude = st.number_input("Longitude", format="%.6f")
-
-        row_ag = agences_df[agences_df["code_agence"] == code_agence]
-        if not row_ag.empty:
-            latitude_ag = row_ag.iloc[0]["latitude"]
-            longitude_ag = row_ag.iloc[0]["longitude"]
-
+    
+        # Obtenir coordonnées agence sélectionnée
+        try:
+            coord_ag = df[df["Code agence"] == code_agence][["Latitude_agence", "Longitude_agence"]].iloc[0]
+            latitude_ag = coord_ag["Latitude_agence"]
+            longitude_ag = coord_ag["Longitude_agence"]
+    
+            # IA : calculer la distance
             distance_calculee = round(haversine(latitude, longitude, latitude_ag, longitude_ag), 2)
             st.markdown(f"📏 **Distance calculée automatiquement : {distance_calculee} km**")
-
+    
+            # IA : suggestion zone automatique
             if distance_calculee <= 20:
                 zone_suggeree = "Zone 1"
             elif distance_calculee <= 40:
                 zone_suggeree = "Zone 2"
             else:
                 zone_suggeree = "Zone 3"
-
+    
             zone = st.selectbox("Zone", ["Zone 1", "Zone 2", "Zone 3"],
-                                 index=["Zone 1", "Zone 2", "Zone 3"].index(zone_suggeree))
-
-            distance = st.number_input("Distance (km)", value=distance_calculee, format="%.2f")
-            submitted = st.form_submit_button("Ajouter")
-
-            if submitted:
-                st.write("🔍 Données à insérer :", commune, zone, code_agence, latitude, longitude, latitude_ag, longitude_ag, distance)
-                insert_localite(commune, zone, code_agence, latitude, longitude, latitude_ag, longitude_ag, distance)
-                log_action(st.session_state["username"], "Ajout localité", f"{commune} | {zone} | {code_agence}")
-                st.success(f"✅ Localité '{commune}' ajoutée avec distance {distance} km.")
-                st.cache_data.clear()
-                st.rerun()
-        else:
-            st.error("⚠️ Coordonnées de l'agence introuvables dans la table `agences_coordonnees`.")
+                                index=["Zone 1", "Zone 2", "Zone 3"].index(zone_suggeree))
+    
+        except IndexError:
+            st.error("⚠️ Impossible de trouver les coordonnées de l'agence. Vérifiez les données.")
+            st.stop()
+    
+        distance = st.number_input("Distance (km)", value=distance_calculee, format="%.2f")
+        submitted = st.form_submit_button("Ajouter")
+    
+        if submitted:
+            st.write("🔍 Données à insérer :", commune, zone, code_agence, latitude, longitude, latitude_ag, longitude_ag, distance)
+            insert_localite(commune, zone, code_agence, latitude, longitude, latitude_ag, longitude_ag, distance)
+            log_action(st.session_state["username"], "Ajout localité", f"{commune} | {zone} | {code_agence}")
+            st.success(f"✅ Localité '{commune}' ajoutée avec distance {distance} km.")
+            st.cache_data.clear()
+            st.rerun()
 
 else:
-    st.info("🔐 Lecture seule : vous n'avez pas les droits pour modifier les données.")
-
+    st.info("🔒 Lecture seule : vous n'avez pas les droits pour modifier les données.")
 
 # === Modifier ou Supprimer une localité (admin uniquement) ===
 if role == "admin":
