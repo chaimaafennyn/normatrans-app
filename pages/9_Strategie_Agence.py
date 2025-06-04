@@ -85,7 +85,7 @@ if "Latitude" in df_unique.columns and "Longitude" in df_unique.columns:
 
 # === Localités éloignées
 st.subheader("🚨 Localités à plus de 40 km de leur agence")
-df_eloignees = df[df["Distance (km)"] > 40].sort_values(by="Distance (km)", ascending=False)
+df_eloignees = df[df["Distance (km)"] > 50].sort_values(by="Distance (km)", ascending=False)
 st.warning(f"{len(df_eloignees)} localités dépassent 40 km.")
 
 if len(df_eloignees) > 0:
