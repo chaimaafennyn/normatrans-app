@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from sklearn.cluster import KMeans
 import plotly.express as px
-from database import get_zones  # ou ta propre fonction si tu charges depuis Supabase
+from database import get_zones  # ou ta propre fonction Supabase
 
 st.title("🧠 Clustering des Communes (Distance vs Nombre d’expéditions)")
 
@@ -32,7 +32,11 @@ X = df_unique[["Distance (km)", "Nb_expéditions"]]
 kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init="auto")
 df_unique["Cluster"] = kmeans.fit_predict(X)
 
-# === Affichage
+# === Récupération des centroïdes
+centroids = pd.DataFrame(kmeans.cluster_centers_, columns=["Distance (km)", "Nb_expéditions"])
+centroids["Cluster"] = centroids.index.astype(str)
+
+# === Affichage du graphique de clustering
 st.subheader("📍 Résultat du clustering")
 fig = px.scatter(
     df_unique,
@@ -43,12 +47,41 @@ fig = px.scatter(
     title="Clusters des communes",
     labels={"Cluster": "Groupe"}
 )
+# Ajout des centroïdes au graphique
+fig.add_scatter(
+    x=centroids["Distance (km)"],
+    y=centroids["Nb_expéditions"],
+    mode="markers+text",
+    marker=dict(size=12, symbol="x", color="black"),
+    text=centroids["Cluster"],
+    textposition="top center",
+    name="Centroïdes"
+)
 st.plotly_chart(fig)
 
-
-
+# === Carte géographique des communes (si coordonnées disponibles)
+if "latitude" in df_unique.columns and "longitude" in df_unique.columns:
+    st.subheader("🗺️ Clustering géographique des communes")
+    fig_map = px.scatter_mapbox(
+        df_unique,
+        lat="latitude",
+        lon="longitude",
+        color=df_unique["Cluster"].astype(str),
+        hover_name="Commune",
+        zoom=5,
+        mapbox_style="carto-positron"
+    )
+    st.plotly_chart(fig_map)
 
 # === Aperçu des données
 with st.expander("📄 Voir les données de clustering"):
     st.dataframe(df_unique.sort_values("Cluster"))
 
+# === Téléchargement du résultat
+csv = df_unique.to_csv(index=False).encode("utf-8")
+st.download_button(
+    label="💾 Télécharger les résultats (CSV)",
+    data=csv,
+    file_name="resultats_clustering.csv",
+    mime="text/csv"
+)
