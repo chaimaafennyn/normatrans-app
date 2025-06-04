@@ -143,11 +143,11 @@ if "latitude" in df_unique.columns and "longitude" in df_unique.columns:
     for cluster in clusters_concernes:
         cluster_data = df_unique[df_unique["Cluster"] == cluster]
         if not cluster_data.empty:
-            lat_moy = cluster_data["latitude"].mean()
-            lon_moy = cluster_data["longitude"].mean()
+            lat_moy = cluster_data["Latitude"].mean()
+            lon_moy = cluster_data["Longitude"].mean()
             marker_suggestion.append({
-                "latitude": lat_moy,
-                "longitude": lon_moy,
+                "Latitude": lat_moy,
+                "Longitude": lon_moy,
                 "texte": f"🔧 Suggestion nouvelle agence (Cluster {cluster})"
             })
 
@@ -165,8 +165,8 @@ if "latitude" in df_unique.columns and "longitude" in df_unique.columns:
     # Ajouter les points de suggestion
     for m in marker_suggestion:
         fig_map.add_scattermapbox(
-            lat=[m["latitude"]],
-            lon=[m["longitude"]],
+            lat=[m["Latitude"]],
+            lon=[m["Longitude"]],
             mode="markers+text",
             marker=dict(size=14, color="black", symbol="circle"),
             text=[m["texte"]],
