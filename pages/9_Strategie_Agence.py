@@ -2,20 +2,19 @@ import streamlit as st
 import pandas as pd
 from sklearn.cluster import KMeans
 import plotly.express as px
-from database import get_zones  # Assure-toi que ta fonction existe
+from database import get_zones  # Assure-toi que cette fonction fonctionne bien
 
 st.set_page_config(page_title="Stratégie Agence", layout="wide")
+st.title("🧠 Analyse Stratégique des Localités et Agences")
 
-st.title("🧠 Analyse Stratégique des Localités et Agences") 
-
-# === Chargement
+# === Chargement des données
 uploaded_file = st.file_uploader("📄 Upload un fichier CSV (optionnel)", type=["csv"])
 if uploaded_file:
     df = pd.read_csv(uploaded_file, sep=";", encoding="latin1")
 else:
     df = get_zones()
 
-# === Nettoyage
+# === Nettoyage et renommage
 df = df.rename(columns={
     "commune": "Commune",
     "distance_km": "Distance (km)",
@@ -33,7 +32,7 @@ agence_selectionnee = st.selectbox("🏢 Choisissez une agence :", ["Toutes"] + 
 if agence_selectionnee != "Toutes":
     df = df[df["Code agence"] == agence_selectionnee]
 
-# === Nombre d’expéditions par commune
+# === Ajout du nombre d’expéditions par commune
 df["Nb_expéditions"] = df.groupby("Commune")["Commune"].transform("count")
 df_unique = df.drop_duplicates(subset=["Commune"]).copy()
 
@@ -69,15 +68,27 @@ fig.add_scatter(
 )
 st.plotly_chart(fig)
 
-
-
+# === Carte géographique des clusters
+if "Latitude" in df_unique.columns and "Longitude" in df_unique.columns:
+    st.subheader("🗺️ Carte géographique des clusters")
+    fig_map = px.scatter_mapbox(
+        df_unique,
+        lat="Latitude",
+        lon="Longitude",
+        color=df_unique["Cluster"].astype(str),
+        hover_name="Commune",
+        zoom=5,
+        mapbox_style="carto-positron",
+        title="📍 Carte des clusters des communes"
+    )
+    st.plotly_chart(fig_map)
 
 # === Localités éloignées
 st.subheader("🚨 Localités à plus de 40 km de leur agence")
 df_eloignees = df[df["Distance (km)"] > 40].sort_values(by="Distance (km)", ascending=False)
 st.warning(f"{len(df_eloignees)} localités dépassent 40 km.")
 
-if len(df_eloignees) > 0:
+if not df_eloignees.empty:
     st.dataframe(df_eloignees[["Commune", "Code agence", "Distance (km)"]])
     st.markdown("💡 **Suggestions :**")
     st.markdown("- Réaffecter à une agence plus proche")
@@ -89,14 +100,15 @@ if len(df_eloignees) > 0:
         mime="text/csv"
     )
 
-# === Analyse intelligente : suggérer nouvelle agence
+# === Suggestion intelligente de nouvelle agence
 st.subheader("🏗️ Suggestion intelligente d’ouverture d’agence")
 
 seuil_distance = 40
-seuil_nb_exp = 3  
+seuil_nb_exp = 3
 
 clusters_concernes = df_unique[
-    (df_unique["Distance (km)"] > seuil_distance) & (df_unique["Nb_expéditions"] > seuil_nb_exp)
+    (df_unique["Distance (km)"] > seuil_distance) & 
+    (df_unique["Nb_expéditions"] > seuil_nb_exp)
 ]["Cluster"].unique()
 
 if len(clusters_concernes) > 0:
@@ -110,7 +122,6 @@ if len(clusters_concernes) > 0:
 else:
     st.success("✅ Aucun besoin critique détecté pour une nouvelle agence.")
 
-
 # === Export complet
 with st.expander("📄 Voir toutes les données de clustering"):
     st.dataframe(df_unique.sort_values("Cluster"))
@@ -121,46 +132,3 @@ st.download_button(
     file_name="resultats_strategie_agence.csv",
     mime="text/csv"
 )
-
-# === Carte géographique des communes (si coordonnées disponibles)
-if "latitude" in df_unique.columns and "longitude" in df_unique.columns:
-    st.subheader("🗺️ Clustering géographique des communes")
-
-    # Ajout d'un point de suggestion d’agence par cluster concerné
-    marker_suggestion = []
-    for cluster in clusters_concernes:
-        cluster_data = df_unique[df_unique["Cluster"] == cluster]
-        if not cluster_data.empty:
-            lat_moy = cluster_data["Latitude"].mean()
-            lon_moy = cluster_data["Longitude"].mean()
-            marker_suggestion.append({
-                "Latitude": lat_moy,
-                "Longitude": lon_moy,
-                "texte": f"🔧 Suggestion nouvelle agence (Cluster {cluster})"
-            })
-
-    fig_map = px.scatter_mapbox(
-        df_unique,
-        lat="Latitude",
-        lon="Longitude",
-        color=df_unique["Cluster"].astype(str),
-        hover_name="Commune",
-        zoom=5,
-        mapbox_style="carto-positron",
-        title="📍 Carte des clusters des communes"
-    )
-
-    # Ajouter les points de suggestion
-    for m in marker_suggestion:
-        fig_map.add_scattermapbox(
-            lat=[m["Latitude"]],
-            lon=[m["Longitude"]],
-            mode="markers+text",
-            marker=dict(size=14, color="black", symbol="circle"),
-            text=[m["texte"]],
-            textposition="top right",
-            name="Suggestion agence"
-        )
-
-    st.plotly_chart(fig_map)
-
