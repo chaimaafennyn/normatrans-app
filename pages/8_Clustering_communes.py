@@ -45,10 +45,6 @@ fig = px.scatter(
 )
 st.plotly_chart(fig)
 
-# === Aperçu des données
-with st.expander("📄 Voir les données de clustering"):
-    st.dataframe(df_unique.sort_values("Cluster"))
-
 st.subheader("clustering geographique des communes")
 fig_map = px.scatter_mapbox(
     df_unique, 
@@ -60,3 +56,9 @@ fig_map = px.scatter_mapbox(
     mapbox_style="carto_positron"
 )
 st.plotly_chart(fig_map)
+
+
+# === Aperçu des données
+with st.expander("📄 Voir les données de clustering"):
+    st.dataframe(df_unique.sort_values("Cluster"))
+
