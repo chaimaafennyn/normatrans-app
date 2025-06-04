@@ -20,7 +20,9 @@ df = df.rename(columns={
     "distance_km": "Distance (km)",
     "code_agence": "Code agence",
     "latitude": "Latitude",
-    "longitude": "Longitude"
+    "longitude": "Longitude",
+    "latitude_agence": "Latitude_agence",
+    "longitude_agence": "Longitude_agence"
 })
 df.columns = df.columns.str.strip()
 df = df.dropna(subset=["Commune", "Distance (km)"])
@@ -140,7 +142,7 @@ def haversine(lat1, lon1, lat2, lon2):
 st.subheader("🔁 Réaffectation des localités à une agence plus proche")
 
 # Toutes les agences avec leurs coordonnées
-agences_df = df.drop_duplicates(subset=["Code agence"])[["Code agence", "Latitude", "Longitude"]].dropna()
+agences_df = df.drop_duplicates(subset=["Code agence"])[["Code agence", "Latitude_agence", "Longitude_agence"]].dropna()
 
 localites_reaffectables = []
 
