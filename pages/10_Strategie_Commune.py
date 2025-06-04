@@ -5,7 +5,7 @@ import plotly.express as px
 from database import get_zones
 
 st.set_page_config(page_title="Stratégie Agence", layout="wide")
-st.title("🧠 Analyse Stratégique des Localités et Agences <3")
+st.title("🧠 Analyse Stratégique des Localités et Agences ")
 
 # === Chargement des données
 uploaded_file = st.file_uploader("📄 Upload un fichier CSV (optionnel)", type=["csv"])
