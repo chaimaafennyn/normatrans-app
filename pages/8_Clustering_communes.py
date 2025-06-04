@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from sklearn.cluster import KMeans
 import plotly.express as px
-from database import get_zones  # ou ta propre fonction Supabase
+from database import get_zones
 
 st.title("🧠 Clustering des Communes (Distance vs Nombre d’expéditions)")
 
@@ -12,16 +12,6 @@ if uploaded_file:
     df = pd.read_csv(uploaded_file, sep=";", encoding="latin1")
 else:
     df = get_zones()
-    
-# === Filtrage par agence
-if "code_agence" in df.columns:
-    df = df.rename(columns={"code_agence": "Code agence"})
-agences = df["Code agence"].dropna().unique()
-agence_selectionnee = st.selectbox("🏢 Choisissez une agence :", ["Toutes"] + sorted(agences))
-
-if agence_selectionnee != "Toutes":
-    df = df[df["Code agence"] == agence_selectionnee]
-
 
 # === Nettoyage & préparation
 df = df.rename(columns={
@@ -34,64 +24,51 @@ df = df.dropna(subset=["Commune", "Distance (km)"])
 df["Nb_expéditions"] = df.groupby("Commune")["Commune"].transform("count")
 df_unique = df.drop_duplicates(subset=["Commune"]).copy()
 
+# === Filtrage par agence
+agences = df_unique["Code agence"].dropna().unique()
+agence_choisie = st.selectbox("🏢 Sélectionnez une agence :", agences)
+df_unique = df_unique[df_unique["Code agence"] == agence_choisie]
+
 # === Choix du nombre de clusters
 n_clusters = st.slider("🔢 Nombre de groupes à créer", 2, 6, 3)
 
-# === Clustering avec KMeans
+# === Clustering
 X = df_unique[["Distance (km)", "Nb_expéditions"]]
-kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init="auto")
+kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init=10)
 df_unique["Cluster"] = kmeans.fit_predict(X)
 
-# === Récupération des centroïdes
-centroids = pd.DataFrame(kmeans.cluster_centers_, columns=["Distance (km)", "Nb_expéditions"])
-centroids["Cluster"] = centroids.index.astype(str)
+# === Catégorisation métier
+def categorize(row):
+    if row["Distance (km)"] <= 20 and row["Nb_expéditions"] < 10:
+        return "À dynamiser"
+    elif row["Distance (km)"] > 20 and row["Nb_expéditions"] > 20:
+        return "À surveiller"
+    else:
+        return "Normal"
 
-# === Affichage du graphique de clustering
-st.subheader("📍 Résultat du clustering")
+df_unique["Catégorie"] = df_unique.apply(categorize, axis=1)
+
+# === Visualisation
 fig = px.scatter(
     df_unique,
     x="Distance (km)",
     y="Nb_expéditions",
-    color=df_unique["Cluster"].astype(str),
-    hover_data=["Commune"],
-    title="Clusters des communes",
+    color="Cluster",
+    hover_data=["Commune", "Catégorie"],
+    title=f"Clusters des communes pour l'agence {agence_choisie}",
     labels={"Cluster": "Groupe"}
-)
-# Ajout des centroïdes au graphique
-fig.add_scatter(
-    x=centroids["Distance (km)"],
-    y=centroids["Nb_expéditions"],
-    mode="markers+text",
-    marker=dict(size=12, symbol="x", color="black"),
-    text=centroids["Cluster"],
-    textposition="top center",
-    name="Centroïdes"
 )
 st.plotly_chart(fig)
 
-# === Carte géographique des communes (si coordonnées disponibles)
-if "latitude" in df_unique.columns and "longitude" in df_unique.columns:
-    st.subheader("🗺️ Clustering géographique des communes")
-    fig_map = px.scatter_mapbox(
-        df_unique,
-        lat="latitude",
-        lon="longitude",
-        color=df_unique["Cluster"].astype(str),
-        hover_name="Commune",
-        zoom=5,
-        mapbox_style="carto-positron"
-    )
-    st.plotly_chart(fig_map)
-
 # === Aperçu des données
 with st.expander("📄 Voir les données de clustering"):
-    st.dataframe(df_unique.sort_values("Cluster"))
+    st.dataframe(df_unique)
 
-# === Téléchargement du résultat
+# === Téléchargement
 csv = df_unique.to_csv(index=False).encode("utf-8")
 st.download_button(
     label="💾 Télécharger les résultats (CSV)",
     data=csv,
-    file_name="resultats_clustering.csv",
+    file_name=f"clustering_{agence_choisie}.csv",
     mime="text/csv"
 )
