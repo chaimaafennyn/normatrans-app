@@ -104,7 +104,7 @@ if len(df_eloignees) > 0:
 st.subheader("🏗️ Suggestion intelligente d’ouverture d’agence")
 
 seuil_distance = 50
-seuil_nb_exp = 10  # à ajuster si nécessaire
+seuil_nb_exp = 2  
 
 clusters_concernes = df_unique[
     (df_unique["Distance (km)"] > seuil_distance) & (df_unique["Nb_expéditions"] > seuil_nb_exp)
