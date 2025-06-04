@@ -105,10 +105,20 @@ if "latitude" in df_unique.columns and "longitude" in df_unique.columns:
         mapbox_style="carto-positron"
     )
     st.plotly_chart(fig_map)
+    
+# === Filtrage interactif : afficher uniquement les anomalies
+st.subheader("📋 Données de clustering")
 
-# === Table des résultats
-with st.expander("📄 Voir les données de clustering"):
-    st.dataframe(df_unique.sort_values("Cluster"))
+afficher_anomalies = st.checkbox("🔍 Afficher uniquement les localités avec anomalies")
+
+if afficher_anomalies:
+    df_affichage = df_unique[df_unique["Anomalie"] != ""]
+    st.warning("🧠 Vous affichez uniquement les communes avec anomalies détectées.")
+else:
+    df_affichage = df_unique
+
+st.dataframe(df_affichage.sort_values("Cluster"))
+
 
 # === Export CSV
 csv = df_unique.to_csv(index=False).encode("utf-8")
