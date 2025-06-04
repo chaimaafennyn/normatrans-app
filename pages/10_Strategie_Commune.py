@@ -123,6 +123,62 @@ else:
 with st.expander("📄 Voir toutes les données de clustering"):
     st.dataframe(df_unique.sort_values("Cluster"))
 
+from math import radians, cos, sin, asin, sqrt
+
+# Fonction pour calculer la distance Haversine
+def haversine(lat1, lon1, lat2, lon2):
+    R = 6371  # rayon de la Terre en km
+    dlat = radians(lat2 - lat1)
+    dlon = radians(lon2 - lon1)
+    a = sin(dlat / 2)**2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2)**2
+    c = 2 * asin(sqrt(a))
+    return R * c
+
+st.subheader("🔁 Suggestions de réaffectation à une agence plus proche")
+
+suggestions = []
+agences_data = df.drop_duplicates(subset=["Code agence"])[
+    ["Code agence", "Latitude_agence", "Longitude_agence"]
+].dropna()
+
+for _, row in df_eloignees.iterrows():
+    min_dist = row["Distance (km)"]
+    current_agence = row["Code agence"]
+    best_agence = current_agence
+
+    for _, agence in agences_data.iterrows():
+        lat_ag, lon_ag = agence["Latitude_agence"], agence["Longitude_agence"]
+        dist = haversine(row["Latitude"], row["Longitude"], lat_ag, lon_ag)
+
+        if dist < min_dist:
+            min_dist = dist
+            best_agence = agence["Code agence"]
+
+    if best_agence != current_agence:
+        suggestions.append({
+            "Commune": row["Commune"],
+            "Agence actuelle": current_agence,
+            "Agence suggérée": best_agence,
+            "Distance actuelle (km)": round(row["Distance (km)"], 1),
+            "Distance suggérée (km)": round(min_dist, 1)
+        })
+
+# Affichage
+if suggestions:
+    st.success(f"✅ {len(suggestions)} localités peuvent être réaffectées à une agence plus proche.")
+    suggestions_df = pd.DataFrame(suggestions)
+    st.dataframe(suggestions_df)
+
+    st.download_button(
+        "📥 Télécharger les suggestions de réaffectation",
+        data=suggestions_df.to_csv(index=False),
+        file_name="suggestions_reaffectation.csv",
+        mime="text/csv"
+    )
+else:
+    st.info("ℹ️ Aucune meilleure agence trouvée pour réaffectation.")
+
+
 st.download_button(
     "💾 Télécharger toutes les données (CSV)",
     data=df_unique.to_csv(index=False).encode("utf-8"),
