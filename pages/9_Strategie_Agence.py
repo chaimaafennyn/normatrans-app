@@ -84,9 +84,9 @@ if "Latitude" in df_unique.columns and "Longitude" in df_unique.columns:
     st.plotly_chart(fig_map)
 
 # === Localités éloignées
-st.subheader("🚨 Localités à plus de 40 km de leur agence")
+st.subheader("🚨 Localités à plus de 50 km de leur agence")
 df_eloignees = df[df["Distance (km)"] > 50].sort_values(by="Distance (km)", ascending=False)
-st.warning(f"{len(df_eloignees)} localités dépassent 40 km.")
+st.warning(f"{len(df_eloignees)} localités dépassent 50 km.")
 
 if len(df_eloignees) > 0:
     st.dataframe(df_eloignees[["Commune", "Code agence", "Distance (km)"]])
@@ -103,7 +103,7 @@ if len(df_eloignees) > 0:
 # === Analyse intelligente : suggérer nouvelle agence
 st.subheader("🏗️ Suggestion intelligente d’ouverture d’agence")
 
-seuil_distance = 40
+seuil_distance = 50
 seuil_nb_exp = 10  # à ajuster si nécessaire
 
 clusters_concernes = df_unique[
