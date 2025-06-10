@@ -186,6 +186,35 @@ if suggestions:
 else:
     st.info("ℹ️ Aucune meilleure agence trouvée pour réaffectation.")
 
+from shapely.geometry import MultiPoint
+import folium
+
+st.subheader("🏗️ Suggestion stratégique : où ouvrir une nouvelle agence ?")
+
+suggestion_coords = []  # pour générer la carte finale
+
+for c in clusters_concernes:
+    zone = df_unique[df_unique["Cluster"] == c]
+    points = list(zip(zone["Longitude"], zone["Latitude"]))
+    
+    if len(points) >= 3:  # au moins 3 points pour éviter erreur
+        center = MultiPoint(points).centroid
+        lat_sugg, lon_sugg = center.y, center.x
+
+        st.markdown(f"### 🧭 Cluster {c}")
+        st.markdown(f"- 📍 Centre géographique : `{lat_sugg:.5f}, {lon_sugg:.5f}`")
+        st.markdown(f"- Moyenne distance : {round(zone['Distance (km)'].mean(), 1)} km")
+        st.markdown(f"- Nombre total d’expéditions : {int(zone['Nb_expéditions'].sum())}")
+        st.markdown("✅ **Suggestion : Étudier l’ouverture d’une agence ici.**")
+
+        suggestion_coords.append({
+            "Cluster": c,
+            "Latitude": lat_sugg,
+            "Longitude": lon_sugg,
+            "Expéditions": int(zone['Nb_expéditions'].sum())
+        })
+
+
 
 st.download_button(
     "💾 Télécharger toutes les données (CSV)",
