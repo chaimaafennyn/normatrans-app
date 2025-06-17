@@ -20,7 +20,7 @@ def get_engine():
 
 def get_zones():
     engine = get_engine()
-    query = "SELECT * FROM zones_localites"
+    query = "SELECT * FROM zones_localites1"
     return pd.read_sql(query, engine)
 
 def get_tranches():
@@ -38,7 +38,7 @@ def get_palette():
 def insert_localite(commune, zone, code_agence, lat, lon, lat_ag, lon_ag, distance):
     engine = get_engine()
     query = text("""
-        INSERT INTO zones_localites 
+        INSERT INTO zones_localites1
         (commune, zone, code_agence, latitude, longitude, latitude_agence, longitude_agence, distance_km)
         VALUES (:commune, :zone, :code_agence, :lat, :lon, :lat_ag, :lon_ag, :distance)
     """)
@@ -59,7 +59,7 @@ def insert_localite(commune, zone, code_agence, lat, lon, lat_ag, lon_ag, distan
 def update_localite(id, commune, zone, code_agence, lat, lon, lat_ag, lon_ag, distance):
     engine = get_engine()
     query = text("""
-        UPDATE zones_localites
+        UPDATE zones_localites1
         SET commune = :commune,
             zone = :zone,
             code_agence = :code_agence,
@@ -85,7 +85,7 @@ def update_localite(id, commune, zone, code_agence, lat, lon, lat_ag, lon_ag, di
 
 def delete_localite(id):
     engine = get_engine()
-    query = text("DELETE FROM zones_localites WHERE id = :id")
+    query = text("DELETE FROM zones_localites1 WHERE id = :id")
     with engine.begin() as conn:
         conn.execute(query, {"id": id})
 
