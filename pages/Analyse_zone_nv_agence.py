@@ -6,7 +6,9 @@ from streamlit_folium import st_folium
 from folium.plugins import Search
 from folium import FeatureGroup
 
-from database import get_zones_nv_agence  # version propre
+# coordonnées fixes de la nouvelle agence
+latitude_agence = 49.123456   # ← remplace par la vraie latitude
+longitude_agence = -0.654321  # ← remplace par la vraie longitude
 
 # Vérifier authentification
 if "authenticated" not in st.session_state or not st.session_state["authenticated"]:
@@ -15,23 +17,26 @@ if "authenticated" not in st.session_state or not st.session_state["authenticate
 
 st.title("📍 Analyse des Zones - Nouvelle Agence")
 
-# Charger les données
-df = get_zones_nv_agence()
+# Charger le CSV généré
+df = pd.read_csv(
+    "zones_nv_agence_avec_zone.csv",  # nom du fichier
+    sep=";", 
+    encoding="latin1"
+)
+
 if df.empty:
     st.error("Aucune donnée disponible pour la nouvelle agence.")
     st.stop()
 
-st.success("✅ Données chargées depuis Supabase")
+st.success("✅ Données chargées depuis le fichier CSV")
 
 # Nettoyer et renommer les colonnes
 df = df.rename(columns={
-    "commune": "Commune",
-    "latitude": "Latitude",
-    "longitude": "Longitude",
-    "zone": "Zone",
-    "Distance_nouvelle_agence_km": "Distance (km)",
-    "latitude_agence": "Latitude_agence",
-    "longitude_agence": "Longitude_agence"
+    "Commune": "Commune",
+    "Latitude": "Latitude",
+    "Longitude": "Longitude",
+    "Zone": "Zone",
+    "Distance_nouvelle_agence_km": "Distance (km)"
 }).dropna(subset=["Latitude", "Longitude"])
 
 # 📊 Statistiques
@@ -51,26 +56,27 @@ fig = px.histogram(
 )
 st.plotly_chart(fig)
 
-st.write("### 📏 Distances moyennes par zone")
-st.dataframe(
-    df.groupby("Zone")["Distance (km)"]
-    .agg(["count", "mean"])
-    .rename(columns={"count": "Nb localités", "mean": "Distance moyenne (km)"})
-    .round(2)
-)
+if "Distance (km)" in df.columns:
+    st.write("### 📏 Distances moyennes par zone")
+    st.dataframe(
+        df.groupby("Zone")["Distance (km)"]
+        .agg(["count", "mean"])
+        .rename(columns={"count": "Nb localités", "mean": "Distance moyenne (km)"})
+        .round(2)
+    )
+else:
+    st.warning("⚠️ Colonne 'Distance (km)' absente des données.")
 
 # 🗺️ Carte interactive
 st.subheader("🗺️ Carte interactive des localités")
 
-coord_agence = df[["Latitude_agence", "Longitude_agence"]].iloc[0]
-
 m = folium.Map(
-    location=[coord_agence["Latitude_agence"], coord_agence["Longitude_agence"]],
+    location=[latitude_agence, longitude_agence],
     zoom_start=9
 )
 
 folium.Marker(
-    location=[coord_agence["Latitude_agence"], coord_agence["Longitude_agence"]],
+    location=[latitude_agence, longitude_agence],
     popup="Nouvelle Agence",
     icon=folium.Icon(color="blue", icon="building")
 ).add_to(m)
@@ -104,7 +110,7 @@ st_folium(m, width=1100, height=600)
 # 📥 Télécharger les données
 st.download_button(
     label="📥 Télécharger les données",
-    data=df.to_csv(index=False),
+    data=df.to_csv(index=False, sep=";"),
     file_name="localites_nouvelle_agence.csv",
     mime='text/csv'
 )
