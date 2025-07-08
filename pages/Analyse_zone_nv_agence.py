@@ -5,6 +5,7 @@ import folium
 from streamlit_folium import st_folium
 from folium.plugins import Search
 from folium import FeatureGroup
+from database import get_zones_nv_agence  # on utilise la BDD
 
 # coordonnées fixes de la nouvelle agence
 latitude_agence = 49.123456   # ← remplace par la vraie latitude
@@ -17,26 +18,22 @@ if "authenticated" not in st.session_state or not st.session_state["authenticate
 
 st.title("📍 Analyse des Zones - Nouvelle Agence")
 
-# Charger le CSV généré
-df = pd.read_csv(
-    "zones_nv_agence_avec_zone.csv",  # nom du fichier
-    sep=";", 
-    encoding="latin1"
-)
+# Charger depuis Supabase
+df = get_zones_nv_agence()
 
 if df.empty:
     st.error("Aucune donnée disponible pour la nouvelle agence.")
     st.stop()
 
-st.success("✅ Données chargées depuis le fichier CSV")
+st.success("✅ Données chargées depuis Supabase")
 
 # Nettoyer et renommer les colonnes
 df = df.rename(columns={
-    "Commune": "Commune",
-    "Latitude": "Latitude",
-    "Longitude": "Longitude",
-    "Zone": "Zone",
-    "Distance_nouvelle_agence_km": "Distance (km)"
+    "commune": "Commune",
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "zone": "Zone",
+    "distance_nouvelle_agence_km": "Distance (km)"
 }).dropna(subset=["Latitude", "Longitude"])
 
 # 📊 Statistiques
