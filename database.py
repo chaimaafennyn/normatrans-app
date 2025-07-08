@@ -9,9 +9,10 @@ import pytz
 
 db = st.secrets["database"]
 
-def get_agences_coordonnees():
-    response = supabase.table("cordonnee_agence").select("*").execute()
-    return pd.DataFrame(response.data)
+def get_zones_nv_agence():
+    engine = get_engine()
+    query = "SELECT * FROM zones_nv_agence"
+    return pd.read_sql(query, engine)
 
 
 def get_engine():
