@@ -1,15 +1,15 @@
 import streamlit as st
 import pandas as pd
-from math import radians, sin, cos, sqrt, asin
 import plotly.express as px
 import folium
 from streamlit_folium import st_folium
 from folium.plugins import Search
 from folium import FeatureGroup
+from math import radians, sin, cos, sqrt, asin
 
 from database import (
-    get_zones,
-    get_agences,
+    get_zones_nv_agence,
+    get_agences_coordonnees
 )
 
 # === Authentification requise ===
@@ -17,11 +17,15 @@ if "authenticated" not in st.session_state or not st.session_state["authenticate
     st.warning("🚫 Accès non autorisé. Veuillez vous connecter depuis la page principale.")
     st.stop()
 
-st.title("🔎 Analyse des zones avec la nouvelle agence NT50X")
+st.title("🔎 Analyse des zones - Nouvelle agence NT50X")
 
 # === Charger données depuis Supabase
-df_localites = pd.DataFrame(get_zones())      # table `localites`
-df_agences = pd.DataFrame(get_agences())      # table `agences`
+df_localites = get_zones_nv_agence()
+df_agences = get_agences_coordonnees()
+
+if df_localites.empty or df_agences.empty:
+    st.error("⚠️ Données manquantes dans Supabase.")
+    st.stop()
 
 # === Jointure localités + coordonnées agences
 df = df_localites.merge(
@@ -35,7 +39,7 @@ if df["latitude_agence"].isna().any():
     st.error("⚠️ Certaines agences n'ont pas de coordonnées dans Supabase.")
     st.stop()
 
-# === Fonction haversine
+# === Fonction Haversine
 def haversine(lat1, lon1, lat2, lon2):
     R = 6371
     dlat = radians(lat2 - lat1)
@@ -44,26 +48,27 @@ def haversine(lat1, lon1, lat2, lon2):
     c = 2 * asin(sqrt(a))
     return R * c
 
-# === Calculs distance et zone
+# === Calcul distance & zone
 df["distance_km"] = df.apply(
-    lambda row: round(haversine(row["latitude"], row["longitude"],
-                                row["latitude_agence"], row["longitude_agence"]), 2),
-    axis=1
+    lambda row: round(haversine(
+        row["latitude"], row["longitude"],
+        row["latitude_agence"], row["longitude_agence"]
+    ), 2), axis=1
 )
 
 df["zone"] = df["distance_km"].apply(
     lambda d: "Zone 1" if d <= 20 else ("Zone 2" if d <= 40 else "Zone 3")
 )
 
-# === Téléchargement CSV recalculé
+# === Bouton pour exporter CSV
 st.download_button(
-    label="📥 Télécharger le fichier recalculé",
+    label="📥 Télécharger les données recalculées",
     data=df.to_csv(index=False, sep=";", encoding="utf-8"),
-    file_name="localites_recalculées.csv",
+    file_name="zones_nv_agence_recalculées.csv",
     mime="text/csv"
 )
 
-# === Sélection agence
+# === Sélection d’une agence
 agences = df["code_agence"].dropna().unique()
 agence_selectionnee = st.sidebar.selectbox("🏢 Choisissez une agence :", agences)
 df_agence = df[df["code_agence"] == agence_selectionnee]
