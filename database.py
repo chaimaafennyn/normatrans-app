@@ -107,3 +107,8 @@ def log_action(username, action, details):
             "details": details,
             "timestamp": get_local_time()  
         })
+
+
+def get_zones_nv_agence():
+    res = supabase.table("zones_nv_agence").select("*").execute()
+    return res.data
