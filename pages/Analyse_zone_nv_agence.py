@@ -60,7 +60,7 @@ df["zone"] = df["distance_km"].apply(
 st.download_button(
     label="📥 Télécharger fichier recalculé",
     data=df.to_csv(index=False, sep=";", encoding="utf-8"),
-    file_name="localites_recalculées.csv",
+    file_name="zones_nv_agence.csv",
     mime="text/csv"
 )
 
