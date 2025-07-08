@@ -7,6 +7,9 @@ from folium.plugins import Search
 from folium import FeatureGroup
 from database import get_zones_nv_agence  # on utilise la BDD
 
+st.session_state["show_content"] = False
+
+
 # coordonnées fixes de la nouvelle agence
 latitude_agence = 49.123456   # ← remplace par la vraie latitude
 longitude_agence = -0.654321  # ← remplace par la vraie longitude
@@ -16,7 +19,6 @@ if "authenticated" not in st.session_state or not st.session_state["authenticate
     st.warning("🚫 Accès non autorisé. Veuillez vous connecter.")
     st.stop()
 
-st.session_state["show_content"] = False
 
 
 st.title("📍 Analyse des Zones - Nouvelle Agence")
