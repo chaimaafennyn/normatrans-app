@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from math import radians, cos, sin, asin, sqrt
+from math import radians, sin, cos, sqrt, asin
 import plotly.express as px
 import folium
 from streamlit_folium import st_folium
@@ -10,7 +10,6 @@ from folium import FeatureGroup
 from database import (
     get_zones,
     get_agences,
-    log_action,
 )
 
 # === Authentification requise ===
@@ -18,17 +17,16 @@ if "authenticated" not in st.session_state or not st.session_state["authenticate
     st.warning("🚫 Accès non autorisé. Veuillez vous connecter depuis la page principale.")
     st.stop()
 
-st.title("🔎 Analyse des Zones de Livraison (avec recalcul)")
+st.title("🔎 Analyse des zones avec la nouvelle agence NT50X")
 
-# === Charger données
-df_localites = pd.DataFrame(get_zones())
-df_agences = pd.DataFrame(get_agences())
+# === Charger données depuis Supabase
+df_localites = pd.DataFrame(get_zones())      # table `localites`
+df_agences = pd.DataFrame(get_agences())      # table `agences`
 
 # === Jointure localités + coordonnées agences
 df = df_localites.merge(
     df_agences,
-    left_on="code_agence",
-    right_on="code_agence",
+    on="code_agence",
     suffixes=("", "_agence"),
     how="left"
 )
@@ -48,7 +46,8 @@ def haversine(lat1, lon1, lat2, lon2):
 
 # === Calculs distance et zone
 df["distance_km"] = df.apply(
-    lambda row: round(haversine(row["latitude"], row["longitude"], row["latitude_agence"], row["longitude_agence"]), 2),
+    lambda row: round(haversine(row["latitude"], row["longitude"],
+                                row["latitude_agence"], row["longitude_agence"]), 2),
     axis=1
 )
 
@@ -58,9 +57,9 @@ df["zone"] = df["distance_km"].apply(
 
 # === Téléchargement CSV recalculé
 st.download_button(
-    label="📥 Télécharger fichier recalculé",
+    label="📥 Télécharger le fichier recalculé",
     data=df.to_csv(index=False, sep=";", encoding="utf-8"),
-    file_name="zones_nv_agence.csv",
+    file_name="localites_recalculées.csv",
     mime="text/csv"
 )
 
@@ -71,7 +70,7 @@ df_agence = df[df["code_agence"] == agence_selectionnee]
 coord_agence = df_agence[["latitude_agence", "longitude_agence"]].iloc[0]
 
 # === Statistiques
-st.subheader("📊 Statistiques générales")
+st.subheader(f"📊 Statistiques pour l'agence {agence_selectionnee}")
 col1, col2, col3, col4 = st.columns(4)
 col1.metric("Nombre de localités", len(df_agence))
 col2.metric("Zone 1", len(df_agence[df_agence["zone"] == "Zone 1"]))
