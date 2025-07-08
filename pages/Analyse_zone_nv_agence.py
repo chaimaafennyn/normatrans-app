@@ -6,7 +6,7 @@ from streamlit_folium import st_folium
 from folium.plugins import Search
 from folium import FeatureGroup
 
-from database import get_zones_nv_agence  # Fonction qui lit la table Supabase zones_nv_agence
+from database import get_zones_nv_agence  # version propre
 
 # Vérifier authentification
 if "authenticated" not in st.session_state or not st.session_state["authenticated"]:
@@ -108,4 +108,3 @@ st.download_button(
     file_name="localites_nouvelle_agence.csv",
     mime='text/csv'
 )
-
