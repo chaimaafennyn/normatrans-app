@@ -9,11 +9,6 @@ import pytz
 
 db = st.secrets["database"]
 
-def get_zones_nv_agence():
-    engine = get_engine()
-    query = "SELECT * FROM zones_nv_agence"
-    return pd.read_sql(query, engine)
-
 
 def get_engine():
     url = f"postgresql://{db.user}:{db.password}@{db.host}:{db.port}/{db.dbname}"
@@ -108,10 +103,11 @@ def log_action(username, action, details):
             "details": details,
             "timestamp": get_local_time()  
         })
-
+        
 def get_zones_nv_agence():
     engine = get_engine()
     query = "SELECT * FROM zones_nv_agence"
     return pd.read_sql(query, engine)
+
 
 
