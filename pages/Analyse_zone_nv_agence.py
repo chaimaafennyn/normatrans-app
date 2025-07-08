@@ -33,7 +33,7 @@ df = df.rename(columns={
     "latitude": "Latitude",
     "longitude": "Longitude",
     "zone": "Zone",
-    "distance_nouvelle_agence_km": "Distance (km)"
+    "distance_nouvelle_agence_km": "distance_nouvelle_agence_km"
 }).dropna(subset=["Latitude", "Longitude"])
 
 # 📊 Statistiques
