@@ -3,13 +3,16 @@ import pandas as pd
 import plotly.express as px
 import folium
 from streamlit_folium import st_folium
+from math import radians, sin, cos, sqrt, asin
 from folium.plugins import Search
 from folium import FeatureGroup
-from math import radians, sin, cos, sqrt, asin
 
 from database import (
     get_zones_nv_agence,
-    get_agences_coordonnees
+    insert_localite,
+    update_localite,
+    delete_localite,
+    log_action,
 )
 
 # === Authentification requise ===
@@ -17,89 +20,157 @@ if "authenticated" not in st.session_state or not st.session_state["authenticate
     st.warning("🚫 Accès non autorisé. Veuillez vous connecter depuis la page principale.")
     st.stop()
 
-st.title("🔎 Analyse des zones - Nouvelle agence NT50X")
+role = st.session_state.get("role", "utilisateur")
 
-# === Charger données depuis Supabase
-df_localites = get_zones_nv_agence()
-df_agences = get_agences_coordonnees()
+st.title("🔎 Analyse des Zones de Livraison (zones_nv_agence)")
 
-if df_localites.empty or df_agences.empty:
-    st.error("⚠️ Données manquantes dans Supabase.")
-    st.stop()
+uploaded_file = st.file_uploader("📄 Uploader un fichier CSV (optionnel)", type=["csv"])
 
-# === Jointure localités + coordonnées agences
-df = df_localites.merge(
-    df_agences,
-    on="code_agence",
-    suffixes=("", "_agence"),
-    how="left"
-)
+if uploaded_file:
+    df = pd.read_csv(uploaded_file, sep=";", encoding="latin1")
+    st.success("✅ Fichier CSV chargé")
+else:
+    df = get_zones_nv_agence()
+    st.success("✅ Données chargées depuis Supabase (zones_nv_agence)")
 
-if df["latitude_agence"].isna().any():
-    st.error("⚠️ Certaines agences n'ont pas de coordonnées dans Supabase.")
-    st.stop()
+# Renommer les colonnes pour correspondre à l'affichage
+df = df.rename(columns={
+    "commune": "Commune",
+    "code_agence": "Code agence",
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "zone": "Zone",
+    "distance_km": "Distance (km)",
+    "latitude_agence": "Latitude_agence",
+    "longitude_agence": "Longitude_agence"
+})
 
-# === Fonction Haversine
-def haversine(lat1, lon1, lat2, lon2):
-    R = 6371
-    dlat = radians(lat2 - lat1)
-    dlon = radians(lon2 - lon1)
-    a = sin(dlat / 2)**2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2)**2
-    c = 2 * asin(sqrt(a))
-    return R * c
+df.columns = df.columns.str.strip()
 
-# === Calcul distance & zone
-df["distance_km"] = df.apply(
-    lambda row: round(haversine(
-        row["latitude"], row["longitude"],
-        row["latitude_agence"], row["longitude_agence"]
-    ), 2), axis=1
-)
+# === Ajouter une localité (admin uniquement) ===
+if role == "admin":
+    def haversine(lat1, lon1, lat2, lon2):
+        R = 6371
+        dlat = radians(lat2 - lat1)
+        dlon = radians(lon2 - lon1)
+        a = sin(dlat / 2) ** 2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2) ** 2
+        c = 2 * asin(sqrt(a))
+        return R * c
 
-df["zone"] = df["distance_km"].apply(
-    lambda d: "Zone 1" if d <= 20 else ("Zone 2" if d <= 40 else "Zone 3")
-)
+    with st.form("ajout_localite"):
+        commune = st.text_input("Commune")
+        agences_existantes = df["Code agence"].dropna().unique()
+        code_agence = st.selectbox("Code Agence", agences_existantes)
+        latitude = st.number_input("Latitude", format="%.6f")
+        longitude = st.number_input("Longitude", format="%.6f")
 
-# === Bouton pour exporter CSV
-st.download_button(
-    label="📥 Télécharger les données recalculées",
-    data=df.to_csv(index=False, sep=";", encoding="utf-8"),
-    file_name="zones_nv_agence_recalculées.csv",
-    mime="text/csv"
-)
+        try:
+            coord_ag = (
+                df[df["Code agence"] == code_agence]
+                .groupby("Code agence")[["Latitude_agence", "Longitude_agence"]]
+                .mean()
+                .reset_index()
+                .iloc[0]
+            )
+            latitude_ag = coord_ag["Latitude_agence"]
+            longitude_ag = coord_ag["Longitude_agence"]
 
-# === Sélection d’une agence
-agences = df["code_agence"].dropna().unique()
+            distance_calculee = round(haversine(latitude, longitude, latitude_ag, longitude_ag), 2)
+            st.markdown(f"📏 **Distance calculée automatiquement : {distance_calculee} km**")
+
+            if distance_calculee <= 20:
+                zone_suggeree = "Zone 1"
+            elif distance_calculee <= 40:
+                zone_suggeree = "Zone 2"
+            else:
+                zone_suggeree = "Zone 3"
+
+            zone = st.selectbox("Zone", ["Zone 1", "Zone 2", "Zone 3"],
+                                index=["Zone 1", "Zone 2", "Zone 3"].index(zone_suggeree))
+
+        except IndexError:
+            st.error("⚠️ Impossible de trouver les coordonnées de l'agence. Vérifiez les données.")
+            st.stop()
+
+        distance = st.number_input("Distance (km)", value=distance_calculee, format="%.2f")
+        submitted = st.form_submit_button("Ajouter")
+
+        if submitted:
+            insert_localite(commune, zone, code_agence, latitude, longitude, latitude_ag, longitude_ag, distance)
+            log_action(st.session_state["username"], "Ajout localité", f"{commune} | {zone} | {code_agence}")
+            st.success(f"✅ Localité '{commune}' ajoutée avec distance {distance} km.")
+            st.cache_data.clear()
+            st.rerun()
+
+else:
+    st.info("🔒 Lecture seule : vous n'avez pas les droits pour modifier les données.")
+
+# === Modifier ou Supprimer une localité (admin uniquement) ===
+if role == "admin":
+    st.subheader("🛠️ Modifier ou Supprimer une Localité")
+    df_display = df[["id", "Commune", "Zone", "Code agence"]].astype(str)
+    df_display["label"] = df_display["Commune"] + " | " + df_display["Zone"] + " | " + df_display["Code agence"]
+    selected_row = st.selectbox("📍 Choisir une localité à modifier ou supprimer", df_display["label"])
+
+    if selected_row:
+        selected_id = int(df_display[df_display["label"] == selected_row]["id"].values[0])
+        selected_data = df[df["id"] == selected_id].iloc[0]
+
+        with st.form("modifier_supprimer"):
+            commune = st.text_input("Commune", value=selected_data["Commune"])
+            code_agence = st.text_input("Code Agence", value=selected_data["Code agence"])
+            latitude = st.number_input("Latitude", value=selected_data["Latitude"], format="%.6f")
+            longitude = st.number_input("Longitude", value=selected_data["Longitude"], format="%.6f")
+            zone = st.selectbox("Zone", ["Zone 1", "Zone 2", "Zone 3"], index=["Zone 1", "Zone 2", "Zone 3"].index(selected_data["Zone"]))
+            distance = st.number_input("Distance (km)", value=selected_data["Distance (km)"], format="%.2f")
+            latitude_ag = st.number_input("Latitude Agence", value=selected_data["Latitude_agence"], format="%.6f")
+            longitude_ag = st.number_input("Longitude Agence", value=selected_data["Longitude_agence"], format="%.6f")
+
+            col1, col2 = st.columns(2)
+            if col1.form_submit_button("💾 Modifier"):
+                update_localite(selected_id, commune, zone, code_agence, latitude, longitude, latitude_ag, longitude_ag, distance)
+                log_action(st.session_state["username"], "Modification localité", f"{commune} | {zone} | {code_agence}")
+                st.success("✅ Localité mise à jour.")
+                st.cache_data.clear()
+
+            if col2.form_submit_button("🗑️ Supprimer"):
+                delete_localite(selected_id)
+                log_action(st.session_state["username"], "Suppression localité", f"{commune} | {zone} | {code_agence}")
+                st.success("🗑️ Localité supprimée.")
+                st.cache_data.clear()
+
+# === Statistiques et carte ===
+required_cols = ["Commune", "Code agence", "Latitude", "Longitude", "Zone", "Distance (km)", "Latitude_agence", "Longitude_agence"]
+df = df.dropna(subset=["Latitude", "Longitude"])
+agences = df["Code agence"].dropna().unique()
 agence_selectionnee = st.sidebar.selectbox("🏢 Choisissez une agence :", agences)
-df_agence = df[df["code_agence"] == agence_selectionnee]
-coord_agence = df_agence[["latitude_agence", "longitude_agence"]].iloc[0]
+df_agence = df[df["Code agence"] == agence_selectionnee]
+coord_agence = df_agence[["Latitude_agence", "Longitude_agence"]].iloc[0]
 
-# === Statistiques
-st.subheader(f"📊 Statistiques pour l'agence {agence_selectionnee}")
+st.subheader("📊 Statistiques générales")
 col1, col2, col3, col4 = st.columns(4)
 col1.metric("Nombre de localités", len(df_agence))
-col2.metric("Zone 1", len(df_agence[df_agence["zone"] == "Zone 1"]))
-col3.metric("Zone 2", len(df_agence[df_agence["zone"] == "Zone 2"]))
-col4.metric("Zone 3", len(df_agence[df_agence["zone"] == "Zone 3"]))
+col2.metric("Zone 1", len(df_agence[df_agence["Zone"] == "Zone 1"]))
+col3.metric("Zone 2", len(df_agence[df_agence["Zone"] == "Zone 2"]))
+col4.metric("Zone 3", len(df_agence[df_agence["Zone"] == "Zone 3"]))
 
-fig = px.histogram(df_agence, x="zone", color="zone", title="📈 Répartition des localités par zone")
+fig = px.histogram(df_agence, x="Zone", color="Zone", title="📈 Répartition des localités par zone")
 st.plotly_chart(fig)
 
 st.write("### 📏 Distances moyennes par zone")
 st.dataframe(
-    df_agence.groupby("zone")["distance_km"]
+    df_agence.groupby("Zone")["Distance (km)"]
     .agg(["count", "mean"])
     .rename(columns={"count": "Nb localités", "mean": "Distance moyenne (km)"})
     .round(2)
 )
 
-# === Carte
 st.subheader("🗺️ Carte interactive des localités")
 
-m = folium.Map(location=[coord_agence["latitude_agence"], coord_agence["longitude_agence"]], zoom_start=9)
+m = folium.Map(location=[coord_agence["Latitude_agence"], coord_agence["Longitude_agence"]], zoom_start=9)
 
 folium.CircleMarker(
-    location=[coord_agence["latitude_agence"], coord_agence["longitude_agence"]],
+    location=[coord_agence["Latitude_agence"], coord_agence["Longitude_agence"]],
     radius=8, color="black", fill=True, fill_opacity=1.0,
     popup=f"Agence : {agence_selectionnee}"
 ).add_to(m)
@@ -109,22 +180,29 @@ colors = {"Zone 1": "green", "Zone 2": "orange", "Zone 3": "red"}
 
 for _, row in df_agence.iterrows():
     folium.CircleMarker(
-        location=[row["latitude"], row["longitude"]],
+        location=[row["Latitude"], row["Longitude"]],
         radius=5,
-        color=colors.get(row["zone"], "gray"),
+        color=colors.get(row["Zone"], "gray"),
         fill=True,
         fill_opacity=0.7,
-        popup=row["commune"],
-        tooltip=row["commune"]
+        popup=row["Commune"],
+        tooltip=row["Commune"]
     ).add_to(localites_group)
 
 localites_group.add_to(m)
 
 Search(
     layer=localites_group,
-    search_label='commune',
+    search_label='Commune',
     placeholder="🔍 Chercher une localité...",
     collapsed=False
 ).add_to(m)
 
 st_folium(m, width=1100, height=600)
+
+st.download_button(
+    label="📥 Télécharger les données de cette agence",
+    data=df_agence.to_csv(index=False),
+    file_name=f"{agence_selectionnee}_localites.csv",
+    mime='text/csv'
+)
