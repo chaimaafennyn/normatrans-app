@@ -9,6 +9,12 @@ import pytz
 
 db = st.secrets["database"]
 
+def get_coordonnees_agences():
+    engine = get_engine()
+    query = "SELECT * FROM cordonnee_agence"
+    return pd.read_sql(query, engine)
+
+
 
 def get_engine():
     url = f"postgresql://{db.user}:{db.password}@{db.host}:{db.port}/{db.dbname}"
