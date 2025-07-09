@@ -107,7 +107,6 @@ m = folium.Map(
 colors_agences = {
     "Nouvelle Agence": "blue",
 }
-# attribuer des couleurs aux anciennes agences
 for idx, code in enumerate(codes_agences):
     colors_agences[code] = ["green", "orange", "purple", "red", "gray"][idx % 5]
 
@@ -116,16 +115,30 @@ groups = {}
 for agence in selected_agences:
     groups[agence] = FeatureGroup(name=agence)
     subset = df_all[df_all["Agence"] == agence]
+
+    # 🎯 Position moyenne de l’agence → marqueur
+    lat_mean = subset["Latitude"].mean()
+    lon_mean = subset["Longitude"].mean()
+
+    folium.Marker(
+        location=[lat_mean, lon_mean],
+        popup=f"📍 {agence}",
+        tooltip=f"{agence}",
+        icon=folium.Icon(color=colors_agences.get(agence, "gray"), icon="building")
+    ).add_to(m)
+
+    # 🔷 Localités
     for _, row in subset.iterrows():
         folium.CircleMarker(
             location=[row["Latitude"], row["Longitude"]],
-            radius=5,
+            radius=4,
             color=colors_agences.get(agence, "gray"),
             fill=True,
             fill_opacity=0.7,
             popup=f"{row['Commune']} ({row['Zone']})",
             tooltip=row["Commune"]
         ).add_to(groups[agence])
+
     groups[agence].add_to(m)
 
 Search(
@@ -138,6 +151,7 @@ Search(
 folium.LayerControl().add_to(m)
 
 st_folium(m, width=1100, height=600)
+
 
 # 📥 Télécharger les données
 st.download_button(
