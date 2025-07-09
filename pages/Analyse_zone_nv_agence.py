@@ -9,7 +9,7 @@ from database import get_zones_nv_agence  # on utilise la BDD
 
 # Initialiser show_content à False si pas déjà défini
 if "show_content" not in st.session_state:
-    st.session_state["show_content"] = False  # ← ou True selon ton besoin initial
+    st.session_state["show_content"] = True  # ← ou True selon ton besoin initial
 
 # coordonnées fixes de la nouvelle agence
 latitude_agence = 49.123456   # ← remplace par la vraie latitude
