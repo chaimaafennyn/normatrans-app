@@ -112,11 +112,19 @@ m = folium.Map(
     zoom_start=8
 )
 
+# couleurs pour les marqueurs d'agences
 colors_agences = {
     "Nouvelle Agence": "blue",
 }
 for idx, code in enumerate(codes_agences):
     colors_agences[code] = ["green", "orange", "purple", "red", "gray"][idx % 5]
+
+# couleurs pour les localités par zone
+zone_colors = {
+    "Zone 1": "green",
+    "Zone 2": "orange",
+    "Zone 3": "red"
+}
 
 groups = {}
 
@@ -139,12 +147,14 @@ for agence in selected_agences:
         icon=folium.Icon(color=colors_agences.get(agence, "gray"), icon="building")
     ).add_to(m)
 
-    # 🔷 Localités
+    # 🔷 Localités colorées par zone
     for _, row in subset.iterrows():
+        couleur_zone = zone_colors.get(row["Zone"], "gray")
+
         folium.CircleMarker(
             location=[row["Latitude"], row["Longitude"]],
             radius=4,
-            color=colors_agences.get(agence, "gray"),
+            color=couleur_zone,
             fill=True,
             fill_opacity=0.7,
             popup=f"{row['Commune']} ({row['Zone']})",
