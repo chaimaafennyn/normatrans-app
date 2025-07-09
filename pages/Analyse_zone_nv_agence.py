@@ -8,8 +8,8 @@ from folium import FeatureGroup
 from database import get_zones_nv_agence  # on utilise la BDD
 
 # Initialiser show_content à False si pas déjà défini
-if "show_content" not in st.session_state:
-    st.session_state["show_content"] = True  # ← ou True selon ton besoin initial
+#if "show_content" not in st.session_state:
+ #   st.session_state["show_content"] = True  # ← ou True selon ton besoin initial
 
 # coordonnées fixes de la nouvelle agence
 latitude_agence = 49.123456   # ← remplace par la vraie latitude
@@ -23,9 +23,9 @@ if "authenticated" not in st.session_state or not st.session_state["authenticate
 st.title("📍 Analyse des Zones - Nouvelle Agence")
 
 # Masquer le contenu si demandé
-if not st.session_state.get("show_content", True):
-    st.info("ℹ️ Le contenu de cette page est actuellement masqué.")
-    st.stop()
+ #if not st.session_state.get("show_content", True):
+  #  st.info("ℹ️ Le contenu de cette page est actuellement masqué.")
+   # st.stop()
 
 # Charger depuis Supabase
 df = get_zones_nv_agence()
