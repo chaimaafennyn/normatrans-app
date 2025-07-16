@@ -39,27 +39,53 @@ def get_palette():
 
 def insert_localite(commune, zone, code_agence, lat, lon, lat_ag, lon_ag, distance):
     engine = get_engine()
+    params = {
+        "commune": commune,
+        "zone": zone,
+        "code_agence": code_agence,
+        "lat": float(lat),
+        "lon": float(lon),
+        "lat_ag": float(lat_ag),
+        "lon_ag": float(lon_ag),
+        "distance": float(distance)
+    }
+
+    # DEBUG : affiche les valeurs et types
+    print("🔍 [DEBUG] Données envoyées à PostgreSQL :")
+    for key, value in params.items():
+        print(f"  {key}: {value!r} ({type(value).__name__})")
+
     query = text("""
         INSERT INTO zones_localites1
         (commune, zone, code_agence, latitude, longitude, latitude_agence, longitude_agence, "distance (km)")
         VALUES (:commune, :zone, :code_agence, :lat, :lon, :lat_ag, :lon_ag, :distance)
     """)
     with engine.begin() as conn:
-        conn.execute(query, {
-            "commune": commune,
-            "zone": zone,
-            "code_agence": code_agence,
-            "lat": float(lat),
-            "lon": float(lon),
-            "lat_ag": float(lat_ag),
-            "lon_ag": float(lon_ag),
-            "distance": float(distance)
-        })
+        conn.execute(query, params)
+
+        
 
         
 
 def update_localite(id, commune, zone, code_agence, lat, lon, lat_ag, lon_ag, distance):
     engine = get_engine()
+    params = {
+        "id": id,
+        "commune": commune,
+        "zone": zone,
+        "code_agence": code_agence,
+        "lat": lat,
+        "lon": lon,
+        "lat_ag": lat_ag,
+        "lon_ag": lon_ag,
+        "distance": distance
+    }
+
+    # DEBUG : affiche les valeurs et types
+    print("🔍 [DEBUG] Données envoyées à PostgreSQL (UPDATE) :")
+    for key, value in params.items():
+        print(f"  {key}: {value!r} ({type(value).__name__})")
+
     query = text("""
         UPDATE zones_localites1
         SET commune = :commune,
@@ -70,21 +96,11 @@ def update_localite(id, commune, zone, code_agence, lat, lon, lat_ag, lon_ag, di
             latitude_agence = :lat_ag,
             longitude_agence = :lon_ag,
             "distance (km)" = :distance
-
         WHERE id = :id
     """)
     with engine.begin() as conn:
-        conn.execute(query, {
-            "id": id,
-            "commune": commune,
-            "zone": zone,
-            "code_agence": code_agence,
-            "lat": lat,
-            "lon": lon,
-            "lat_ag": lat_ag,
-            "lon_ag": lon_ag,
-            "distance": distance
-        })
+        conn.execute(query, params)
+
 
 def delete_localite(id):
     engine = get_engine()
